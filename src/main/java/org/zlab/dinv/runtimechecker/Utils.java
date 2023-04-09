@@ -25,7 +25,7 @@ public class Utils {
     public static String constructIfCondition(String stmt) {
         int invId = InstrumentInvariant.curInvId++;
         //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
-        return "if (!(" + stmt + "))" + String.format("{com.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
+        return "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
 
     }
 
