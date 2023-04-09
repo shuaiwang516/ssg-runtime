@@ -12,6 +12,10 @@ public class Runtime {
 
     private static ConcurrentMap<Integer, Integer> violations = new ConcurrentHashMap<>();
 
+    static {
+        System.out.println("Invariant rt initialized!");
+    }
+
     public static void addViolation(int invId) {
         int oriCount = 0;
         if (violations.containsKey(invId)) {

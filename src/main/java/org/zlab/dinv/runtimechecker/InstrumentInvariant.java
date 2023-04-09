@@ -79,6 +79,13 @@ public class InstrumentInvariant {
                 // Create a new method body for wrappedMethod
                 BlockStmt body = new BlockStmt();
 
+                // TODO: Only add this at main functions
+                body.addStatement("try {" +
+                        "Class.forName(\"org.zlab.dinv.runtimechecker.Runtime\");" +
+                        "}" +
+                        "catch (ClassNotFoundException e)" +
+                        "{throw new RuntimeException(e);}");
+
                 // Enter env
                 for (String enterInvsBlock: enterInvsBlocks) {
                     try {
