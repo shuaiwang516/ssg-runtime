@@ -15,7 +15,6 @@ public class Utils {
     public static String getMethodName(String methodSig) {
         // input: DataStructures.StackArTester.createItem(int)
         // output: createItem
-
         int pos1 = methodSig.indexOf("(");
         if (pos1 == -1) {
             throw new RuntimeException("method Sig " + methodSig + " does not contain (");
@@ -58,9 +57,6 @@ public class Utils {
         return typeStr.split(",");
     }
 
-
-
-
     public static String constructIfCondition(String stmt) {
         int invId = InstrumentInvariant.curInvId++;
         //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
@@ -68,21 +64,34 @@ public class Utils {
 
     }
 
+    public static boolean excludeInv(String inv) {
+        // filter out some invariants that cannot be embedded now
+        // TODO: Handle comparison between pre-state and post-state
+        if (inv.contains("orig") || inv.contains("\\old") || inv.contains("\\new")) {
+            return true;
+        }
+//        // TODO: Handle derived size() var
+//        if (inv.contains("size")) {
+//            return true;
+//        }
+        // TODO: Handle return val
+        if (inv.contains("return") || inv.contains("\\result")) {
+            return true;
+        }
+        if (inv.contains("assertionsDisabled")) {
+            return true;
+        }
+        if (inv.startsWith("assignable ")) {
+            return true;
+        }
+        return false;
+    }
+
     public static List<String> constructInvStmt(List<String> invs) {
         List<String> ret = new LinkedList<>();
         for (String inv: invs) {
-            // TODO: Handle comparison between pre-state and post-state
-            if (inv.contains("orig")) {
+            if (excludeInv(inv))
                 continue;
-            }
-            // TODO: Handle derived size() var
-            if (inv.contains("size")) {
-                continue;
-            }
-            // TODO: Hanlde return
-            if (inv.contains("return")) {
-                continue;
-            }
             // All the generated invs will be added
             ret.add(constructIfCondition(inv));
         }
@@ -111,13 +120,10 @@ public class Utils {
             return false;
         }
 
-        // All checks passed, this is the main method
         return true;
     }
 
     public static boolean isMatchPpt(ClassOrInterfaceDeclaration classDecl, MethodDeclaration methodDecl, String pptMethodSig) {
-
-
 
         StringBuilder signatureBuilder = new StringBuilder();
 
@@ -133,6 +139,10 @@ public class Utils {
         // ppt parse
         // parse class full name without parameter
         String pptMethodSigWithoutParam = Utils.getMethodSigWithoutParam(pptMethodSig);
+        // javaparser represents inner class with . while ppt represents inner class with $
+        // switch it!
+        pptMethodSigWithoutParam = pptMethodSigWithoutParam.replace("$", ".");
+
         String[] pptParamTypes = Utils.getParamTypes(pptMethodSig);
 
         // (1) Compare method sig without param

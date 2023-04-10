@@ -6,7 +6,6 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.comments.BlockComment;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
@@ -68,7 +67,10 @@ public class InstrumentInvariant {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration classDecl, Void arg) {
+            super.visit(classDecl, arg);
+
             // perform instrumentation
+            System.out.println("className = " + classDecl.getName());
             classDecl.findAll(MethodDeclaration.class).forEach(method -> {
 
                 // if it's a main function
@@ -105,9 +107,15 @@ public class InstrumentInvariant {
 
                     String methodName = Utils.getMethodName(pptMethodSig);
 
-                    if (!Utils.isMatchPpt(classDecl, method, pptMethodSig)) {
-                        continue;
+                    try {
+                        if (!Utils.isMatchPpt(classDecl, method, pptMethodSig)) {
+                            continue;
+                        }
+                    } catch (RuntimeException e) {
+                        System.out.println("skip class " + classDecl.getName() + " because of " + e);
+                        return;
                     }
+
 
                     if (methodName.equals(method.getNameAsString())) {
                         if (posStatus.equals("ENTER")) {

@@ -30,8 +30,9 @@ public class Main {
                 .filter(p -> p.toString().endsWith(".java"))
                 .forEach(p -> {
                     try {
-                        // Parse the Java source file using Javaparser
-                        // if (!p.toString().contains("/Tracker.java")) return;
+                        // debug
+                        // if (!p.toString().contains("/Clustering.java")) return;
+
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         cu.accept(new InstrumentInvariant.InstClassVisitor(invs), null);

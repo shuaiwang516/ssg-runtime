@@ -9,10 +9,12 @@ This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
 ./gradlew shadowJar
 ```
 
-### Instrument Cassandra
+## Instrument systems
+### Cassandra
 The following env variable will add our runtime jar to the Cassandra's classpath.
 ```bash
-export EXTRA_CLASSPATH=/Users/hanke/Desktop/Project/dinv-monitor/build/libs/dinv-monitor-shadow.jar
+cp /path/to/dinv-monitor-shadow.jar $CASSANDRA_DIR/build/lib/jars
+export EXTRA_CLASSPATH=/path/to/dinv-monitor-shadow.jar
 ```
 
 ## Status
@@ -20,8 +22,12 @@ Tested the instrumentation on Cassandra-3.11.14 source code, the instrumented
 invariants can be compiled correctly.
 
 
-## TODO
-publish jar file so that it can be added by modifying the pom.xml directly.
+## TODOs
+Publish jar file so that it can be added by modifying the pom.xml directly.
+
+Handle invariants
+- comparison between pre and post state
+
 
 ## Post Process inv
 
