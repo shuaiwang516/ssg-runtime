@@ -2,11 +2,14 @@ package org.zlab.dinv.runtimechecker;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.comments.BlockComment;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.File;
@@ -26,7 +29,37 @@ public class InstrumentInvariant {
 
     // TODO: change all fields to public!
 
-    private static class InstClassVisitor extends VoidVisitorAdapter<Void> {
+    public static class testClassVisitor extends VoidVisitorAdapter<Void> {
+
+        @Override
+        public void visit(MethodDeclaration methodDeclaration, Void arg) {
+            // add a print for all methods
+
+            if (methodDeclaration.isAbstract() || methodDeclaration.isNative())
+                return;
+
+            if (methodDeclaration.getParentNode().isPresent()) {
+                Object parentNode = methodDeclaration.getParentNode().get();
+                if (parentNode instanceof ClassOrInterfaceDeclaration) {
+                    ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) parentNode;
+                    if (classDeclaration.isInterface())
+                        return;
+                }
+            }
+
+            BlockStmt methodBody = methodDeclaration.getBody().orElse(new BlockStmt());
+            NodeList<Statement> stmts = methodBody.getStatements();
+
+            stmts.add(0, StaticJavaParser.parseStatement("System.out.println(\"[hklog] hello\");"));
+
+            methodBody.setStatements(stmts);
+            methodDeclaration.setBody(methodBody);
+        }
+    }
+
+
+
+    public static class InstClassVisitor extends VoidVisitorAdapter<Void> {
 
         public Map<String, List<String>> invs;
 
@@ -39,6 +72,19 @@ public class InstrumentInvariant {
             // perform instrumentation
             classDecl.findAll(MethodDeclaration.class).forEach(method -> {
 
+                // if it's a main function
+                if (Utils.isMainMethod(method)) {
+                    if (method.getBody().isPresent()) {
+                        method.getBody().get().addStatement(StaticJavaParser.parseStatement("try {" +
+                                "Class.forName(\"org.zlab.dinv.runtimechecker.Runtime\");" +
+                                "}" +
+                                "catch (ClassNotFoundException e)" +
+                                "{throw new RuntimeException(e);}"));
+                    }
+                }
+
+                // TODO: Only add this at main functions
+
                 if (method.getNameAsString().startsWith("internal$")) {
                     return;
                 }
@@ -47,17 +93,22 @@ public class InstrumentInvariant {
                 LinkedList<String> exitInvs = new LinkedList<>();
 
                 for (String ppt: invs.keySet()) {
+                    // match the ppt to the method
                     String[] strs = ppt.split(":::");
                     if (strs.length != 2)
                         continue;
-                    String methodSig = strs[0];
+                    String pptMethodSig = strs[0];
                     String posStatus = strs[1];
 
                     // FIXME: handle object
                     if (posStatus.equals("OBJECT") || posStatus.equals("CLASS"))
                         continue;
 
-                    String methodName = Utils.getMethodName(methodSig);
+                    String methodName = Utils.getMethodName(pptMethodSig);
+
+                    if (!Utils.isMatchPpt(classDecl, method, pptMethodSig)) {
+                        continue;
+                    }
 
                     if (methodName.equals(method.getNameAsString())) {
                         if (posStatus.equals("ENTER")) {
@@ -72,6 +123,9 @@ public class InstrumentInvariant {
                 List<String> enterInvsBlocks = Utils.constructInvStmt(enterInvs);
                 List<String> exitInvsBlocks = Utils.constructInvStmt(exitInvs);
 
+                if (enterInvsBlocks.isEmpty() && exitInvsBlocks.isEmpty())
+                    return;
+
                 // Create a new method with the wrapped name
                 MethodDeclaration wrappedMethod = method.clone();
                 method.setName("internal$" + method.getNameAsString());
@@ -79,23 +133,17 @@ public class InstrumentInvariant {
                 // Create a new method body for wrappedMethod
                 BlockStmt body = new BlockStmt();
 
-                // TODO: Only add this at main functions
-                body.addStatement("try {" +
-                        "Class.forName(\"org.zlab.dinv.runtimechecker.Runtime\");" +
-                        "}" +
-                        "catch (ClassNotFoundException e)" +
-                        "{throw new RuntimeException(e);}");
-
                 // Enter env
                 for (String enterInvsBlock: enterInvsBlocks) {
                     try {
                         body.addStatement(enterInvsBlock);
                     } catch (Exception e) {
                         // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
+                        System.out.println("enter add statement exception + " + e);
                     }
                 }
 
-                body.addStatement("System.out.println(\"Before calling " + wrappedMethod.getNameAsString() + "()\");");
+//                body.addStatement("System.out.println(\"Before calling " + wrappedMethod.getNameAsString() + "()\");");
 
                 List<String> paramNames = new LinkedList<>();
                 for (Parameter parameter : wrappedMethod.getParameters()) {
@@ -119,7 +167,7 @@ public class InstrumentInvariant {
                             ");");
                 }
 
-                body.addStatement("System.out.println(\"After calling " + wrappedMethod.getNameAsString() + "()\");");
+//                body.addStatement("System.out.println(\"After calling " + wrappedMethod.getNameAsString() + "()\");");
 
                 // Enter env
                 for (String exitInvsBlock: exitInvsBlocks) {
@@ -127,6 +175,7 @@ public class InstrumentInvariant {
                         body.addStatement(exitInvsBlock);
                     } catch (Exception e) {
                         // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
+                        System.out.println("exit add statement exception + " + e);
                     }
                 }
 
@@ -144,6 +193,33 @@ public class InstrumentInvariant {
 
     public static void main(String[] args) throws IOException {
         // Target file
+
+
+    }
+
+    public static void testCassandra() throws IOException {
+        Path targetInv = Paths.get("input/cassandra_inv");
+
+
+        Path targetFile = Paths.get("input/StackArTester.java");
+
+        // Parse the input class file
+        File file = targetFile.toFile();
+        CompilationUnit cu = StaticJavaParser.parse(file);
+
+        // test(cu);
+
+        // Use a VoidVisitor to visit all MethodDeclaration nodes
+        cu.accept(new InstClassVisitor(LoadInvariant.load(targetInv)), null);
+
+        System.out.println("cu = " + cu.toString());
+
+        FileWriter output = new FileWriter("output/StackArTester.java");
+        output.write(cu.toString());
+        output.close();
+    }
+
+    public static void testExample() throws IOException {
         Path targetInv = Paths.get("input/inv");
         Path targetFile = Paths.get("input/StackArTester.java");
 

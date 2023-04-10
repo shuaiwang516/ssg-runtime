@@ -1,5 +1,12 @@
 package org.zlab.dinv.runtimechecker;
 
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.Type;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,9 +26,40 @@ public class Utils {
             throw new RuntimeException("method Sig " + methodSigNoParam + " does not contain dot");
         }
         return methodSigNoParam.substring(pos2 + 1);
-
-
     }
+
+    public static String getMethodSigWithoutParam(String methodSig) {
+        // input: DataStructures.StackArTester.createItem(int)
+        // output: DataStructures.StackArTester.createItem
+
+        int pos1 = methodSig.indexOf("(");
+        if (pos1 == -1) {
+            throw new RuntimeException("method Sig " + methodSig + " does not contain (");
+        }
+        return methodSig.substring(0, pos1);
+    }
+
+    public static String[] getParamTypes(String methodSig) {
+        // input: DataStructures.StackArTester.createItem(int)
+        // output: DataStructures.StackArTester.createItem
+
+        int pos1 = methodSig.indexOf("(");
+        if (pos1 == -1) {
+            throw new RuntimeException("method Sig " + methodSig + " does not contain (");
+        }
+        String typeStr = methodSig.substring(pos1 + 1, methodSig.length()-1);
+
+        typeStr = typeStr.replaceAll("\\s", "");
+
+        if (!typeStr.contains(",")) {
+            return new String[0];
+        }
+
+        return typeStr.split(",");
+    }
+
+
+
 
     public static String constructIfCondition(String stmt) {
         int invId = InstrumentInvariant.curInvId++;
@@ -37,16 +75,85 @@ public class Utils {
             if (inv.contains("orig")) {
                 continue;
             }
+            // TODO: Handle derived size() var
+            if (inv.contains("size")) {
+                continue;
+            }
+            // TODO: Hanlde return
+            if (inv.contains("return")) {
+                continue;
+            }
             // All the generated invs will be added
             ret.add(constructIfCondition(inv));
         }
         return ret;
     }
 
-    public static void test() {
+    public static boolean isMainMethod(MethodDeclaration methodDeclaration) {
+        // Check the method name
+        if (!methodDeclaration.getNameAsString().equals("main")) {
+            return false;
+        }
 
+        // Check the modifiers
+        if (!methodDeclaration.isPublic() || !methodDeclaration.isStatic()) {
+            return false;
+        }
 
+        // Check the return type
+        if (!methodDeclaration.getTypeAsString().equals("void")) {
+            return false;
+        }
+
+        // Check the parameters
+        List<Parameter> parameters = methodDeclaration.getParameters();
+        if (parameters.size() != 1 || !parameters.get(0).getTypeAsString().equals("String[]")) {
+            return false;
+        }
+
+        // All checks passed, this is the main method
+        return true;
     }
 
+    public static boolean isMatchPpt(ClassOrInterfaceDeclaration classDecl, MethodDeclaration methodDecl, String pptMethodSig) {
+
+
+
+        StringBuilder signatureBuilder = new StringBuilder();
+
+        if (classDecl.getFullyQualifiedName().isPresent())
+            signatureBuilder.append(classDecl.getFullyQualifiedName().get());
+        else
+            throw new RuntimeException("class " + classDecl.getName() + " do not have full name");
+        // append method name
+        signatureBuilder.append(".").append(methodDecl.getNameAsString());
+
+        String methodSigWithoutParam = signatureBuilder.toString();
+
+        // ppt parse
+        // parse class full name without parameter
+        String pptMethodSigWithoutParam = Utils.getMethodSigWithoutParam(pptMethodSig);
+        String[] pptParamTypes = Utils.getParamTypes(pptMethodSig);
+
+        // (1) Compare method sig without param
+        if (!methodSigWithoutParam.equals(pptMethodSigWithoutParam))
+            return false;
+
+        // (2) Compare param num (only coarse comparison)
+        NodeList<Parameter> parameters = methodDecl.getParameters();
+        if (parameters.size() != pptParamTypes.length)
+            return false;
+
+        // (3) Compare param type (only coarse comparison)
+        for (int i = 0; i < parameters.size(); i++) {
+            Type type = parameters.get(i).getType();
+            if (type instanceof ClassOrInterfaceType) {
+                ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) type;
+                if (!pptParamTypes[i].contains(classOrInterfaceType.getNameAsString()))
+                    return false;
+            }
+        }
+        return true;
+    }
 
 }
