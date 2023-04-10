@@ -74,7 +74,7 @@ public class InstrumentInvariant {
                 // if it's a main function
                 if (Utils.isMainMethod(method)) {
                     if (method.getBody().isPresent()) {
-                        method.getBody().get().addStatement(StaticJavaParser.parseStatement("try {" +
+                        method.getBody().get().addStatement(0, StaticJavaParser.parseStatement("try {" +
                                 "Class.forName(\"org.zlab.dinv.runtimechecker.Runtime\");" +
                                 "}" +
                                 "catch (ClassNotFoundException e)" +

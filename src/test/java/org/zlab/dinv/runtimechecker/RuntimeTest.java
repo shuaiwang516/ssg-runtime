@@ -10,7 +10,7 @@ import static org.zlab.dinv.runtimechecker.Runtime.dumpViolationServer;
 public class RuntimeTest {
 
     private static final String SERVER_HOST = "localhost"; // the server host name or IP address
-    private static final int SERVER_PORT = 8080; // the server port
+    private static final int SERVER_PORT = 62000; // the server port
 
     @Test
     public void testRuntimeServer() {

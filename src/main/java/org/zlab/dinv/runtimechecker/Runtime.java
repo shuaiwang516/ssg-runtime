@@ -33,13 +33,20 @@ public class Runtime {
         System.out.println("Invariant rt initialized!");
         violations.put(-1, -1);
 
+        try {
+            dumpViolationServer();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         // FIXME: write the violation to disk (only for testing purpose: comment out later)
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 String json = mapper.writeValueAsString(violations);
-                System.out.println(json);
+//                System.out.println(json);
                 // write to file
+                System.out.println("[hklog] system hook: dump violations");
                 File file = new File("violations.json");
                 mapper.writeValue(file, violations);
             } catch (IOException e) {
@@ -56,7 +63,7 @@ public class Runtime {
         violations.put(invId, ++oriCount);
     }
 
-    private static final int PORT = 8080; // the port to listen on
+    private static final int PORT = 62000; // the port to listen on
 
     public static void dumpViolationServer() throws IOException {
 
@@ -64,6 +71,7 @@ public class Runtime {
             try {
                 ServerSocket serverSocket = new ServerSocket(PORT);
                 while (true) {
+                    System.out.println("[hklog] Invariant Runtime waiting!");
                     Socket clientSocket = serverSocket.accept();
                     // handle client connection
                     System.out.println("Client connected from " + clientSocket.getInetAddress().getHostAddress());
