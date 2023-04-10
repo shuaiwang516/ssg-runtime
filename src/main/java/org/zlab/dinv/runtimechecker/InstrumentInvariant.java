@@ -58,7 +58,6 @@ public class InstrumentInvariant {
     }
 
 
-
     public static class InstClassVisitor extends VoidVisitorAdapter<Void> {
 
         public Map<String, List<String>> invs;
@@ -129,6 +128,9 @@ public class InstrumentInvariant {
                 // Create a new method with the wrapped name
                 MethodDeclaration wrappedMethod = method.clone();
                 method.setName("internal$" + method.getNameAsString());
+
+                // remove @Override from the method being wrapped
+                method.getAnnotations().removeIf(a -> a.getName().asString().equals("Override"));
 
                 // Create a new method body for wrappedMethod
                 BlockStmt body = new BlockStmt();
