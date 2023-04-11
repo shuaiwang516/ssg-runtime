@@ -2,6 +2,8 @@ package org.zlab.dinv.runtimechecker;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +23,7 @@ public class Main {
     public static void test() throws IOException {
         String projectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
 
-        Path targetInv = Paths.get("input/cassandra_inv");
+        Path targetInv = Paths.get("input/target_inv_first_half_no_commit");
         Map<String, List<String>> invs =  LoadInvariant.load(targetInv);
 
         // Walk the project directory structure and find all the Java source files
@@ -31,12 +33,11 @@ public class Main {
                 .forEach(p -> {
                     try {
                         // debug
-                        // if (!p.toString().contains("/Clustering.java")) return;
-
+//                         if (!p.toString().contains("/CommitLog.java")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         cu.accept(new InstrumentInvariant.InstClassVisitor(invs), null);
-                        // Optionally, write the modified AST back to the original file
+
                         Files.write(p, cu.toString().getBytes());
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -48,5 +49,15 @@ public class Main {
         test();
     }
 
-
+    public static void rewriteFieldsAsPublic(CompilationUnit cu) {
+        // Iterate over all non-abstract/interface classes
+        cu.findAll(ClassOrInterfaceDeclaration.class, c -> !c.isAbstract() && !c.isInterface())
+                .forEach(cls -> {
+                    // Iterate over all fields in class
+                    cls.getFields().forEach(field -> {
+                        field.removeModifier(Modifier.Keyword.PRIVATE, Modifier.Keyword.PROTECTED);
+                        field.setModifier(Modifier.Keyword.PUBLIC, true);
+                    });
+                });
+    }
 }

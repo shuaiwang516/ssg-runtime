@@ -22,6 +22,9 @@ public class LoadInvariant {
                 if (line.startsWith("===")) {
                     // Start of a new block, so create a new list for the current key
                     currentKey = br.readLine();
+                    if (currentKey == null) {
+                        break; // stop here
+                    }
                     currentList = new ArrayList<>();
                     resultMap.put(currentKey, currentList);
                 } else if (currentKey != null && currentList != null) {
