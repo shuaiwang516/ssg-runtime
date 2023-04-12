@@ -23,7 +23,7 @@ public class Main {
     public static void test() throws IOException {
         String projectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
 
-        Path targetInv = Paths.get("input/target_inv_first_half_no_commit");
+        Path targetInv = Paths.get("input/target_inv_no_commit");
         Map<String, List<String>> invs =  LoadInvariant.load(targetInv);
 
         // Walk the project directory structure and find all the Java source files
