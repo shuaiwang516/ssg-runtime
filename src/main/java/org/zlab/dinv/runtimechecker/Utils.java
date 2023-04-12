@@ -59,6 +59,13 @@ public class Utils {
 
     public static String constructIfCondition(String stmt) {
         int invId = InstrumentInvariant.curInvId++;
+
+        // transform fake sizeXXX related variables
+        if (stmt.contains("_daikonReflectMethod")) {
+            // replace this with ()
+            stmt = stmt.replaceAll("_daikonReflectMethod", "()");
+        }
+
         //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
         return "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
 

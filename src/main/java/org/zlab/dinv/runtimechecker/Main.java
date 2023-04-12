@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,12 +21,27 @@ public class Main {
 
     // process the entire project
 
-    public static void test() throws IOException {
-        String cassandrRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
-        String hdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode";
+    public static String cassandrRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
+    public static String cassInvPath = "input/target_inv_cass_jml";
 
-        String projectRootDir = hdfsRootDir;
-        Path targetInv = Paths.get("input/target_inv_hdfs_jml");
+    public static String hdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode";
+    public static String hdfsInvPath = "input/target_inv_hdfs_jml";
+
+    public static String targetSystem = "cassandra";
+
+    public static void test() throws IOException {
+        String projectRootDir;
+        Path targetInv;
+
+        if (targetSystem.equals("cassandra")) {
+            projectRootDir = cassandrRootDir;
+            targetInv = Paths.get(cassInvPath);
+        } else if (targetSystem.equals("hdfs")) {
+            projectRootDir = hdfsRootDir;
+            targetInv = Paths.get(hdfsInvPath);
+        } else {
+            throw new RemoteException("only tested on cassandra or hdfs");
+        }
 
         Map<String, List<String>> invs =  LoadInvariant.load(targetInv);
 
