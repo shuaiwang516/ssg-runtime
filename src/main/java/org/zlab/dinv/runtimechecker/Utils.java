@@ -70,12 +70,12 @@ public class Utils {
         if (inv.contains("orig") || inv.contains("\\old") || inv.contains("\\new")) {
             return true;
         }
-//        // TODO: Handle derived size() var
-//        if (inv.contains("size")) {
-//            return true;
-//        }
         // TODO: Handle return val
         if (inv.contains("return") || inv.contains("\\result")) {
+            return true;
+        }
+        // Exclude JML implications
+        if (inv.contains("==>")) {
             return true;
         }
         if (inv.contains("assertionsDisabled")) {
