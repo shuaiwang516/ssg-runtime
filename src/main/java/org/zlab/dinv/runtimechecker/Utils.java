@@ -74,10 +74,15 @@ public class Utils {
         if (inv.contains("return") || inv.contains("\\result")) {
             return true;
         }
+        // TODO: Handle daikon.Quant.xxx, redirect them to our rt
+        if (inv.contains("daikon.Quant")) {
+            return true;
+        }
         // Exclude JML implications
         if (inv.contains("==>")) {
             return true;
         }
+        // Exclude
         if (inv.contains("assertionsDisabled")) {
             return true;
         }

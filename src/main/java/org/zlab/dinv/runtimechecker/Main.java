@@ -21,9 +21,12 @@ public class Main {
     // process the entire project
 
     public static void test() throws IOException {
-        String projectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
+        String cassandrRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
+        String hdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode";
 
-        Path targetInv = Paths.get("input/target_inv_no_commit");
+        String projectRootDir = hdfsRootDir;
+        Path targetInv = Paths.get("input/target_inv_hdfs_jml");
+
         Map<String, List<String>> invs =  LoadInvariant.load(targetInv);
 
         // Walk the project directory structure and find all the Java source files
