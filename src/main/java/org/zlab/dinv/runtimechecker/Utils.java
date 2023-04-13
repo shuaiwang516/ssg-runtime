@@ -50,7 +50,7 @@ public class Utils {
 
         typeStr = typeStr.replaceAll("\\s", "");
 
-        if (!typeStr.contains(",")) {
+        if (typeStr.isEmpty()) {
             return new String[0];
         }
 

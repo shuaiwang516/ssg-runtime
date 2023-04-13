@@ -2,6 +2,7 @@ package org.zlab.dinv.runtimechecker;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -84,7 +85,10 @@ public class InstrumentInvariant {
                     }
                 }
 
-                // TODO: Only add this at main functions
+                // skip method declaration in the anonymous class or inner class
+                Node parentNode = method.getParentNode().orElse(null);
+                if (parentNode == null || !parentNode.equals(classDecl))
+                    return;
 
                 if (method.getNameAsString().startsWith("internal$")) {
                     return;
