@@ -65,7 +65,10 @@ public class Utils {
             // replace this with ()
             stmt = stmt.replaceAll("_daikonReflectMethod", "()");
         }
-
+        if (stmt.contains("$")) {
+            // replace this with ()
+            stmt = stmt.replaceAll("\\$", ".");
+        }
         //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
         return "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
 
