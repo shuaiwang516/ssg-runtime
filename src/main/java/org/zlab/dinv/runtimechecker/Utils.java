@@ -74,7 +74,10 @@ public class Utils {
             stmt = stmt.replaceAll("\\$", ".");
         }
         //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
-        return "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
+
+        String condCheck = "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
+
+        return String.format("try {%s} catch (Exception e) {}", condCheck);
 
     }
 
@@ -101,6 +104,9 @@ public class Utils {
             return true;
         }
         if (inv.startsWith("assignable ")) {
+            return true;
+        }
+        if (inv.contains(".toString()")) {
             return true;
         }
         return false;

@@ -13,7 +13,9 @@ This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
 ### Cassandra
 The following env variable will add our runtime jar to the Cassandra's classpath.
 ```bash
+# This will include the runtime jar for compilation (ant)
 cp /path/to/dinv-monitor-shadow.jar $CASSANDRA_DIR/build/lib/jars
+# This will include the runtime jar for Cassandra runtime
 export EXTRA_CLASSPATH=/path/to/dinv-monitor-shadow.jar
 ```
 
