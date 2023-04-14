@@ -7,6 +7,10 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -179,6 +183,24 @@ public class Utils {
             }
         }
         return true;
+    }
+
+    public static List<String> readFile(Path path) {
+        List<String> lines = new LinkedList<>();
+        try(BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
+            String line = br.readLine();
+            while (line != null) {
+                lines.add(line);
+                line = br.readLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return lines;
+    }
+
+    public static String replaceDollarWithDot(String str) {
+        return str.replaceAll("\\$", ".");
     }
 
 }

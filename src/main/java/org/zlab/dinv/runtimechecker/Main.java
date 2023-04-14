@@ -13,21 +13,18 @@ import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.javaparser.StaticJavaParser.parse;
-
 public class Main {
     // input: inv, source code path
     // output: embed the invariants into the program points
 
     // process the entire project
-
     public static String cassandrRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
     public static String cassInvPath = "input/target_inv_cass_jml";
 
-    public static String hdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode";
+    public static String hdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server";
     public static String hdfsInvPath = "input/target_inv_hdfs_jml";
 
-    public static String targetSystem = "cassandra";
+    public static String targetSystem = "hdfs";
 
     public static void test() throws IOException {
         String projectRootDir;
@@ -52,7 +49,7 @@ public class Main {
                 .forEach(p -> {
                     try {
                         // debug
-//                         if (!p.toString().contains("/CommitLog.java")) return;
+                        // if (!p.toString().contains("/FSEditLogAsync.java")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         cu.accept(new InstrumentInvariant.InstClassVisitor(invs), null);

@@ -58,3 +58,38 @@ sed -i '/\$assertionsDisabled/d' filename.txt
 
 ```
 
+# Change visibility
+Our program analysis can track to some interesting variables. We want
+daikon to monitor them. However, those variables could be local variables
+and daikon won't monitor them. Therefore, we add a local dummy field to
+represent their values.
+
+E.g.
+
+Before
+```java
+pubilc Class Example {
+    public void f(int a) {
+        int b = 0;
+        if (a > b) {
+        }
+
+    }
+}
+```
+After
+```java
+pubilc Class Example {
+    public int a_daikon_dummy_field;
+    
+    public void f(int a) {
+        int b = 0;
+        a_daikon_dummy_field = a;
+        if (a > b) {
+        }
+        // Specify invariants over a and a_daikon_dummy_field
+    }
+}
+```
+
+
