@@ -20,11 +20,16 @@ import java.util.List;
 import java.util.Map;
 
 public class NumericFields {
-    // input class
-    // output: numeric fields
-    public static Map<String, List<String>> extractNumericFields(String projectRootDir) throws IOException {
 
-        List<String> targetClasses = Utils.readFile(Paths.get("input/cassandra_input_classes.txt"));
+    /**
+     * Extract the numeric fields from a list of target classes. The class should be given with full
+     * qualified.
+     * @param projectRootDir
+     * @return
+     * @throws IOException
+     */
+    public static Map<String, List<String>> extractNumericFields(String projectRootDir, List<String> targetClasses) throws IOException {
+
         // remove $
         List<String> targetClassesNoDollar = new LinkedList<>();
         for (String classFullName: targetClasses) {
@@ -98,17 +103,14 @@ public class NumericFields {
         System.out.println("Deserialized Map: " + map);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         String projectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
         Path outputPath = Paths.get("output/numeric_fields.json");
+        List<String> targetClasses = Utils.readFile(Paths.get("input/cassandra_input_classes.txt"));
 
-        try {
-            Map<String, List<String>> classToNumericFields = extractNumericFields(projectRootDir);
-            writeNumericFields(outputPath, classToNumericFields);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Map<String, List<String>> classToNumericFields = extractNumericFields(projectRootDir, targetClasses);
+        writeNumericFields(outputPath, classToNumericFields);
         // readNumericFields(outputPath);
     }
 }
