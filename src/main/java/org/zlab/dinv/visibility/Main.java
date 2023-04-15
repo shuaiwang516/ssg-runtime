@@ -3,37 +3,48 @@ package org.zlab.dinv.visibility;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
 public class Main {
-    // Input: local variables, output: rewrite them as fields
+    // input: Map<String, Map<String, Set<Integer>>> targetIfBranches
+    //      - {Class-> {MethodName, lineSet}}
+    // output: overwrite the if branches as local fields, so daikon can instrument them
 
     public static void main(String[] args) throws IOException {
+        // arg1
+        Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+
+        // arg2
         Path targetIfBranchPath = Paths.get("input/targetIfInfo_example");
-        Path targetFilePath = Paths.get("/Users/hanke/Desktop/Project/vasco/src/test/java/vasco/tests/Template1TestCase.java");
+        Map<String, Map<String, Set<Integer>>> targetIfBranches = Utils.readIfInfo(targetIfBranchPath);
 
-        Map<String, Map<String, Set<Integer>>> targetIfBranches;
-        try {
-            targetIfBranches = Utils.readIfInfo(targetIfBranchPath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println(targetIfBranches);
+        rewriteVisibility(projectRootDir, targetIfBranches);
+    }
 
-        CompilationUnit cu = StaticJavaParser.parse(targetFilePath.toFile());
+    public static void rewriteVisibility(Path projectRootDir, Map<String, Map<String, Set<Integer>>> targetIfBranches) throws IOException {
         InstField instField = new InstField(targetIfBranches);
-        instField.process(cu);
-        System.out.println(cu);
 
-        // Write the modified AST back out to a Java file
-        FileOutputStream out = new FileOutputStream(targetFilePath.toFile());
-        out.write(cu.toString().getBytes());
-        out.close();
+        // Walk the project directory structure and find all the Java source files
+        Files.walk(projectRootDir)
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java"))
+                .forEach(p -> {
+                    try {
+                        // debug
+                        if (!p.toString().contains("/ColumnIndex.java")) return;
+                        CompilationUnit cu = StaticJavaParser.parse(p.toFile());
+                        // Traverse the AST and perform the desired processing
+                        instField.process(cu);
+
+                        Files.write(p, cu.toString().getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
 }
