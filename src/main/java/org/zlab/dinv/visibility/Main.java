@@ -13,19 +13,20 @@ public class Main {
     // Input: local variables, output: rewrite them as fields
 
     public static void main(String[] args) throws FileNotFoundException {
-        Path targetInvPath = Paths.get("input/targetIfInfo_example");
+        Path targetIfBranchPath = Paths.get("input/targetIfInfo_example");
         Path targetFilePath = Paths.get("/Users/hanke/Desktop/Project/vasco/src/test/java/vasco/tests/Template1TestCase.java");
 
         Map<String, Map<String, Set<Integer>>> targetIfBranches;
         try {
-            targetIfBranches = Utils.readIfInfo(targetInvPath);
+            targetIfBranches = Utils.readIfInfo(targetIfBranchPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         System.out.println(targetIfBranches);
 
         CompilationUnit cu = StaticJavaParser.parse(targetFilePath.toFile());
-        InstField.process(cu, targetIfBranches);
+        InstField instField = new InstField(targetIfBranches);
+        instField.process(cu);
         System.out.println(cu);
     }
 
