@@ -60,7 +60,7 @@ sed -i '/\$assertionsDisabled/d' filename.txt
 
 ```
 
-# Change visibility
+# Visibility Rewrite
 Our program analysis can track to some interesting variables. We want
 daikon to monitor them. However, those variables could be local variables
 and daikon won't monitor them. Therefore, we add a local dummy field to
@@ -82,11 +82,11 @@ pubilc Class Example {
 After
 ```java
 pubilc Class Example {
-    public int a_daikon_dummy_field;
+    public int left_;
     
     public void f(int a) {
         int b = 0;
-        a_daikon_dummy_field = a;
+        left_ = a;
         if (a > b) {
         }
         // Specify invariants over a and a_daikon_dummy_field
@@ -94,4 +94,18 @@ pubilc Class Example {
 }
 ```
 
+## TODO
+**Avoid the side effect**: the current implementation cannot handle the side effect related stmts.
+This will cause problems.
+
+We also need to overwrite the if branches, use the field in the if branches.
+```bash
+
+left_ = a++;
+right = b;
+if (a++ > b) {
+
+}}
+
+```
 
