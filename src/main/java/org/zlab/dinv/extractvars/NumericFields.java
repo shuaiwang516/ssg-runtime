@@ -91,7 +91,7 @@ public class NumericFields {
         }
     }
 
-    public static void readNumericFields(Path path) {
+    public static Map<String, List<String>> readNumericFields(Path path) {
         ObjectMapper mapper = new ObjectMapper();
         File jsonFile = path.toFile();
         Map<String, List<String>> map = null;
@@ -100,7 +100,7 @@ public class NumericFields {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Deserialized Map: " + map);
+        return map;
     }
 
     public static void main(String[] args) throws IOException {
