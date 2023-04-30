@@ -105,7 +105,7 @@ public class NumericFields {
 
         String projectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
         Path outputPath = Paths.get("output/numeric_fields.json");
-        List<String> targetClasses = Utils.readFile(Paths.get("input/cassandra_input_classes.txt"));
+        List<String> targetClasses = Utils.readFile(Paths.get("input/cassandra/apache-cassandra-3.11.14/inMemClass.txt"));
 
         Map<String, List<String>> classToNumericFields = extractNumericFields(projectRootDir, targetClasses);
         writeNumericFields(outputPath, classToNumericFields);

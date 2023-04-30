@@ -1,0 +1,10 @@
+org.apache.hadoop.hbase.TableName
+org.apache.hadoop.hbase.security.access.AccessChecker$InputUser
+org.apache.hadoop.hbase.master.SplitLogManager$TerminationStatus
+org.apache.hadoop.hbase.io.hfile.HFileWriterImpl
+org.apache.hadoop.hbase.security.access.AccessController$OpType
+org.apache.hadoop.hbase.monitoring.TaskMonitor$TaskFilter$TaskType
+org.apache.hadoop.hbase.io.compress.ReusableStreamGzipCodec$ReusableGzipOutputStream$ResetableGZIPOutputStream
+org.apache.hadoop.hbase.io.hfile.BlockType
+org.apache.hadoop.hbase.ServerName
+org.apache.hadoop.hbase.security.visibility.expression.LeafExpressionNode
