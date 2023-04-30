@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,6 +110,22 @@ public class Runtime {
     private static Object processCommand(String command) {
         // only return the violations
         return new ViolationInfo(new HashMap<>(violations));
+    }
+
+    public static Object getFirstItem(Collection<Object> collection) {
+        Object[] objects = collection.toArray();
+        if (objects.length == 0) {
+            return null;
+        }
+        return objects[0];
+    }
+
+    public static Object getLastItem(Collection<Object> collection) {
+        Object[] objects = collection.toArray();
+        if (objects.length == 0) {
+            return null;
+        }
+        return objects[objects.length - 1];
     }
 
 }

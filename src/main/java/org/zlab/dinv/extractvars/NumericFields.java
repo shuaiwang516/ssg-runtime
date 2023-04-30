@@ -20,13 +20,11 @@ import java.util.List;
 import java.util.Map;
 
 public class NumericFields {
-
     /**
-     * Extract the numeric fields from a list of target classes. The class should be given with full
-     * qualified.
-     * @param projectRootDir
-     * @return
-     * @throws IOException
+     * Simple static analysis to extract the numeric fields from a list of target classes.
+     * The class should be given with full qualified.
+     * input: (1) system source code (2) a list of classes
+     * output: a list of numeric fields written into output/numeric_fields.json
      */
     public static Map<String, List<String>> extractNumericFields(String projectRootDir, List<String> targetClasses) throws IOException {
 
@@ -77,7 +75,7 @@ public class NumericFields {
 
     public static void writeNumericFields(Path path, Map<String, List<String>> classToNumericFields) {
         ObjectMapper mapper = new ObjectMapper();
-        String json = null;
+        String json;
         try {
             json = mapper.writeValueAsString(classToNumericFields);
         } catch (JsonProcessingException e) {
@@ -94,7 +92,7 @@ public class NumericFields {
     public static Map<String, List<String>> readNumericFields(Path path) {
         ObjectMapper mapper = new ObjectMapper();
         File jsonFile = path.toFile();
-        Map<String, List<String>> map = null;
+        Map<String, List<String>> map;
         try {
             map = mapper.readValue(jsonFile, new TypeReference<Map<String, List<String>>>() {});
         } catch (IOException e) {

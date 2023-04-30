@@ -9,7 +9,13 @@ import java.util.Map;
 
 public class NumericConfigs {
 
+    /**
+     * input: (1) config class (2) system source code
+     * output: a list of numeric configurations written into output/numeric_configs.json
+     */
     public static void extractCassandraNumericConfigs() throws IOException {
+
+        // simple static analysis to extract numeric configs
         String projectRootDir =
                 "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
         Path outputPath = Paths.get("output/numeric_configs.json");
@@ -17,6 +23,7 @@ public class NumericConfigs {
         List<String> targetConfigClasses = new LinkedList<>();
         targetConfigClasses.add("org.apache.cassandra.config.Config");
 
+        // numeric fields are also numeric configs
         Map<String, List<String>> classToNumericFields =
                 NumericFields.extractNumericFields(projectRootDir, targetConfigClasses);
         NumericFields.writeNumericFields(outputPath, classToNumericFields);
