@@ -1,0 +1,308 @@
+===========================================================================
+org.apache.cassandra.config.CFMetaData:::OBJECT
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)
+this.clusteringColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.size_daikonReflectMethod >= 1
+this.clusteringColumns.size_daikonReflectMethod >= 0
+org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns) >= 1
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(this.clusteringColumns.size_daikonReflectMethod)) > 0L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(this.clusteringColumns.size_daikonReflectMethod)) == 0L
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))) > 0L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))) == 0L
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) > 1L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) == 1L
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) > 10304614L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) == 10304614L
+this.partitionKeyColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns)
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 10304614L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 10304614L
+this.partitionKeyColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))) > 0L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))) == 0L
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) > 0L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) == 0L
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 17808346L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 17808346L
+this.partitionKeyColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns)
+Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 17808346L || Math.abs((this.partitionKeyColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 17808346L
+this.partitionKeyColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))) > 0L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))) == 0L
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) > 0L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) == 0L
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) > 10304612L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) == 10304612L
+this.clusteringColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns)
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 10304612L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 10304612L
+this.clusteringColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))) > 0L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))) == 0L
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) > 1L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) == 1L
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 17808346L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 17808346L
+this.clusteringColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns)
+Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 17808346L || Math.abs((this.clusteringColumns.size_daikonReflectMethod)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 17808346L
+this.clusteringColumns.size_daikonReflectMethod < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) > 1L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) == 1L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) > 10304614L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) == 10304614L
+org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns) < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 10304614L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 10304614L
+org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns) < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))) > 0L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))) == 0L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) > 0L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) == 0L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 17808346L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 17808346L
+org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns) < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 17808346L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 17808346L
+org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns) < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) > 10304615L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) == 10304615L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 10304615L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 10304615L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) > 0L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)) == 0L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) > 0L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) == 0L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 17808347L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 17808347L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 17808347L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 17808347L
+Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 0L || Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 0L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) > 10304612L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) == 10304612L
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) > org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) > 10304613L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))) == 10304613L
+Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 6351124L || Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 6351124L
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) != org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 6351124L || Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 6351124L
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) != org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 10304612L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 10304612L
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns) > org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) > 10304613L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))) == 10304613L
+Math.abs((org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 6351124L || Math.abs((org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 6351124L
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns) != org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 6351124L || Math.abs((org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 6351124L
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns) != org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) > 1L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)) == 1L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 17808346L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 17808346L
+org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns) < org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 17808346L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 17808346L
+org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns) < org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) > 17808347L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))) == 17808347L
+Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 17808347L || Math.abs((org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)-1)-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 17808347L
+Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) > 0L || Math.abs((org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns))-(org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns))) == 0L
+===========================================================================
+org.apache.cassandra.config.CFMetaData.apply(org.apache.cassandra.config.CFMetaData):::ENTER
+this.partitionKeyColumns.size_daikonReflectMethod == this.clusteringColumns.size_daikonReflectMethod
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.apply(org.apache.cassandra.config.CFMetaData):::EXIT
+assignable this.partitionKeyColumns, this.partitionKeyColumns[*], this.clusteringColumns, this.clusteringColumns[*]
+this.partitionKeyColumns.size_daikonReflectMethod == this.clusteringColumns.size_daikonReflectMethod
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+this.partitionKeyColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.clusteringColumns():::ENTER
+this.clusteringColumns != null
+===========================================================================
+org.apache.cassandra.config.CFMetaData.clusteringColumns():::EXIT
+assignable this.clusteringColumns[*]
+this.clusteringColumns == \old(this.clusteringColumns)
+this.clusteringColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.clusteringColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+this.clusteringColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.clusteringColumns))
+this.clusteringColumns != null
+===========================================================================
+org.apache.cassandra.config.CFMetaData.copy():::ENTER
+this.partitionKeyColumns.size_daikonReflectMethod == this.clusteringColumns.size_daikonReflectMethod
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.copy():::EXIT
+assignable this.partitionKeyColumns[*], this.clusteringColumns[*]
+this.partitionKeyColumns == \old(this.partitionKeyColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == this.clusteringColumns.size_daikonReflectMethod
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.partitionKeyColumns, \old(this.partitionKeyColumns))
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+this.partitionKeyColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+this.clusteringColumns == \old(this.clusteringColumns)
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.clusteringColumns))
+===========================================================================
+org.apache.cassandra.config.CFMetaData.copy(java.util.UUID):::ENTER
+this.partitionKeyColumns.size_daikonReflectMethod == this.clusteringColumns.size_daikonReflectMethod
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.copy(java.util.UUID):::EXIT
+assignable this.partitionKeyColumns[*], this.clusteringColumns[*]
+this.partitionKeyColumns == \old(this.partitionKeyColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == this.clusteringColumns.size_daikonReflectMethod
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.partitionKeyColumns, \old(this.partitionKeyColumns))
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+this.partitionKeyColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+this.clusteringColumns == \old(this.clusteringColumns)
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.clusteringColumns))
+===========================================================================
+org.apache.cassandra.config.CFMetaData.copy(org.apache.cassandra.dht.IPartitioner):::ENTER
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.clusteringColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.copy(org.apache.cassandra.dht.IPartitioner):::EXIT
+assignable this.partitionKeyColumns[*], this.clusteringColumns[*]
+this.partitionKeyColumns == \old(this.partitionKeyColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+daikon.Quant.pairwiseEqual(this.partitionKeyColumns, \old(this.partitionKeyColumns))
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+this.partitionKeyColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+this.clusteringColumns == \old(this.clusteringColumns)
+this.clusteringColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.clusteringColumns.size_daikonReflectMethod == org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns)-1
+this.clusteringColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))-1
+this.clusteringColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.partitionKeyColumns))
+===========================================================================
+org.apache.cassandra.config.CFMetaData.getKeyValidatorAsClusteringComparator():::ENTER
+===========================================================================
+org.apache.cassandra.config.CFMetaData.getKeyValidatorAsClusteringComparator():::EXIT
+===========================================================================
+org.apache.cassandra.config.CFMetaData.hasStaticColumns():::ENTER
+===========================================================================
+org.apache.cassandra.config.CFMetaData.hasStaticColumns():::EXIT
+===========================================================================
+org.apache.cassandra.config.CFMetaData.nonPkColumnIterator():::ENTER
+===========================================================================
+org.apache.cassandra.config.CFMetaData.nonPkColumnIterator():::EXIT789
+===========================================================================
+org.apache.cassandra.config.CFMetaData.nonPkColumnIterator():::EXIT
+===========================================================================
+org.apache.cassandra.config.CFMetaData.partitionKeyColumns():::ENTER
+this.partitionKeyColumns != null
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) <= org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.partitionKeyColumns():::EXIT
+assignable this.partitionKeyColumns[*]
+this.partitionKeyColumns == \old(this.partitionKeyColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+daikon.Quant.pairwiseEqual(this.partitionKeyColumns, \old(this.partitionKeyColumns))
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.partitionKeyColumns))
+this.partitionKeyColumns != null
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) <= org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.rebuild():::ENTER
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns != null
+this.clusteringColumns != null
+===========================================================================
+org.apache.cassandra.config.CFMetaData.rebuild():::EXIT
+assignable this.partitionKeyColumns[*], this.clusteringColumns[*]
+this.partitionKeyColumns == \old(this.partitionKeyColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+daikon.Quant.pairwiseEqual(this.partitionKeyColumns, \old(this.partitionKeyColumns))
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+this.partitionKeyColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+this.clusteringColumns == \old(this.clusteringColumns)
+this.clusteringColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.clusteringColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.clusteringColumns))
+this.partitionKeyColumns != null
+this.clusteringColumns != null
+===========================================================================
+org.apache.cassandra.config.CFMetaData.thriftColumnNameType():::ENTER
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+===========================================================================
+org.apache.cassandra.config.CFMetaData.thriftColumnNameType():::EXIT1129
+assignable this.clusteringColumns[*]
+===========================================================================
+org.apache.cassandra.config.CFMetaData.thriftColumnNameType():::EXIT
+assignable this.clusteringColumns[*]
+this.clusteringColumns == \old(this.clusteringColumns)
+this.clusteringColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.clusteringColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+this.clusteringColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns)
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.clusteringColumns))
+===========================================================================
+org.apache.cassandra.config.CFMetaData.toString():::ENTER
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns != null
+this.clusteringColumns != null
+===========================================================================
+org.apache.cassandra.config.CFMetaData.toString():::EXIT
+assignable this.partitionKeyColumns[*], this.clusteringColumns[*]
+this.partitionKeyColumns == \old(this.partitionKeyColumns)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(this.partitionKeyColumns.size_daikonReflectMethod)
+this.partitionKeyColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.partitionKeyColumns))
+daikon.Quant.pairwiseEqual(this.partitionKeyColumns, \old(this.partitionKeyColumns))
+this.partitionKeyColumns.getClass().getName() == this.clusteringColumns.getClass().getName()
+this.partitionKeyColumns.getClass().getName() == \old(this.partitionKeyColumns.getClass().getName())
+this.partitionKeyColumns.getClass().getName() == \old(this.clusteringColumns.getClass().getName())
+this.clusteringColumns == \old(this.clusteringColumns)
+this.clusteringColumns.size_daikonReflectMethod == \old(this.clusteringColumns.size_daikonReflectMethod)
+this.clusteringColumns.size_daikonReflectMethod == \old(org.zlab.dinv.runtimechecker.Quant.size(this.clusteringColumns))
+daikon.Quant.pairwiseEqual(this.clusteringColumns, \old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.partitionKeyColumns))
+org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.clusteringColumns))
+org.zlab.dinv.runtimechecker.Runtime.getLastItem(this.clusteringColumns) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(\old(this.clusteringColumns))
+this.partitionKeyColumns != null
+this.clusteringColumns != null
+===========================================================================
+org.apache.cassandra.db.PartitionRangeReadCommand:::OBJECT
+===========================================================================
+org.apache.cassandra.db.PartitionRangeReadCommand.queryStorage(org.apache.cassandra.db.ColumnFamilyStore, org.apache.cassandra.db.ReadExecutionController):::ENTER
+===========================================================================
+org.apache.cassandra.db.PartitionRangeReadCommand.queryStorage(org.apache.cassandra.db.ColumnFamilyStore, org.apache.cassandra.db.ReadExecutionController):::EXIT
+===========================================================================
+org.apache.cassandra.db.filter.DataLimits$CQLLimits:::OBJECT
+===========================================================================
+org.apache.cassandra.db.filter.DataLimits$CQLLimits.estimateTotalResults(org.apache.cassandra.db.ColumnFamilyStore):::ENTER
+===========================================================================
+org.apache.cassandra.db.filter.DataLimits$CQLLimits.estimateTotalResults(org.apache.cassandra.db.ColumnFamilyStore):::EXIT
+===========================================================================
+org.apache.cassandra.io.sstable.format.SSTableReader:::OBJECT
+===========================================================================
+org.apache.cassandra.io.sstable.format.SSTableReader.load(boolean, boolean):::ENTER
+===========================================================================
+org.apache.cassandra.io.sstable.format.SSTableReader.load(boolean, boolean):::EXIT
+===========================================================================
+org.apache.cassandra.io.sstable.format.SSTableReader.load(org.apache.cassandra.io.sstable.metadata.ValidationMetadata, boolean):::ENTER
+===========================================================================
+org.apache.cassandra.io.sstable.format.SSTableReader.load(org.apache.cassandra.io.sstable.metadata.ValidationMetadata, boolean):::EXIT

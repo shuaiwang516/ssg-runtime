@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class InstrumentInvariant {
 
@@ -133,8 +134,9 @@ public class InstrumentInvariant {
                 // construct enter inv
                 List<String> enterInvsBlocks = Utils.constructInvStmt(enterInvs);
                 List<String> exitInvsBlocks = Utils.constructInvStmt(exitInvs);
+                Map<String, Set<Utils.CollectionCompareType>> exitCollComparison = Utils.constructCondCompareInvStmt(exitInvs);
 
-                if (enterInvsBlocks.isEmpty() && exitInvsBlocks.isEmpty())
+                if (enterInvsBlocks.isEmpty() && exitInvsBlocks.isEmpty() && exitCollComparison.isEmpty())
                     return;
 
                 // Create a new method with the wrapped name
@@ -183,13 +185,39 @@ public class InstrumentInvariant {
 
 //                body.addStatement("System.out.println(\"After calling " + wrappedMethod.getNameAsString() + "()\");");
 
-                // Enter env
+                // Exit env
                 for (String exitInvsBlock: exitInvsBlocks) {
                     try {
                         body.addStatement(exitInvsBlock);
                     } catch (Exception e) {
                         // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
                         System.out.println("exit add statement exception + " + e);
+                    }
+                }
+
+                // Collection comparsion
+                int collTmpCount = 0;
+                for (String paramName : exitCollComparison.keySet()) {
+                    // add a pre value for this variable
+                    Set<Utils.CollectionCompareType> types = exitCollComparison.get(paramName);
+                    assert types.size() <= 2;
+                    for (Utils.CollectionCompareType compareType: types) {
+                        if (compareType == Utils.CollectionCompareType.first) {
+                            String tmpVarName = String.format("tmp_pre_first_%d", collTmpCount);
+                            String initStmt = String.format("Object %s = org.zlab.dinv.runtimechecker.Runtime.getFirstItem(%s);", tmpVarName, paramName);
+                            // add this: Object tmpVarName = paramName
+                            body.addStatement(collTmpCount, StaticJavaParser.parseStatement(initStmt));
+                            String collCompInv = String.format("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(%s) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(%s)", paramName, tmpVarName);
+                            body.addStatement(Utils.constructIfCondition(collCompInv));
+                        } else if (compareType == Utils.CollectionCompareType.last) {
+                            String tmpVarName = String.format("tmp_pre_last_%d", collTmpCount);
+                            String initStmt = String.format("Object %s = org.zlab.dinv.runtimechecker.Runtime.getLastItem(%s);", tmpVarName, paramName);
+                            // add this: Object tmpVarName = paramName
+                            body.addStatement(collTmpCount, StaticJavaParser.parseStatement(initStmt));
+                            String collCompInv = String.format("org.zlab.dinv.runtimechecker.Runtime.getLastItem(%s) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(%s)", paramName, tmpVarName);
+                            body.addStatement(Utils.constructIfCondition(collCompInv));
+                        }
+                        collTmpCount++;
                     }
                 }
 

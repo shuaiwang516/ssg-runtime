@@ -112,20 +112,12 @@ public class Runtime {
         return new ViolationInfo(new HashMap<>(violations));
     }
 
-    public static Object getFirstItem(Collection<Object> collection) {
-        Object[] objects = collection.toArray();
-        if (objects.length == 0) {
-            return null;
-        }
-        return objects[0];
+    public static Object getFirstItem(Object collection) {
+        return null;
     }
 
-    public static Object getLastItem(Collection<Object> collection) {
-        Object[] objects = collection.toArray();
-        if (objects.length == 0) {
-            return null;
-        }
-        return objects[objects.length - 1];
+    public static Object getLastItem(Object collection) {
+        return null;
     }
 
 }

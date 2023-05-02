@@ -11,8 +11,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Utils {
 
@@ -81,6 +80,50 @@ public class Utils {
 
     }
 
+    public static boolean isCollectionComparison(String inv) {
+        // org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+
+        if (!inv.contains("=="))
+            return false;
+
+        // remove spaces
+        inv = inv.replaceAll("\\s+", "");
+
+        // it can only have one \old
+        String[] substrings = inv.split("\\\\old");
+        int count = substrings.length - 1;
+        if (count > 1)
+            return false;
+
+        String[] vars = inv.split("==");
+        if (vars.length != 2)
+            return false;
+
+        if (vars[0].startsWith("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(") && vars[1].startsWith("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\\old(")) {
+            // get the target string
+            String left = vars[0].substring(50, vars[0].length()-1);
+            String right = vars[1].substring(55, vars[1].length()-2);
+            return left.equals(right);
+        } else if (vars[0].startsWith("org.zlab.dinv.runtimechecker.Runtime.getLastItem(") && vars[1].startsWith("org.zlab.dinv.runtimechecker.Runtime.getLastItem(\\old(")) {
+            String left = vars[0].substring(49, vars[0].length()-1);
+            String right = vars[1].substring(49, vars[1].length()-2);
+            return left.equals(right);
+        }
+        return false;
+    }
+
+    public static Map.Entry<String, CollectionCompareType> getCollectionCompareEntry(String inv) {
+        inv = inv.replaceAll("\\s+", "");
+        String[] vars = inv.split("==");
+        assert vars.length == 2;
+        if (vars[0].startsWith("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(")) {
+            return new AbstractMap.SimpleEntry<>(vars[0].substring(50, vars[0].length()-1), CollectionCompareType.first);
+        } else {
+            return new AbstractMap.SimpleEntry<>(vars[0].substring(49, vars[0].length()-1), CollectionCompareType.last);
+        }
+    }
+
+
     public static boolean excludeInv(String inv) {
         // filter out some invariants that cannot be embedded now
         // TODO: Handle comparison between pre-state and post-state
@@ -109,16 +152,46 @@ public class Utils {
         if (inv.contains(".toString()")) {
             return true;
         }
+        if (inv.contains("org.zlab.dinv.runtimechecker.Runtime.getFirstItem")) {
+            return true;
+        }
+        if (inv.contains("org.zlab.dinv.runtimechecker.Runtime.getLastItem")) {
+            return true;
+        }
         return false;
     }
 
     public static List<String> constructInvStmt(List<String> invs) {
         List<String> ret = new LinkedList<>();
         for (String inv: invs) {
+            // special handle pre_post inv
             if (excludeInv(inv))
                 continue;
             // All the generated invs will be added
             ret.add(constructIfCondition(inv));
+        }
+        return ret;
+    }
+
+    public enum CollectionCompareType {
+        first, last
+    }
+
+    /**
+     * Special handle firstitem(coll) == firstitem(\old(coll))
+     */
+    public static Map<String, Set<CollectionCompareType>> constructCondCompareInvStmt(List<String> invs) {
+        Map<String, Set<CollectionCompareType>> ret = new HashMap<>();
+        for (String inv: invs) {
+            // special handle pre_post inv
+            if (!isCollectionComparison(inv))
+                continue;
+            // All the generated invs will be added
+            Map.Entry<String, CollectionCompareType> entry = getCollectionCompareEntry(inv);
+            if (!ret.containsKey(entry.getKey())) {
+                ret.put(entry.getKey(), new HashSet<>());
+            }
+            ret.get(entry.getKey()).add(entry.getValue());
         }
         return ret;
     }
