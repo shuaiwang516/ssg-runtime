@@ -30,3 +30,8 @@ shadowJar {
     archiveVersion.set('')
     mergeServiceFiles()
 }
+
+task getModifiedFields(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('org.zlab.dinv.extractvars.ModifiedFields')
+}

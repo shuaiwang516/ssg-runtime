@@ -21,7 +21,7 @@ public class RuntimeTest {
         }
     }
 
-    @Test
+    // @Test
     public void testRuntimeClient() throws IOException, ClassNotFoundException {
         Socket socket = new Socket(SERVER_HOST, SERVER_PORT); // create a socket connection to the server
 

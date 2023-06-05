@@ -18,8 +18,8 @@ public class Main {
     // output: embed the invariants into the program points
 
     // process the entire project
-    public static String cassandrRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
-    public static String cassInvPath = "input/target_inv_cass_jml";
+    public static String cassandrRootDir = "/Users/hanke/Project/cassandra/cassandra2/src/java/org/apache/cassandra";
+    public static String cassInvPath = "input/cassandra/apache-cassandra-3.11.14/target_inv_coll.txt";
 
     public static String hdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server";
     public static String hdfsInvPath = "input/target_inv_hdfs_jml";
@@ -49,7 +49,7 @@ public class Main {
                 .forEach(p -> {
                     try {
                         // debug
-                        // if (!p.toString().contains("/FSEditLogAsync.java")) return;
+                        if (!p.toString().contains("FSEditLog")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         cu.accept(new InstrumentInvariant.InstClassVisitor(invs), null);
