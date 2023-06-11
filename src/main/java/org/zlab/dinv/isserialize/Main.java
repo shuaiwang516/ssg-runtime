@@ -1,0 +1,50 @@
+package org.zlab.dinv.isserialize;
+
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) throws IOException {
+        // arg1
+        Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+
+        // arg2
+        Path serializeLocationsPath = Paths.get("input/serializeLocations.json");
+        Map<String, Set<Integer>> serializeLocations = Utils.loadProgramLocations(serializeLocationsPath);
+
+        rewriteVisibility(projectRootDir, serializeLocations);
+    }
+
+    public static void rewriteVisibility(Path projectRootDir, Map<String, Set<Integer>> serializeLocations) throws IOException {
+        InstrumentSerializeLocation instrumentSerializeLocation = new InstrumentSerializeLocation(serializeLocations);
+
+        // Walk the project directory structure and find all the Java source files
+        Files.walk(projectRootDir)
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java"))
+                .forEach(p -> {
+                    try {
+                        // debug
+                        if (!p.toString().contains("/ByteBufferUtil.java")) return;
+                        CompilationUnit cu = StaticJavaParser.parse(p.toFile());
+                        // Traverse the AST and perform the desired processing
+                        instrumentSerializeLocation.process(cu);
+
+                        Files.write(p, cu.toString().getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+        Utils.savePptVars(instrumentSerializeLocation.pptVars, Paths.get("output/pptVars_alg3.json"));
+
+    }
+
+}
