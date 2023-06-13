@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +60,18 @@ public class Utils {
             System.err.println("Exception happen when loading output from " + filePath);
             throw new RuntimeException(e);
         }
+    }
+
+    public static Map<String, Set<Integer>> replaceDollarWithDot(Map<String, Set<Integer>> fields) {
+        Map<String, Set<Integer>> ret = new HashMap<>();
+        for (Map.Entry<String, Set<Integer>> entry: fields.entrySet()) {
+            if (entry.getKey().contains("$")) {
+                ret.put(entry.getKey().replace("$", "."), entry.getValue());
+            } else {
+                ret.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return ret;
     }
 
 }

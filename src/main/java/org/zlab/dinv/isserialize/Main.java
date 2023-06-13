@@ -16,9 +16,10 @@ public class Main {
         Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
 
         // arg2
-        Path serializeLocationsPath = Paths.get("input/serializeLocations.json");
+        Path serializeLocationsPath =
+                Paths.get("/Users/hanke/Desktop/Project/vasco/output/isSerializeProgramLocations.json");
         Map<String, Set<Integer>> serializeLocations = Utils.loadProgramLocations(serializeLocationsPath);
-
+        serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(serializeLocations);
         rewriteVisibility(projectRootDir, serializeLocations);
     }
 
@@ -32,7 +33,7 @@ public class Main {
                 .forEach(p -> {
                     try {
                         // debug
-                        if (!p.toString().contains("/ByteBufferUtil.java")) return;
+                        // if (!p.toString().contains("/ReadCommand.java")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         instrumentSerializeLocation.process(cu);
