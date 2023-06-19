@@ -17,7 +17,7 @@ public class Main {
 
         // arg2
         Path serializeLocationsPath =
-                Paths.get("/Users/hanke/Desktop/Project/vasco/output/isSerializeProgramLocations.json");
+                Paths.get("/Users/hanke/Desktop/Project/vasco/output/system/cassandra/apache-cassandra-3.11.15/isSerializeProgramLocations.json");
         Map<String, Set<Integer>> serializeLocations = Utils.loadProgramLocations(serializeLocationsPath);
         serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(serializeLocations);
         rewriteVisibility(projectRootDir, serializeLocations);
@@ -45,7 +45,7 @@ public class Main {
                 });
 
         Utils.savePptVars(instrumentSerializeLocation.pptVars, Paths.get("output/pptVars_alg3.json"));
-
+        Utils.PPT2DaikonInput(instrumentSerializeLocation.pptVars, Paths.get("output/instrument_alg3_vars_file"));
     }
 
 }

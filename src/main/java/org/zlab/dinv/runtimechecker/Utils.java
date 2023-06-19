@@ -152,6 +152,9 @@ public class Utils {
         if (inv.contains(".toString()")) {
             return true;
         }
+        if (inv.contains(".getName()")) {
+            return true;
+        }
         if (inv.contains("org.zlab.dinv.runtimechecker.Runtime.getFirstItem")) {
             return true;
         }
@@ -264,6 +267,20 @@ public class Utils {
         return true;
     }
 
+    public static boolean isMatchPpt2(ClassOrInterfaceDeclaration classDecl, String pptMethodSig) {
+        // pptMethodSig contains class def
+        StringBuilder signatureBuilder = new StringBuilder();
+
+        if (classDecl.getFullyQualifiedName().isPresent())
+            signatureBuilder.append(classDecl.getFullyQualifiedName().get());
+        else
+            throw new RuntimeException("class " + classDecl.getName() + " do not have full name");
+
+        String pptMethodSigWithoutDollar = pptMethodSig.replace("$", ".");
+
+        return signatureBuilder.toString().equals(pptMethodSigWithoutDollar);
+    }
+
     public static List<String> readFile(Path path) {
         List<String> lines = new LinkedList<>();
         try(BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
@@ -282,4 +299,13 @@ public class Utils {
         return str.replaceAll("\\$", ".");
     }
 
+    public static void mergeInv(Map<String, Set<String>> dest, Map<String, Set<String>> src) {
+        for (String ppt: src.keySet()) {
+            if (!dest.containsKey(ppt)) {
+                dest.put(ppt, src.get(ppt));
+            } else {
+                dest.get(ppt).addAll(src.get(ppt));
+            }
+        }
+    }
 }

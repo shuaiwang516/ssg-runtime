@@ -57,7 +57,7 @@ public class ModifiedFields {
                                 System.out.println("class " +  classDecl.getName() + " full name is null");
                             }
                         });
-                        Files.write(p, cu.toString().getBytes());
+                        // Files.write(p, cu.toString().getBytes());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -118,7 +118,7 @@ public class ModifiedFields {
     public static void main(String[] args) throws IOException {
 
         String oldProjectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
-        String newProjectRootDir = "/Users/hanke/Project/cassandra/cassandra2/src/java/org/apache/cassandra";
+        String newProjectRootDir = "/Users/hanke/Project/cassandra/apache-cassandra-4.1.2-src/src/java/org/apache/cassandra";
 
         List<String> targetPrefixes = new LinkedList<>();
         targetPrefixes.add("org.apache.cassandra");

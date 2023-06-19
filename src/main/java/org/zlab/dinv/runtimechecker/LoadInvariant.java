@@ -4,17 +4,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LoadInvariant {
 
-    public static Map<String, List<String>> load(Path filename) {
-        Map<String, List<String>> resultMap = new HashMap<>();
+    public static Map<String, Set<String>> load(Path filename) {
+        Map<String, Set<String>> resultMap = new HashMap<>();
         String currentKey = null;
-        List<String> currentList = null;
+        Set<String> currentSet = null;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filename.toFile()))) {
             String line;
@@ -25,11 +22,11 @@ public class LoadInvariant {
                     if (currentKey == null) {
                         break; // stop here
                     }
-                    currentList = new ArrayList<>();
-                    resultMap.put(currentKey, currentList);
-                } else if (currentKey != null && currentList != null) {
+                    currentSet = new HashSet<>();
+                    resultMap.put(currentKey, currentSet);
+                } else if (currentKey != null) {
                     // Add subsequent lines to the current list
-                    currentList.add(line);
+                    currentSet.add(line);
                 }
             }
         } catch (Exception e) {
@@ -45,7 +42,7 @@ public class LoadInvariant {
         // java -cp $DAIKONDIR/daikon.jar daikon.PrintInvariants  /Users/hanke/Desktop/Project/daikon/examples/java-examples/StackAr/StackArTester.inv.gz > inv
 
         Path p = Paths.get("/Users/hanke/Desktop/Project/daikon/examples/java-examples/StackAr/inv");
-        Map<String, List<String>> invs = load(p);
+        Map<String, Set<String>> invs = load(p);
 
     }
 }

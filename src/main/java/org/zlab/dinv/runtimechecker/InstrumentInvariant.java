@@ -30,8 +30,6 @@ public class InstrumentInvariant {
 
     // traverse AST to inject the invariants
 
-    // TODO: change all fields to public!
-
     public static class testClassVisitor extends VoidVisitorAdapter<Void> {
 
         @Override
@@ -60,12 +58,11 @@ public class InstrumentInvariant {
         }
     }
 
-
     public static class InstClassVisitor extends VoidVisitorAdapter<Void> {
 
-        public Map<String, List<String>> invs;
+        public Map<String, Set<String>> invs;
 
-        public InstClassVisitor(Map<String, List<String>> invs) {
+        public InstClassVisitor(Map<String, Set<String>> invs) {
             this.invs = invs;
         }
 
@@ -97,6 +94,9 @@ public class InstrumentInvariant {
                     return;
                 }
 
+                if (method.isAbstract())
+                    return;
+
                 LinkedList<String> enterInvs = new LinkedList<>();
                 LinkedList<String> exitInvs = new LinkedList<>();
 
@@ -109,7 +109,19 @@ public class InstrumentInvariant {
                     String posStatus = strs[1];
 
                     // FIXME: handle object
-                    if (posStatus.equals("OBJECT") || posStatus.equals("CLASS"))
+                    if (posStatus.equals("OBJECT")) {
+                        if (method.isStatic())
+                            continue;
+                        // check class match!
+                        if (!Utils.isMatchPpt2(classDecl, pptMethodSig))
+                            continue;
+
+                        exitInvs.addAll(invs.get(ppt));
+                        continue;
+                    }
+
+                    // FIXME: handle class
+                    if (posStatus.equals("CLASS"))
                         continue;
 
                     String methodName = Utils.getMethodName(pptMethodSig);
@@ -232,13 +244,6 @@ public class InstrumentInvariant {
             });
 
         }
-    }
-
-
-    public static void main(String[] args) throws IOException {
-        // Target file
-
-
     }
 
     public static void testCassandra() throws IOException {

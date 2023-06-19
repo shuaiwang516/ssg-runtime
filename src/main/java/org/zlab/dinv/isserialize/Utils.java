@@ -3,7 +3,9 @@ package org.zlab.dinv.isserialize;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +69,33 @@ public class Utils {
         } catch (IOException e) {
             System.err.println("Exception happen when loading output from " + filePath);
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void PPT2DaikonInput(Map<String, Map<String, Set<String>>> pptVars,
+                                        Path daikonInputVarPath) {
+        // read json file
+        try {
+            // Create an instance of BufferedWriter
+            BufferedWriter writer = Files.newBufferedWriter(daikonInputVarPath);
+
+            // Write each entry of pptVars to a separate line
+            for (Map.Entry<String, Map<String, Set<String>>> entry : pptVars.entrySet()) {
+                // construct method sig
+                String clazzName = entry.getKey();
+                for (String methodName: entry.getValue().keySet()) {
+                    String methodSigDaikon = String.format("%s.%s", clazzName, methodName);
+                    for (String fieldName: entry.getValue().get(methodName)) {
+                        writer.write(methodSigDaikon + " " + fieldName);
+                        writer.newLine();
+                    }
+                }
+            }
+            writer.close();
+        } catch (IOException e) {
+            // Handle any exceptions
+            System.out.println("An error occurred while writing to the file.");
+            e.printStackTrace();
         }
     }
 
