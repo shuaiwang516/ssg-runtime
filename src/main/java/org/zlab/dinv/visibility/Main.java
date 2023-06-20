@@ -2,6 +2,7 @@ package org.zlab.dinv.visibility;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import org.zlab.dinv.isserialize.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,8 +25,6 @@ public class Main {
         Map<String, Set<Integer>> branchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(branchLocationPath);
         branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
         rewriteVisibility(projectRootDir, branchLocations);
-
-        // output ppts
     }
 
     public static void rewriteVisibility(Path projectRootDir, Map<String, Set<Integer>> branchLocations) throws IOException {
@@ -38,7 +37,7 @@ public class Main {
                 .forEach(p -> {
                     try {
                         // debug
-                        if (!p.toString().contains("/CommitLogReader.java")) return;
+                        // if (!p.toString().contains("/RewindableDataInputStreamPlus.java")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         instField.process(cu);
@@ -48,6 +47,14 @@ public class Main {
                         e.printStackTrace();
                     }
                 });
+        org.zlab.dinv.isserialize.Utils.savePptVars(instField.pptVars,
+                Paths.get("output/pptVars_alg4.json"));
+        org.zlab.dinv.isserialize.Utils.PPT2DaikonInput(
+                instField.pptVars, Paths.get("output/instrument_alg4_vars_file"));
     }
+
+
+
+
 
 }

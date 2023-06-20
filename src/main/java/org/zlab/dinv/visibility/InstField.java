@@ -11,17 +11,22 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.*;
-import jdk.nashorn.internal.ir.Block;
+import org.zlab.dinv.isserialize.Utils;
 
 import java.util.*;
 
 public class InstField {
 
     private final Map<String, Set<Integer>> branchLocations;
+    private int fieldId = 0;
+    private String currentClassFullName;
+    private String currentMethodName;
 
     private Set<String> newStaticFields;
     private Set<String> newNonStaticFields;
     private boolean isStatic;
+
+    public Map<String, Map<String, Set<String>>> pptVars = new HashMap<>();
 
     InstField(Map<String, Set<Integer>> branchLocations) {
         this.branchLocations = branchLocations;
@@ -36,18 +41,17 @@ public class InstField {
             if (!branchLocations.containsKey(clazzFullName))
                 return;
             Set<Integer> lineSet = branchLocations.get(clazzFullName);
+            currentClassFullName = clazzFullName;
 
             newStaticFields = new HashSet<>();
             newNonStaticFields = new HashSet<>();
 
             classDecl.getMethods().forEach(methodDecl -> {
                 isStatic = methodDecl.isStatic();
+                currentMethodName = methodDecl.getNameAsString();
                 methodDecl.getBody().ifPresent(body -> processBlockStmt(body, lineSet));
             });
 
-            // add new fields
-            // Create a new field
-            // Create the new field declaration
             for (String newStaticField: newStaticFields) {
                 addField(classDecl, true, newStaticField);
             }
@@ -74,6 +78,55 @@ public class InstField {
 
     }
 
+    public void recurProcessBinaryExpr(Statement stmt, BinaryExpr binaryExpr, NodeList<Statement> newStatements) {
+        BinaryExpr.Operator operator = binaryExpr.getOperator();
+        if (operator == BinaryExpr.Operator.GREATER ||
+                operator == BinaryExpr.Operator.GREATER_EQUALS ||
+                operator == BinaryExpr.Operator.LESS ||
+                operator == BinaryExpr.Operator.LESS_EQUALS) {
+
+            Expression leftExpr = binaryExpr.getLeft();
+            Expression rightExpr = binaryExpr.getRight();
+
+            String leftNewField = String.format("left_%d", fieldId);
+            String rightNewField = String.format("right_%d", fieldId++);
+            if (isStatic) {
+                newStaticFields.add(leftNewField);
+                newStaticFields.add(rightNewField);
+                Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName, leftNewField);
+                Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName, rightNewField);
+            } else {
+                newNonStaticFields.add(leftNewField);
+                newNonStaticFields.add(rightNewField);
+                leftNewField = "this." + leftNewField;
+                rightNewField = "this." + rightNewField;
+                Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName, leftNewField);
+                Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName, rightNewField);
+            }
+
+            String leftAssignExpr = String.format("%s = (%s);", leftNewField, leftExpr.toString());
+            String rightAssignExpr = String.format("%s = (%s);", rightNewField, rightExpr.toString());
+
+            Statement newLeftStmt = StaticJavaParser.parseStatement(leftAssignExpr);
+            Statement newRightStmt = StaticJavaParser.parseStatement(rightAssignExpr);
+
+            newStatements.add(newStatements.indexOf(stmt), newLeftStmt);
+            newStatements.add(newStatements.indexOf(stmt), newRightStmt);
+            return;
+        }
+
+        if (operator == BinaryExpr.Operator.AND || operator == BinaryExpr.Operator.OR) {
+            Expression leftExpr = binaryExpr.getLeft();
+            Expression rightExpr = binaryExpr.getRight();
+            if (leftExpr instanceof BinaryExpr) {
+                recurProcessBinaryExpr(stmt, (BinaryExpr) leftExpr, newStatements);
+            }
+            if (rightExpr instanceof BinaryExpr) {
+                recurProcessBinaryExpr(stmt, (BinaryExpr) rightExpr, newStatements);
+            }
+        }
+    }
+
     public void recurProcess(Statement stmt, NodeList<Statement> newStatements, Set<Integer> lineSet) {
         if (stmt instanceof IfStmt) {
             // decide whether this is the target if branch
@@ -84,35 +137,10 @@ public class InstField {
                 if (lineSet.contains(begin)) {
                     // add fields
                     // left value:
-
                     Expression expr = ((IfStmt) stmt).getCondition();
                     if (expr instanceof BinaryExpr) {
-                        Expression leftExpr = ((BinaryExpr) expr).getLeft();
-                        Expression rightExpr = ((BinaryExpr) expr).getRight();
-
-                        String leftNewField = String.format("left_%d", begin);
-                        String rightNewField = String.format("right_%d", begin);
-                        if (isStatic) {
-                            newStaticFields.add(leftNewField);
-                            newStaticFields.add(rightNewField);
-                        } else {
-                            newNonStaticFields.add(leftNewField);
-                            newNonStaticFields.add(rightNewField);
-                            leftNewField = "this." + leftNewField;
-                            rightNewField = "this." + rightNewField;
-                        }
-
-                        String leftAssignExpr = String.format("%s = (%s);", leftNewField, leftExpr.toString());
-                        String rightAssignExpr = String.format("%s = (%s);", rightNewField, rightExpr.toString());
-
-                        Statement newLeftStmt = StaticJavaParser.parseStatement(leftAssignExpr);
-                        Statement newRightStmt = StaticJavaParser.parseStatement(rightAssignExpr);
-
-                        newStatements.add(newStatements.indexOf(stmt), newLeftStmt);
-                        newStatements.add(newStatements.indexOf(stmt), newRightStmt);
-
+                        recurProcessBinaryExpr(stmt, (BinaryExpr) expr, newStatements);
                     }
-
                     // Statement newStmt = StaticJavaParser.parseStatement("System.out.println(\"This statement was added before an if branch\");");
                 }
             }
