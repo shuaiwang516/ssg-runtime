@@ -11,19 +11,20 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.*;
+import jdk.nashorn.internal.ir.Block;
 
 import java.util.*;
 
 public class InstField {
 
-    private final Map<String, Map<String, Set<Integer>>> targetIfBranches;
+    private final Map<String, Set<Integer>> branchLocations;
 
     private Set<String> newStaticFields;
     private Set<String> newNonStaticFields;
     private boolean isStatic;
 
-    InstField(Map<String, Map<String, Set<Integer>>> targetIfBranches) {
-        this.targetIfBranches = targetIfBranches;
+    InstField(Map<String, Set<Integer>> branchLocations) {
+        this.branchLocations = branchLocations;
     }
 
     public void process(CompilationUnit cu) {
@@ -32,20 +33,15 @@ public class InstField {
                 return;
             }
             String clazzFullName = classDecl.getFullyQualifiedName().get();
-            if (!targetIfBranches.containsKey(clazzFullName))
+            if (!branchLocations.containsKey(clazzFullName))
                 return;
-            Map<String, Set<Integer>> method2lineNumber = targetIfBranches.get(clazzFullName);
+            Set<Integer> lineSet = branchLocations.get(clazzFullName);
 
             newStaticFields = new HashSet<>();
             newNonStaticFields = new HashSet<>();
 
             classDecl.getMethods().forEach(methodDecl -> {
                 isStatic = methodDecl.isStatic();
-                Set<Integer> lineSet = new HashSet<>();
-                for (Map.Entry<String, Set<Integer>> entry: method2lineNumber.entrySet()) {
-                    lineSet.addAll(entry.getValue());
-                }
-                // iterate all the if branches
                 methodDecl.getBody().ifPresent(body -> processBlockStmt(body, lineSet));
             });
 
@@ -123,12 +119,27 @@ public class InstField {
         }
 
         if (stmt instanceof IfStmt) {
-            Statement thenStmt = ((IfStmt) stmt).getThenStmt();
-
-            if (thenStmt instanceof BlockStmt) {
-                processBlockStmt((BlockStmt) thenStmt, lineSet);
+            Statement iterateStmt = stmt;
+            while (true) {
+                // iterate all if-elseif-elseif-elseblock
+                Statement thenStmt = ((IfStmt) iterateStmt).getThenStmt();
+                if (thenStmt instanceof BlockStmt) {
+                    processBlockStmt((BlockStmt) thenStmt, lineSet);
+                }
+                if (((IfStmt) iterateStmt).getElseStmt().isPresent()) {
+                    Statement elseStmt =  ((IfStmt) iterateStmt).getElseStmt().get();
+                    if (elseStmt instanceof IfStmt) {
+                        iterateStmt = elseStmt;
+                    } else {
+                        // this is a block o null
+                        if (elseStmt instanceof BlockStmt)
+                            processBlockStmt((BlockStmt) elseStmt, lineSet);
+                        break;
+                    }
+                } else {
+                    break;
+                }
             }
-            ((IfStmt) stmt).getElseStmt().ifPresent(elseStmt -> processBlockStmt((BlockStmt) elseStmt, lineSet));
         } else if (stmt instanceof BlockStmt) {
             processBlockStmt((BlockStmt) stmt, lineSet);
         }  else if (stmt instanceof WhileStmt) {
@@ -136,8 +147,12 @@ public class InstField {
             if (body instanceof BlockStmt) {
                 processBlockStmt((BlockStmt) body, lineSet);
             }
+        } else if (stmt instanceof TryStmt) {
+            BlockStmt blockStmt = ((TryStmt) stmt).getTryBlock();
+            processBlockStmt(blockStmt, lineSet);
+            ((TryStmt) stmt).getFinallyBlock().ifPresent(b -> processBlockStmt(b, lineSet));
         }
-        // TODOs: add more types
+        // TODO: add more types
     }
 
     public void processBlockStmt(BlockStmt blockStmt, Set<Integer> lineSet) {

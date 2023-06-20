@@ -129,6 +129,10 @@ public class InstrumentSerializeLocation {
             if (body instanceof BlockStmt) {
                 processBlockStmt((BlockStmt) body, lineSet);
             }
+        } else if (stmt instanceof TryStmt) {
+            BlockStmt blockStmt = ((TryStmt) stmt).getTryBlock();
+            processBlockStmt(blockStmt, lineSet);
+            ((TryStmt) stmt).getFinallyBlock().ifPresent(b -> processBlockStmt(b, lineSet));
         }
         // TODO: add more types
     }

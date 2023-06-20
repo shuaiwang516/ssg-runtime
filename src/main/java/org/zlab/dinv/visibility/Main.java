@@ -19,14 +19,17 @@ public class Main {
         Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
 
         // arg2
-        Path targetIfBranchPath = Paths.get("input/targetIfInfo_example");
-        Map<String, Map<String, Set<Integer>>> targetIfBranches = Utils.readIfInfo(targetIfBranchPath);
+        Path branchLocationPath =
+                Paths.get("/Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-3.11.15/programLocations_alg4_outputstream_branches.json");
+        Map<String, Set<Integer>> branchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(branchLocationPath);
+        branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
+        rewriteVisibility(projectRootDir, branchLocations);
 
-        rewriteVisibility(projectRootDir, targetIfBranches);
+        // output ppts
     }
 
-    public static void rewriteVisibility(Path projectRootDir, Map<String, Map<String, Set<Integer>>> targetIfBranches) throws IOException {
-        InstField instField = new InstField(targetIfBranches);
+    public static void rewriteVisibility(Path projectRootDir, Map<String, Set<Integer>> branchLocations) throws IOException {
+        InstField instField = new InstField(branchLocations);
 
         // Walk the project directory structure and find all the Java source files
         Files.walk(projectRootDir)
@@ -35,7 +38,7 @@ public class Main {
                 .forEach(p -> {
                     try {
                         // debug
-                        if (!p.toString().contains("/ColumnIndex.java")) return;
+                        if (!p.toString().contains("/CommitLogReader.java")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
                         instField.process(cu);
