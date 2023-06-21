@@ -74,30 +74,34 @@ public class Runtime {
                 while (true) {
                     System.out.println("[hklog] Invariant Runtime waiting!");
                     Socket clientSocket = serverSocket.accept();
-                    // handle client connection
-                    System.out.println("Client connected from " + clientSocket.getInetAddress().getHostAddress());
+                    // handle client connection in a new thread
+                    new Thread(() -> {
+                        try {
+                            System.out.println("Client connected from " + clientSocket.getInetAddress().getHostAddress());
 
-                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); // create a reader for the client input
+                            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                            ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
 
-                    ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                    // PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true); // create a writer for the server output
+                            String inputLine;
+                            while ((inputLine = in.readLine()) != null) {
+                                System.out.println("Received command: " + inputLine);
 
-                    String inputLine;
-                    while ((inputLine = in.readLine()) != null) {
-                        System.out.println("Received command: " + inputLine);
+                                // process the command and generate a response
+                                Object response = processCommand(inputLine);
 
-                        // process the command and generate a response
-                        Object response = processCommand(inputLine);
-
-                        out.writeObject(response); // send the response to the client
-                        System.out.println("Sent response: " + response);
-                    }
-
-                    // clean up resources
-                    out.close();
-                    in.close();
-                    clientSocket.close();
-                    System.out.println("Client disconnected");
+                                out.writeObject(response); // send the response to the client
+                                System.out.println("Sent response: " + response);
+                            }
+                        } catch (IOException e) {
+                            System.out.println("Error in client connection: " + e);
+                        } finally {
+                            try {
+                                clientSocket.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start(); // start the new thread
                 }
             } catch (IOException e) {
                 e.printStackTrace();

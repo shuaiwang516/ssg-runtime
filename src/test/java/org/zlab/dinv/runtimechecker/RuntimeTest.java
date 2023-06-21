@@ -21,8 +21,32 @@ public class RuntimeTest {
         }
     }
 
-    // @Test
-    public void testRuntimeClient() throws IOException, ClassNotFoundException {
+    @Test
+    public void testRuntimeClient() throws IOException, ClassNotFoundException, InterruptedException {
+        // fetchInvInfo();
+        Thread t1 = new Thread(() -> {
+            try {
+                fetchInvInfo();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        t1.start();
+
+        Thread t2 = new Thread(() -> {
+            try {
+                fetchInvInfo();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        t2.start();
+
+        t1.join();
+        t2.join();
+    }
+
+    public void fetchInvInfo() throws IOException, ClassNotFoundException {
         Socket socket = new Socket(SERVER_HOST, SERVER_PORT); // create a socket connection to the server
 
         // BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // create a reader for the server response
@@ -41,6 +65,10 @@ public class RuntimeTest {
         out.close();
         in.close();
         socket.close();
+    }
+
+    public void tmp() {
+        System.out.println("hh");
     }
 
     @Test
