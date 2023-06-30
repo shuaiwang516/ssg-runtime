@@ -17,6 +17,12 @@ import java.util.*;
 public class ModifiedFields {
     // Old version: String -> Map<String, Type>
     // New version: String -> Map<String, Type>
+    public static String oldCassandraRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
+    public static String newCassandraRootDir = "/Users/hanke/Project/cassandra/apache-cassandra-4.1.2-src/src/java/org/apache/cassandra";
+    public static String oldHdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop1/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/";
+    public static String newHdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop2/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/";
+
+    public static List<String> targetPrefixes = new LinkedList<>();
 
     /**
      * Simple static analysis to extract the numeric fields from a list of target classes.
@@ -116,12 +122,21 @@ public class ModifiedFields {
     }
 
     public static void main(String[] args) throws IOException {
+        String targetSystem = "hdfs";
+        String oldProjectRootDir;
+        String newProjectRootDir;
 
-        String oldProjectRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
-        String newProjectRootDir = "/Users/hanke/Project/cassandra/apache-cassandra-4.1.2-src/src/java/org/apache/cassandra";
-
-        List<String> targetPrefixes = new LinkedList<>();
-        targetPrefixes.add("org.apache.cassandra");
+        if (targetSystem.equals("cassandra")) {
+            oldProjectRootDir = oldCassandraRootDir;
+            newProjectRootDir = newCassandraRootDir;
+            targetPrefixes.add("org.apache.cassandra");
+        } else if (targetSystem.equals("hdfs")) {
+            oldProjectRootDir = oldHdfsRootDir;
+            newProjectRootDir = newHdfsRootDir;
+            targetPrefixes.add("org.apache.hadoop.hdfs");
+        } else {
+            throw new RuntimeException("Cannot handle system " + targetSystem);
+        }
 
         Map<String, Map<String, String>> oldClassToFields = extractFields(oldProjectRootDir, targetPrefixes);
         Map<String, Map<String, String>> newClassToFields = extractFields(newProjectRootDir, targetPrefixes);
