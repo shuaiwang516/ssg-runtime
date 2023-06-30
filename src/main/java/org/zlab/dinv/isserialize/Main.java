@@ -11,13 +11,13 @@ import java.util.*;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
-        // arg1
-        Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    // public static Path systemInfoPath = Paths.get("/Users/hanke/Desktop/Project/vasco/system/hdfs/hadoop-3.3.4/");
+    public static Path systemInfoPath = Paths.get("/Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-3.11.15/");
 
-        // arg2
+    public static void main(String[] args) throws IOException {
+        Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
         Path serializeLocationsPath =
-                Paths.get("/Users/hanke/Desktop/Project/vasco/output/system/cassandra/apache-cassandra-3.11.15/isSerializeProgramLocations.json");
+                systemInfoPath.resolve("isSerializeProgramLocations.json");
         Map<String, Set<Integer>> serializeLocations = Utils.loadProgramLocations(serializeLocationsPath);
         serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(serializeLocations);
         rewriteVisibility(projectRootDir, serializeLocations);

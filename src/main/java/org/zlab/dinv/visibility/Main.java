@@ -15,14 +15,19 @@ public class Main {
     //      - {Class-> {MethodName, lineSet}}
     // output: overwrite the if branches as local fields, so daikon can instrument them
 
-    public static void main(String[] args) throws IOException {
-        // arg1
-        Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    // public static Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    public static Path projectRootDir = Paths.get("/Users/hanke/Desktop/Project/hadoop/hadoop1/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/");
 
-        // arg2
-        Path branchLocationPath =
-                Paths.get("/Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-3.11.15/programLocations_alg4_outputstream_branches.json");
-        Map<String, Set<Integer>> branchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(branchLocationPath);
+    public static Path systemInfoPath = Paths.get("/Users/hanke/Desktop/Project/vasco/system/hdfs/hadoop-3.3.4/");
+    public static Path outputStreamBranchLocationPath =
+            systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
+    public static Path dataBranchLocationPath =
+            systemInfoPath.resolve("programLocations_alg4_data_branches.json");
+
+    public static void main(String[] args) throws IOException {
+        Map<String, Set<Integer>> branchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(outputStreamBranchLocationPath);
+        Map<String, Set<Integer>> dataBranchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(dataBranchLocationPath);        // merge two branch locations
+        Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
         branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
         rewriteVisibility(projectRootDir, branchLocations);
     }
@@ -52,9 +57,5 @@ public class Main {
         org.zlab.dinv.isserialize.Utils.PPT2DaikonInput(
                 instField.pptVars, Paths.get("output/instrument_alg4_vars_file"));
     }
-
-
-
-
 
 }

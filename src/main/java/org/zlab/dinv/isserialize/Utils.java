@@ -99,4 +99,17 @@ public class Utils {
         }
     }
 
+    public static void mergeProgramLocations(Map<String, Set<Integer>> programLocations,
+                                             Map<String, Set<Integer>> addedProgramLocations) {
+        for (String clazzName: addedProgramLocations.keySet()) {
+            Set<Integer> fields = addedProgramLocations.get(clazzName);
+            if (programLocations.containsKey(clazzName)) {
+                programLocations.get(clazzName).addAll(fields);
+            } else {
+                programLocations.put(clazzName, new HashSet<>(fields));
+            }
+        }
+    }
+
+
 }
