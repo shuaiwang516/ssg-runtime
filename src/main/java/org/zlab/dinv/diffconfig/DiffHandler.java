@@ -1,27 +1,77 @@
 package org.zlab.dinv.diffconfig;
 
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import org.zlab.dinv.isserialize.Utils;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.zlab.dinv.diffconfig.RetrieveHandlerBlock.retrieveBlock;
 
 public class DiffHandler {
 
-    public static void main(String[] args) {
-        // input
-        Map<String, Map<String, Map<String, Set<Integer>>>> config2branchProgramLocations;
+    // public static Path oldProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    // public static Path newProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
 
-        // process: for each config, retrieve the block that directly contains the
-        // if branch
+    public static Path oldProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    public static Path newProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
 
-        // output
-        Map<String, Map<String, Map<String, Set<String>>>> oldConfig2handlerBlocks =
-                retrieveBlock();
-        Map<String, Map<String, Map<String, Set<String>>>> newConfig2handlerBlocks =
-                retrieveBlock();
-        // Comparison
-        // Calculate the edit distance between two blocks (if the number is different,
-        // also mark it
+    public static void main(String[] args) throws IOException {
+        // Input: program locations + source code
+        Map<String, Map<String, Map<String, Set<Integer>>>> oldConfig2branchProgramLocations = null;
+        Map<String, Map<String, Map<String, Set<Integer>>>> newConfig2branchProgramLocations = null;
+
+        // merge program locations
+        Map<String, Set<Integer>> oldProgramLocations = mergeProgramLocations(oldConfig2branchProgramLocations);
+        Map<String, Set<Integer>> newProgramLocations = mergeProgramLocations(newConfig2branchProgramLocations);
+
+        // given the program locations, return:
+        Map<String, Map<Integer, String>> oldProgramLocation2block =  retrieveHandlerBlock(oldProjectRootDir, oldProgramLocations);
+        Map<String, Map<Integer, String>> newProgramLocation2block =  retrieveHandlerBlock(newProjectRootDir, newProgramLocations);
+
+        // for each config do the comparison
+        // Calculate the edit distance between two blocks (if the number is different
+        // output: config names: edit distance
+    }
+
+    public static Map<String, Set<Integer>> mergeProgramLocations(Map<String, Map<String, Map<String, Set<Integer>>>> config2branchProgramLocations) {
+        Map<String, Set<Integer>> programLocations = new HashMap<>();
+        for (Map<String, Map<String, Set<Integer>>> v1 : config2branchProgramLocations.values()) {
+            for (Map<String, Set<Integer>> tmpProgramLocations: v1.values()) {
+                Utils.mergeProgramLocations(programLocations, tmpProgramLocations);
+
+            }
+        }
+        return programLocations;
+    }
+
+    public static Map<String, Map<Integer, String>> retrieveHandlerBlock(Path projectRootDir, Map<String, Set<Integer>> programLocations) throws IOException {
+        RetrieveHandlerBlock retrieveHandlerBlock = new RetrieveHandlerBlock(programLocations);
+
+        // Walk the project directory structure and find all the Java source files
+        Files.walk(projectRootDir)
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java"))
+                .forEach(p -> {
+                    try {
+                        // debug
+                        // if (!p.toString().contains("/ReadCommand.java")) return;
+                        CompilationUnit cu = StaticJavaParser.parse(p.toFile());
+                        // Traverse the AST and perform the desired processing
+                        retrieveHandlerBlock.process(cu);
+
+                        Files.write(p, cu.toString().getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+        return retrieveHandlerBlock.getProgramLocation2block();
     }
 
     public static int editDistance(String string1, String string2) {
@@ -51,4 +101,9 @@ public class DiffHandler {
 
         return dp[len1][len2];
     }
+
+    public static void computeConfigHandlerDiff() {
+
+    }
+
 }
