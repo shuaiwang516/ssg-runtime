@@ -2,6 +2,7 @@ package org.zlab.dinv.diffconfig;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import org.zlab.dinv.Config;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,8 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class DiffHandler {
-
-    public static final int EDIT_DISTANCE_THRESHOLD = 60;
 
     // public static Path oldProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
     // public static Path newProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
@@ -77,7 +76,7 @@ public class DiffHandler {
                             int editDistance = calEditDistance(oldHandlerString, newHandlerString);
                             minEditDistance = Math.min(editDistance, minEditDistance);
                         }
-                        if (minEditDistance > EDIT_DISTANCE_THRESHOLD)
+                        if (minEditDistance > Config.EDIT_DISTANCE_THRESHOLD)
                             changedHandler = true;
                     }
                 }

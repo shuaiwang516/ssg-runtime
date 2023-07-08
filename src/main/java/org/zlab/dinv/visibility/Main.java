@@ -2,6 +2,7 @@ package org.zlab.dinv.visibility;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import org.zlab.dinv.Config;
 import org.zlab.dinv.isserialize.Utils;
 
 import java.io.IOException;
@@ -15,21 +16,18 @@ public class Main {
     //      - {Class-> {MethodName, lineSet}}
     // output: overwrite the if branches as local fields, so daikon can instrument them
 
-    // public static Path projectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
-    public static Path projectRootDir = Paths.get("/Users/hanke/Desktop/Project/hadoop/hadoop1/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/");
-
-    public static Path systemInfoPath = Paths.get("/Users/hanke/Desktop/Project/vasco/system/hdfs/hadoop-3.3.4/");
     public static Path outputStreamBranchLocationPath =
-            systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
+            Config.systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
     public static Path dataBranchLocationPath =
-            systemInfoPath.resolve("programLocations_alg4_data_branches.json");
+            Config.systemInfoPath.resolve("programLocations_alg4_data_branches.json");
 
     public static void main(String[] args) throws IOException {
         Map<String, Set<Integer>> branchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(outputStreamBranchLocationPath);
-        Map<String, Set<Integer>> dataBranchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(dataBranchLocationPath);        // merge two branch locations
+        Map<String, Set<Integer>> dataBranchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(dataBranchLocationPath);
+        // merge two branch locations
         Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
         branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
-        rewriteVisibility(projectRootDir, branchLocations);
+        rewriteVisibility(Config.projectRootDir, branchLocations);
     }
 
     public static void rewriteVisibility(Path projectRootDir, Map<String, Set<Integer>> branchLocations) throws IOException {

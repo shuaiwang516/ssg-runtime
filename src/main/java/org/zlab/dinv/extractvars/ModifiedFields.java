@@ -3,10 +3,12 @@ package org.zlab.dinv.extractvars;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import org.zlab.dinv.Config;
 import org.zlab.dinv.runtimechecker.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -17,12 +19,6 @@ import java.util.*;
 public class ModifiedFields {
     // Old version: String -> Map<String, Type>
     // New version: String -> Map<String, Type>
-    public static String oldCassandraRootDir = "/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra";
-    public static String newCassandraRootDir = "/Users/hanke/Project/cassandra/apache-cassandra-4.1.2-src/src/java/org/apache/cassandra";
-    public static String oldHdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop1/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/";
-    public static String newHdfsRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop2/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/";
-
-    public static List<String> targetPrefixes = new LinkedList<>();
 
     /**
      * Simple static analysis to extract the numeric fields from a list of target classes.
@@ -31,7 +27,7 @@ public class ModifiedFields {
      * output: a list of numeric fields written into output/numeric_fields.json
      */
     public static Map<String, Map<String, String>> extractFields(
-            String projectRootDir, List<String> targetPrefixes) throws IOException {
+            Path projectRootDir, List<String> targetPrefixes) throws IOException {
 
         // remove $
         List<String> targetPrefixesNoDollar = new LinkedList<>();
@@ -42,7 +38,7 @@ public class ModifiedFields {
         // Walk the project directory structure and find all the Java source files
         Map<String, Map<String, String>> classToFields = new HashMap<>();
 
-        Files.walk(Paths.get(projectRootDir))
+        Files.walk(projectRootDir)
                 .filter(Files::isRegularFile)
                 .filter(p -> p.toString().endsWith(".java"))
                 .forEach(p -> {
@@ -122,24 +118,9 @@ public class ModifiedFields {
     }
 
     public static void main(String[] args) throws IOException {
-        String targetSystem = "hdfs";
-        String oldProjectRootDir;
-        String newProjectRootDir;
 
-        if (targetSystem.equals("cassandra")) {
-            oldProjectRootDir = oldCassandraRootDir;
-            newProjectRootDir = newCassandraRootDir;
-            targetPrefixes.add("org.apache.cassandra");
-        } else if (targetSystem.equals("hdfs")) {
-            oldProjectRootDir = oldHdfsRootDir;
-            newProjectRootDir = newHdfsRootDir;
-            targetPrefixes.add("org.apache.hadoop.hdfs");
-        } else {
-            throw new RuntimeException("Cannot handle system " + targetSystem);
-        }
-
-        Map<String, Map<String, String>> oldClassToFields = extractFields(oldProjectRootDir, targetPrefixes);
-        Map<String, Map<String, String>> newClassToFields = extractFields(newProjectRootDir, targetPrefixes);
+        Map<String, Map<String, String>> oldClassToFields = extractFields(Config.projectRootDir, Config.targetPrefixes);
+        Map<String, Map<String, String>> newClassToFields = extractFields(Config.newProjectRootDir, Config.targetPrefixes);
 
         // calculate the modified fields
         Map<String, Set<String>> modifiedFields = captureModifiedFields(oldClassToFields, newClassToFields);

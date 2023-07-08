@@ -13,7 +13,7 @@ import com.github.javaparser.ast.stmt.*;
 
 import java.util.*;
 
-public class InstrumentSerializeLocation {
+public class InstSer {
 
     private final Map<String, Set<Integer>> serializeLocations;
     private int fieldId = 0;
@@ -26,7 +26,7 @@ public class InstrumentSerializeLocation {
     private Set<String> newNonStaticFields;
     private boolean isStatic;
 
-    InstrumentSerializeLocation(Map<String, Set<Integer>> serializeLocations) {
+    InstSer(Map<String, Set<Integer>> serializeLocations) {
         this.serializeLocations = serializeLocations;
     }
 
