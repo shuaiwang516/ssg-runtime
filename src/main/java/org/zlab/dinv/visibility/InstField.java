@@ -20,13 +20,12 @@ public class InstField extends RewriteAST {
     }
 
     public void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic, String fieldName) {
-
         FieldDeclaration field = new FieldDeclaration();
         field.addModifier(Modifier.Keyword.PRIVATE); // Add the 'private' modifier
         field.setStatic(isStatic);
 
         NodeList<VariableDeclarator> vars = new NodeList<>();
-        vars.add(new VariableDeclarator(com.github.javaparser.ast.type.PrimitiveType.intType(), fieldName));
+        vars.add(new VariableDeclarator(com.github.javaparser.ast.type.PrimitiveType.longType(), fieldName));
         field.setVariables(vars); // Set the type to int and the variable name to 'a'
 
         // Add the new field to the class declaration
