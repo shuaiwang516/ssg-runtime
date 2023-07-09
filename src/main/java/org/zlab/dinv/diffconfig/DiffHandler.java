@@ -128,7 +128,7 @@ public class DiffHandler {
         Map<String, Set<Integer>> programLocations = new HashMap<>();
         for (Map<String, Map<String, Set<Integer>>> v1 : config2branchProgramLocations.values()) {
             for (Map<String, Set<Integer>> tmpProgramLocations: v1.values()) {
-                org.zlab.dinv.isserialize.Utils.mergeProgramLocations(programLocations, tmpProgramLocations);
+                org.zlab.dinv.visibility.Utils.mergeProgramLocations(programLocations, tmpProgramLocations);
             }
         }
         return programLocations;

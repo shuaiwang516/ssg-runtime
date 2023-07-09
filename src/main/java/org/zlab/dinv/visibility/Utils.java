@@ -1,4 +1,4 @@
-package org.zlab.dinv.isserialize;
+package org.zlab.dinv.visibility;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

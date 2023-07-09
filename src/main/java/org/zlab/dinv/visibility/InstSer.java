@@ -1,4 +1,4 @@
-package org.zlab.dinv.isserialize;
+package org.zlab.dinv.visibility;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;

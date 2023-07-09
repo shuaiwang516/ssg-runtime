@@ -3,8 +3,6 @@ package org.zlab.dinv.visibility;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.zlab.dinv.Config;
-import org.zlab.dinv.isserialize.InstSer;
-import org.zlab.dinv.isserialize.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,8 +27,8 @@ public class Main {
         serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(serializeLocations);
 
         // branch comparison inst
-        Map<String, Set<Integer>> branchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(outputStreamBranchLocationPath);
-        Map<String, Set<Integer>> dataBranchLocations = org.zlab.dinv.isserialize.Utils.loadProgramLocations(dataBranchLocationPath);
+        Map<String, Set<Integer>> branchLocations = Utils.loadProgramLocations(outputStreamBranchLocationPath);
+        Map<String, Set<Integer>> dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
         // merge two branch locations
         Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
         branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
@@ -69,9 +67,9 @@ public class Main {
         Utils.PPT2DaikonInput(instSer.pptVars, Paths.get("output/instrument_alg3_vars_file"));
 
         // branch ppt vars
-        org.zlab.dinv.isserialize.Utils.savePptVars(instField.pptVars,
+        Utils.savePptVars(instField.pptVars,
                 Paths.get("output/pptVars_alg4.json"));
-        org.zlab.dinv.isserialize.Utils.PPT2DaikonInput(
+        Utils.PPT2DaikonInput(
                 instField.pptVars, Paths.get("output/instrument_alg4_vars_file"));
     }
 }

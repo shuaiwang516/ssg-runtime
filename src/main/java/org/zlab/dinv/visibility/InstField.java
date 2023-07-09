@@ -11,7 +11,6 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.*;
-import org.zlab.dinv.isserialize.Utils;
 
 import java.util.*;
 
