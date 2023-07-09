@@ -26,7 +26,7 @@ public class InstSer {
     private Set<String> newNonStaticFields;
     private boolean isStatic;
 
-    InstSer(Map<String, Set<Integer>> serializeLocations) {
+    public InstSer(Map<String, Set<Integer>> serializeLocations) {
         this.serializeLocations = serializeLocations;
     }
 
