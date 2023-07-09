@@ -14,15 +14,14 @@ public class Main {
     // input: Map<String, Map<String, Set<Integer>>> targetIfBranches
     //      - {Class-> {MethodName, lineSet}}
     // output: overwrite the if branches as local fields, so daikon can instrument them
-
     public static Path outputStreamBranchLocationPath =
             Config.systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
     public static Path dataBranchLocationPath =
             Config.systemInfoPath.resolve("programLocations_alg4_data_branches.json");
+    public static Path serializeLocationsPath = Config.systemInfoPath.resolve("isSerializeProgramLocations.json");
 
     public static void main(String[] args) throws IOException {
         // isSerialize inst
-        Path serializeLocationsPath = Config.systemInfoPath.resolve("isSerializeProgramLocations.json");
         Map<String, Set<Integer>> serializeLocations = Utils.loadProgramLocations(serializeLocationsPath);
         serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(serializeLocations);
 
