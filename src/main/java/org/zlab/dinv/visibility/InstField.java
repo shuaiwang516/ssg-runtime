@@ -2,7 +2,6 @@ package org.zlab.dinv.visibility;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -14,55 +13,13 @@ import com.github.javaparser.ast.stmt.*;
 
 import java.util.*;
 
-public class InstField {
+public class InstField extends RewriteAST {
 
-    private final Map<String, Set<Integer>> branchLocations;
-    private int fieldId = 0;
-    private String currentClassFullName;
-    private String currentMethodName;
-
-    private Set<String> newStaticFields;
-    private Set<String> newNonStaticFields;
-    private boolean isStatic;
-
-    public Map<String, Map<String, Set<String>>> pptVars = new HashMap<>();
-
-    InstField(Map<String, Set<Integer>> branchLocations) {
-        this.branchLocations = branchLocations;
+    InstField(Map<String, Set<Integer>> programLocations) {
+        super(programLocations);
     }
 
-    public void process(CompilationUnit cu) {
-        cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
-            if (!classDecl.getFullyQualifiedName().isPresent()) {
-                return;
-            }
-            String clazzFullName = classDecl.getFullyQualifiedName().get();
-            if (!branchLocations.containsKey(clazzFullName))
-                return;
-            Set<Integer> lineSet = branchLocations.get(clazzFullName);
-            currentClassFullName = clazzFullName;
-
-            newStaticFields = new HashSet<>();
-            newNonStaticFields = new HashSet<>();
-
-            classDecl.getMethods().forEach(methodDecl -> {
-                isStatic = methodDecl.isStatic();
-                currentMethodName = methodDecl.getNameAsString();
-                methodDecl.getBody().ifPresent(body -> processBlockStmt(body, lineSet));
-            });
-
-            for (String newStaticField: newStaticFields) {
-                addField(classDecl, true, newStaticField);
-            }
-
-            for (String newNonStaticField: newNonStaticFields) {
-                addField(classDecl, false, newNonStaticField);
-            }
-
-        });
-    }
-
-    public static void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic, String fieldName) {
+    public void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic, String fieldName) {
 
         FieldDeclaration field = new FieldDeclaration();
         field.addModifier(Modifier.Keyword.PRIVATE); // Add the 'private' modifier
@@ -74,7 +31,6 @@ public class InstField {
 
         // Add the new field to the class declaration
         classDecl.getMembers().add(field);
-
     }
 
     public void recurProcessBinaryExpr(Statement stmt, BinaryExpr binaryExpr, NodeList<Statement> newStatements) {
@@ -144,50 +100,6 @@ public class InstField {
                 }
             }
         }
-
-        if (stmt instanceof IfStmt) {
-            Statement iterateStmt = stmt;
-            while (true) {
-                // iterate all if-elseif-elseif-elseblock
-                Statement thenStmt = ((IfStmt) iterateStmt).getThenStmt();
-                if (thenStmt instanceof BlockStmt) {
-                    processBlockStmt((BlockStmt) thenStmt, lineSet);
-                }
-                if (((IfStmt) iterateStmt).getElseStmt().isPresent()) {
-                    Statement elseStmt =  ((IfStmt) iterateStmt).getElseStmt().get();
-                    if (elseStmt instanceof IfStmt) {
-                        iterateStmt = elseStmt;
-                    } else {
-                        // this is a block o null
-                        if (elseStmt instanceof BlockStmt)
-                            processBlockStmt((BlockStmt) elseStmt, lineSet);
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-        } else if (stmt instanceof BlockStmt) {
-            processBlockStmt((BlockStmt) stmt, lineSet);
-        }  else if (stmt instanceof WhileStmt) {
-            Statement body = ((WhileStmt) stmt).getBody();
-            if (body instanceof BlockStmt) {
-                processBlockStmt((BlockStmt) body, lineSet);
-            }
-        } else if (stmt instanceof TryStmt) {
-            BlockStmt blockStmt = ((TryStmt) stmt).getTryBlock();
-            processBlockStmt(blockStmt, lineSet);
-            ((TryStmt) stmt).getFinallyBlock().ifPresent(b -> processBlockStmt(b, lineSet));
-        }
-        // TODO: add more types
-    }
-
-    public void processBlockStmt(BlockStmt blockStmt, Set<Integer> lineSet) {
-        NodeList<Statement> statements = blockStmt.getStatements();
-        NodeList<Statement> newStatements = new NodeList<>(statements);
-        for (Statement innerStmt : statements) {
-            recurProcess(innerStmt, newStatements, lineSet);
-        }
-        blockStmt.setStatements(newStatements);
+        iterateStmt(stmt, lineSet);
     }
 }

@@ -5,15 +5,16 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.stmt.*;
+import org.zlab.dinv.visibility.IterateAST;
 
 import java.util.*;
 
-public class RetrieveHandlerBlock {
+public class RetrieveHandlerBlock extends IterateAST {
     /**
      * Input: program locations -> output: string
      */
     private final Map<String, Set<Integer>> programLocations;
-    private Map<String, Map<Integer, String>> programLocation2block = new HashMap<>();
+    private final Map<String, Map<Integer, String>> programLocation2block = new HashMap<>();
 
     private String currentClassFullName;
     private String currentMethodName;
@@ -69,50 +70,6 @@ public class RetrieveHandlerBlock {
                 // retrieve the if block
             }
         }
-
-        if (stmt instanceof IfStmt) {
-            Statement iterateStmt = stmt;
-            while (true) {
-                // iterate all if-elseif-elseif-elseblock
-                Statement thenStmt = ((IfStmt) iterateStmt).getThenStmt();
-                if (thenStmt instanceof BlockStmt) {
-                    processBlockStmt((BlockStmt) thenStmt, lineSet);
-                }
-                if (((IfStmt) iterateStmt).getElseStmt().isPresent()) {
-                    Statement elseStmt =  ((IfStmt) iterateStmt).getElseStmt().get();
-                    if (elseStmt instanceof IfStmt) {
-                        iterateStmt = elseStmt;
-                    } else {
-                        // this is a block o null
-                        if (elseStmt instanceof BlockStmt)
-                            processBlockStmt((BlockStmt) elseStmt, lineSet);
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-        } else if (stmt instanceof BlockStmt) {
-            processBlockStmt((BlockStmt) stmt, lineSet);
-        }  else if (stmt instanceof WhileStmt) {
-            Statement body = ((WhileStmt) stmt).getBody();
-            if (body instanceof BlockStmt) {
-                processBlockStmt((BlockStmt) body, lineSet);
-            }
-        } else if (stmt instanceof TryStmt) {
-            BlockStmt blockStmt = ((TryStmt) stmt).getTryBlock();
-            processBlockStmt(blockStmt, lineSet);
-            ((TryStmt) stmt).getFinallyBlock().ifPresent(b -> processBlockStmt(b, lineSet));
-        }
-        // TODO: add more types
-    }
-
-    public void processBlockStmt(BlockStmt blockStmt, Set<Integer> lineSet) {
-        NodeList<Statement> statements = blockStmt.getStatements();
-        NodeList<Statement> newStatements = new NodeList<>(statements);
-        for (Statement innerStmt : statements) {
-            recurProcess(innerStmt, newStatements, lineSet);
-        }
-        blockStmt.setStatements(newStatements);
+        iterateStmt(stmt, lineSet);
     }
 }
