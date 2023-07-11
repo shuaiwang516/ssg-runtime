@@ -161,6 +161,9 @@ public class Utils {
         if (inv.contains("org.zlab.dinv.runtimechecker.Runtime.getLastItem")) {
             return true;
         }
+        if (inv.contains("Exiting Daikon.")) {
+            return true;
+        }
         return false;
     }
 
