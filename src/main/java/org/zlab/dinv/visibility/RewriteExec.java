@@ -11,12 +11,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-@CommandLine.Command(name = "SimpleAssignStmtSlicing", mixinStandardHelpOptions = true, version = "1.0",
-        description = "SimpleAssignStmtSlicing does amazing things.")
+@CommandLine.Command(name = "RewriteExec", mixinStandardHelpOptions = true, version = "1.0",
+        description = "RewriteExec does amazing things.")
 public class RewriteExec implements Runnable {
 
-    @CommandLine.Option(names = { "-infopath" }, description = "path to files generated from vasco")
+    @CommandLine.Option(names = { "-infoPath" }, description = "path to files generated from vasco")
     private String infopath;
+
+    @CommandLine.Option(names = { "-targetSystemPath" }, description = "path to system being rewritten")
+    private String targetSystemPath;
 
     // input: Map<String, Map<String, Set<Integer>>> targetIfBranches
     //      - {Class-> {MethodName, lineSet}}
@@ -29,8 +32,14 @@ public class RewriteExec implements Runnable {
         if (infopath != null) {
             systemInfoPath = Paths.get(infopath);
         }
-        System.out.println("[RewriteExec] using systemInfoPath = " + systemInfoPath);
+        Path projectRootDir = Config.projectRootDir;
+        if (targetSystemPath != null) {
+            projectRootDir = Paths.get(targetSystemPath);
+        }
+        System.out.println("[RewriteExec] systemInfoPath = " + systemInfoPath);
+        System.out.println("[RewriteExec] target projectRootDir = " + projectRootDir);
 
+        // // make sure at least one info file is provided
         // Path outputStreamBranchLocationPath =
         //         systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
         // Path dataBranchLocationPath =
@@ -38,18 +47,28 @@ public class RewriteExec implements Runnable {
         // Path serializeLocationsPath = systemInfoPath.resolve("isSerializeProgramLocations.json");
         //
         // // isSerialize inst
-        // Map<String, Set<Integer>> serializeLocations = Utils.loadProgramLocations(serializeLocationsPath);
-        // serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(serializeLocations);
+        // Map<String, Set<Integer>> serializeLocations = null;
+        // if (serializeLocationsPath.toFile().exists()) {
+        //     serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
+        // } else {
+        //     System.out.println("[Warning] serializeLocations is not provided, choose not to use");
+        // }
         //
         // // branch comparison inst
-        // Map<String, Set<Integer>> branchLocations = Utils.loadProgramLocations(outputStreamBranchLocationPath);
-        // Map<String, Set<Integer>> dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
-        // // merge two branch locations
-        // Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
-        // branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
+        // Map<String, Set<Integer>> branchLocations = null;
+        // Map<String, Set<Integer>> dataBranchLocations = null;
+        // if (outputStreamBranchLocationPath.toFile().exists() && dataBranchLocationPath.toFile().exists()) {
+        //     branchLocations = Utils.loadProgramLocations(outputStreamBranchLocationPath);
+        //     dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
+        //     // merge two branch locations
+        //     Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
+        //     branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
+        // } else {
+        //     System.out.println("[Warning] data/outputstream locations is not provided, choose not to use");
+        // }
         //
         // try {
-        //     rewriteVisibility(Config.projectRootDir, serializeLocations, branchLocations);
+        //     rewriteVisibility(projectRootDir, serializeLocations, branchLocations);
         // } catch (IOException e) {
         //     throw new RuntimeException(e);
         // }
@@ -59,8 +78,21 @@ public class RewriteExec implements Runnable {
                                          Map<String, Set<Integer>> serializeLocations,
                                          Map<String, Set<Integer>> branchLocations)
             throws IOException {
-        InstSer instSer = new InstSer(serializeLocations);
-        InstField instField = new InstField(branchLocations);
+        if (serializeLocations == null && branchLocations == null) {
+            System.out.println("no location is not provided, return");
+        }
+        InstSer instSer;
+        InstField instField;
+        if (serializeLocations != null)
+            instSer = new InstSer(serializeLocations);
+        else {
+            instSer = null;
+        }
+        if (branchLocations != null)
+            instField = new InstField(branchLocations);
+        else {
+            instField = null;
+        }
 
         // Walk the project directory structure and find all the Java source files
         Files.walk(projectRootDir)
@@ -72,9 +104,10 @@ public class RewriteExec implements Runnable {
                         // if (!p.toString().contains("/RewindableDataInputStreamPlus.java")) return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         // Traverse the AST and perform the desired processing
-                        instSer.process(cu);
-                        instField.process(cu);
-
+                        if (instSer != null)
+                            instSer.process(cu);
+                        if (instField != null)
+                            instField.process(cu);
                         Files.write(p, cu.toString().getBytes());
                     } catch (IOException e) {
                         e.printStackTrace();
