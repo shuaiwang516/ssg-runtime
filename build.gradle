@@ -41,3 +41,8 @@ task getModifiedFields(type: JavaExec) {
 application {
     mainClassName = 'org.zlab.dinv.visibility.Main'
 }
+
+task embedInv(type: JavaExec) {
+    main = 'org.zlab.dinv.runtimechecker.Main'
+    classpath = sourceSets.main.runtimeClasspath
+}
