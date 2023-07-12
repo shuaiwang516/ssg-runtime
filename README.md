@@ -1,22 +1,27 @@
 # dinv-monitor
-Performs source code instrumentation to embed the invariants. Use `Runtime` 
+* Performs source code instrumentation to embed the invariants. Use `Runtime` 
 to collect violations and send this information back to the user. 
+* When the jvm exits, it dumps the violations to violations.txt using a
+hook
 
-Requires JDK8
+Requirement: JDK8
 
 This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
 ```bash
 ./gradlew shadowJar
 ```
 
-## Instrument systems
+## Usage
+Execute `org.zlab.dinv.runtimechecker.Main` to embed the invariants, recompile
+system with our runtime jar.
+
 ### Cassandra
 The following env variable will add our runtime jar to the Cassandra's classpath.
 ```bash
-# This will include the runtime jar for compilation (ant)
-cp /path/to/dinv-monitor-shadow.jar $CASSANDRA_DIR/build/lib/jars
-# This will include the runtime jar for Cassandra runtime
-export EXTRA_CLASSPATH=/path/to/dinv-monitor-shadow.jar
+cp /path/to/dinv-monitor-shadow.jar $CASSANDRA_DIR/lib
+# Build the dist version, 
+ant artifacts
+# $CASSANDRA_DIR/build/apache-cassandra-X.X.X-SNAPSHOT-bin.tar.gz
 ```
 
 ### HDFS
@@ -37,20 +42,11 @@ Test the dist version of HDSF, we need to put the runtime jar to the HDFS's clas
 $HADOOP_ROOT_PATH/share/hadoop/hdfs/lib/dinv-monitor-shadow.jar
 ```
 
-## Status
-Tested the instrumentation on Cassandra-3.11.14 source code, the instrumented
-invariants can be compiled correctly.
-
-
 ## TODOs
-Publish jar file so that it can be added by modifying the pom.xml directly.
-
 Handle invariants
 - comparison between pre and post state
 
-
 ## Post Process inv
-
 Remove `$assertionsDisabled` related invariants
 ```bash
 # Mac
