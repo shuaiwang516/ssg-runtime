@@ -109,16 +109,16 @@ public class InstrumentInvariant {
                     String posStatus = strs[1];
 
                     // FIXME: handle object
-                    // if (posStatus.equals("OBJECT")) {
-                    //     if (method.isStatic())
-                    //         continue;
-                    //     // check class match!
-                    //     if (!Utils.isMatchPpt2(classDecl, pptMethodSig))
-                    //         continue;
-                    //
-                    //     exitInvs.addAll(invs.get(ppt));
-                    //     continue;
-                    // }
+                    if (posStatus.equals("OBJECT")) {
+                        // if (method.isStatic())
+                        //     continue;
+                        // // check class match!
+                        // if (!Utils.isMatchPpt2(classDecl, pptMethodSig))
+                        //     continue;
+                        //
+                        // exitInvs.addAll(invs.get(ppt));
+                        continue;
+                    }
 
                     // FIXME: handle class
                     if (posStatus.equals("CLASS"))

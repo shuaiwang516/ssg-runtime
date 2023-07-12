@@ -39,44 +39,46 @@ public class RewriteExec implements Runnable {
         System.out.println("[RewriteExec] systemInfoPath = " + systemInfoPath);
         System.out.println("[RewriteExec] target projectRootDir = " + projectRootDir);
 
-        // // make sure at least one info file is provided
-        // Path outputStreamBranchLocationPath =
-        //         systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
-        // Path dataBranchLocationPath =
-        //         systemInfoPath.resolve("programLocations_alg4_data_branches.json");
-        // Path serializeLocationsPath = systemInfoPath.resolve("isSerializeProgramLocations.json");
-        //
-        // // isSerialize inst
-        // Map<String, Set<Integer>> serializeLocations = null;
-        // if (serializeLocationsPath.toFile().exists()) {
-        //     serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
-        // } else {
-        //     System.out.println("[Warning] serializeLocations is not provided, choose not to use");
-        // }
-        //
-        // // branch comparison inst
-        // Map<String, Set<Integer>> branchLocations = null;
-        // Map<String, Set<Integer>> dataBranchLocations = null;
-        // if (outputStreamBranchLocationPath.toFile().exists() && dataBranchLocationPath.toFile().exists()) {
-        //     branchLocations = Utils.loadProgramLocations(outputStreamBranchLocationPath);
-        //     dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
-        //     // merge two branch locations
-        //     Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
-        //     branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
-        // } else {
-        //     System.out.println("[Warning] data/outputstream locations is not provided, choose not to use");
-        // }
-        //
-        // try {
-        //     rewriteVisibility(projectRootDir, serializeLocations, branchLocations);
-        // } catch (IOException e) {
-        //     throw new RuntimeException(e);
-        // }
+        // make sure at least one info file is provided
+        Path outputStreamBranchLocationPath =
+                systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
+        Path dataBranchLocationPath =
+                systemInfoPath.resolve("programLocations_alg4_data_branches.json");
+        Path serializeLocationsPath = systemInfoPath.resolve("isSerializeProgramLocations.json");
+
+        // isSerialize inst
+        Map<String, Set<Integer>> serializeLocations = null;
+        if (serializeLocationsPath.toFile().exists()) {
+            serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
+        } else {
+            System.out.println("[Warning] serializeLocations is not provided, choose not to use");
+        }
+
+        // branch comparison inst
+        Map<String, Set<Integer>> branchLocations = null;
+        Map<String, Set<Integer>> dataBranchLocations = null;
+        if (outputStreamBranchLocationPath.toFile().exists() && dataBranchLocationPath.toFile().exists()) {
+            branchLocations = Utils.loadProgramLocations(outputStreamBranchLocationPath);
+            dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
+            // merge two branch locations
+            Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
+            branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
+        } else {
+            System.out.println("[Warning] data/outputstream locations is not provided, choose not to use");
+        }
+
+        try {
+            rewriteVisibility(projectRootDir, serializeLocations, branchLocations, systemInfoPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void rewriteVisibility(Path projectRootDir,
                                          Map<String, Set<Integer>> serializeLocations,
-                                         Map<String, Set<Integer>> branchLocations)
+                                         Map<String, Set<Integer>> branchLocations,
+                                         Path systemInfoPath
+                                  )
             throws IOException {
         if (serializeLocations == null && branchLocations == null) {
             System.out.println("no location is not provided, return");
@@ -115,13 +117,15 @@ public class RewriteExec implements Runnable {
                 });
 
         // isSerialize ppt vars
-        Utils.savePptVars(instSer.pptVars, Paths.get("output/pptVars_alg3.json"));
-        Utils.PPT2DaikonInput(instSer.pptVars, Paths.get("output/instrument_alg3_vars_file"));
+        if (instSer != null) {
+            Utils.savePptVars(instSer.pptVars, systemInfoPath.resolve("pptVars_alg3.json"));
+            Utils.PPT2DaikonInput(instSer.pptVars, systemInfoPath.resolve("instrument_alg3_vars_file"));
+        }
 
-        // branch ppt vars
-        Utils.savePptVars(instField.pptVars,
-                Paths.get("output/pptVars_alg4.json"));
-        Utils.PPT2DaikonInput(
-                instField.pptVars, Paths.get("output/instrument_alg4_vars_file"));
+        if (instField != null) {
+            // branch ppt vars
+            Utils.savePptVars(instField.pptVars, systemInfoPath.resolve("pptVars_alg4.json"));
+            Utils.PPT2DaikonInput(instField.pptVars, systemInfoPath.resolve("instrument_alg4_vars_file"));
+        }
     }
 }
