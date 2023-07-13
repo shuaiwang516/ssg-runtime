@@ -1,4 +1,4 @@
-package org.zlab.dinv.extractvars;
+package org.zlab.dinv.modifiedfields;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

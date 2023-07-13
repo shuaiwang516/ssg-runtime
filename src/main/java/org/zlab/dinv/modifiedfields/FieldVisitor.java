@@ -1,4 +1,4 @@
-package org.zlab.dinv.extractvars;
+package org.zlab.dinv.modifiedfields;
 
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;

@@ -1,4 +1,4 @@
-package org.zlab.dinv.extractvars;
+package org.zlab.dinv.modifiedfields;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -49,7 +49,7 @@ public class ModifiedFields {
                         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
                             if (classDecl.getFullyQualifiedName().isPresent()) {
                                 String classFullName = classDecl.getFullyQualifiedName().get();
-                                if (!org.zlab.dinv.extractvars.Utils.startWithTargetPrefix(targetPrefixesNoDollar, classFullName))
+                                if (!org.zlab.dinv.modifiedfields.Utils.startWithTargetPrefix(targetPrefixesNoDollar, classFullName))
                                     return;
                                 System.out.println("process class: " + classFullName);
                                 Map<String, String> fields = new HashMap<>();
@@ -126,7 +126,7 @@ public class ModifiedFields {
         Map<String, Set<String>> modifiedFields = captureModifiedFields(oldClassToFields, newClassToFields);
 
         // readNumericFields(outputPath);
-        org.zlab.dinv.extractvars.Utils.saveModifiedFields(modifiedFields, Paths.get("output/modifiedFields.json"));
+        org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedFields, Paths.get("output/modifiedFields.json"));
 
         for (String className: modifiedFields.keySet()) {
             for (String fieldName: modifiedFields.get(className)) {

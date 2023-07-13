@@ -56,7 +56,7 @@ public class RewriteExec implements Runnable {
         // isSerialize inst
         Map<String, Set<Integer>> serializeLocations = null;
         if (serializeLocationsPath.toFile().exists()) {
-            serializeLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
+            serializeLocations = org.zlab.dinv.modifiedfields.Utils.replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
         } else {
             System.out.println("[Warning] serializeLocations is not provided, choose not to use");
         }
@@ -69,7 +69,7 @@ public class RewriteExec implements Runnable {
             dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
             // merge two branch locations
             Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
-            branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
+            branchLocations = org.zlab.dinv.modifiedfields.Utils.replaceDollarWithDot(branchLocations);
         } else {
             System.out.println("[Warning] data/outputstream locations are not both provided, choose not to use");
         }

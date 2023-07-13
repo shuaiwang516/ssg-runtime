@@ -92,7 +92,7 @@ public class DiffHandler {
             }
         }
 
-        org.zlab.dinv.extractvars.Utils.saveModifiedFields(modifiedHandlerConfig, Paths.get("output/modifiedHandlerConfigs.json"));
+        org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig, Paths.get("output/modifiedHandlerConfigs.json"));
     }
 
     public static Map<String, Map<String, Set<String>>> constructConfig2Handlers(
