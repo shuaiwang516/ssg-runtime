@@ -3,22 +3,52 @@ package org.zlab.dinv.modifiedfields;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import org.zlab.dinv.Config;
-import org.zlab.dinv.runtimechecker.Utils;
+import picocli.CommandLine;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
  * This class is to iterate all the class definitions and extract the fields whose
  * declaration is modified between versions.
  */
-public class ModifiedFields {
-    // Old version: String -> Map<String, Type>
-    // New version: String -> Map<String, Type>
+@CommandLine.Command(name = "ModifiedFields", mixinStandardHelpOptions = true, version = "1.0",
+        description = "ModifiedFields does amazing things.")
+public class ModifiedFields implements Runnable {
+
+    @CommandLine.Option(names = { "-infoPath" }, required = true, description = "path to files generated from vasco")
+    private Path infopath;
+
+    @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
+    private Path targetOldSystemPath;
+
+    @CommandLine.Option(names = { "-targetNewSystemPath" }, required = true, description = "path to new system")
+    private Path targetNewSystemPath;
+
+    @CommandLine.Option(names = { "-tp" }, split = ",", required = true, description = "target prefix for filtering")
+    private List<String> targetPrefixes;
+
+    @Override
+    public void run() {
+        try {
+            Map<String, Map<String, String>> oldClassToFields = extractFields(targetOldSystemPath, targetPrefixes);
+            Map<String, Map<String, String>> newClassToFields = extractFields(targetNewSystemPath, targetPrefixes);
+
+            // calculate the modified fields
+            Map<String, Set<String>> modifiedFields = captureModifiedFields(oldClassToFields, newClassToFields);
+
+            // readNumericFields(outputPath);
+            org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedFields, infopath.resolve("modifiedFields.json"));
+
+            // print diff fields
+            printDiffFields(modifiedFields, oldClassToFields, newClassToFields);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Simple static analysis to extract the numeric fields from a list of target classes.
@@ -32,7 +62,7 @@ public class ModifiedFields {
         // remove $
         List<String> targetPrefixesNoDollar = new LinkedList<>();
         for (String classFullName: targetPrefixes) {
-            targetPrefixesNoDollar.add(Utils.replaceDollarWithDot(classFullName));
+            targetPrefixesNoDollar.add(org.zlab.dinv.runtimechecker.Utils.replaceDollarWithDot(classFullName));
         }
 
         // Walk the project directory structure and find all the Java source files
@@ -117,19 +147,12 @@ public class ModifiedFields {
         return modifiedFields;
     }
 
-    public static void main(String[] args) throws IOException {
+    public void printDiffFields(Map<String, Set<String>> modifiedFields,
+                                Map<String, Map<String, String>> oldClassToFields,
+                                Map<String, Map<String, String>> newClassToFields) {
 
-        Map<String, Map<String, String>> oldClassToFields = extractFields(Config.projectRootDir, Config.targetPrefixes);
-        Map<String, Map<String, String>> newClassToFields = extractFields(Config.newProjectRootDir, Config.targetPrefixes);
-
-        // calculate the modified fields
-        Map<String, Set<String>> modifiedFields = captureModifiedFields(oldClassToFields, newClassToFields);
-
-        // readNumericFields(outputPath);
-        org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedFields, Paths.get("output/modifiedFields.json"));
-
-        for (String className: modifiedFields.keySet()) {
-            for (String fieldName: modifiedFields.get(className)) {
+        for (String className : modifiedFields.keySet()) {
+            for (String fieldName : modifiedFields.get(className)) {
                 System.out.printf("field: %s.%s\n", className, fieldName);
                 if (!newClassToFields.containsKey(className) || !newClassToFields.get(className).containsKey(fieldName)) {
                     System.out.println("\tremoved in new version");
@@ -142,5 +165,4 @@ public class ModifiedFields {
             }
         }
     }
-
 }

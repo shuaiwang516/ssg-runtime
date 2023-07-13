@@ -43,6 +43,11 @@ application {
 }
 
 task embedInv(type: JavaExec) {
-    main = 'org.zlab.dinv.runtimechecker.Main'
+    mainClass.set('org.zlab.dinv.runtimechecker.Main')
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task modifiedFields(type: JavaExec) {
+    mainClass.set('org.zlab.dinv.modifiedfields.Main')
     classpath = sourceSets.main.runtimeClasspath
 }
