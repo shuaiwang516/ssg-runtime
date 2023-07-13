@@ -46,6 +46,13 @@ public class RewriteExec implements Runnable {
                 systemInfoPath.resolve("programLocations_alg4_data_branches.json");
         Path serializeLocationsPath = systemInfoPath.resolve("isSerializeProgramLocations.json");
 
+        if (!serializeLocationsPath.toFile().exists()
+                && !outputStreamBranchLocationPath.toFile().exists()
+                && !dataBranchLocationPath.toFile().exists()) {
+            throw new RuntimeException("no program location file is provided" +
+                    ", please check the input path");
+        }
+
         // isSerialize inst
         Map<String, Set<Integer>> serializeLocations = null;
         if (serializeLocationsPath.toFile().exists()) {
@@ -64,7 +71,7 @@ public class RewriteExec implements Runnable {
             Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
             branchLocations = org.zlab.dinv.extractvars.Utils.replaceDollarWithDot(branchLocations);
         } else {
-            System.out.println("[Warning] data/outputstream locations is not provided, choose not to use");
+            System.out.println("[Warning] data/outputstream locations are not both provided, choose not to use");
         }
 
         try {
