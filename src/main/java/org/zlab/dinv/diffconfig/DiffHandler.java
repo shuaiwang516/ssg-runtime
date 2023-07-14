@@ -3,38 +3,50 @@ package org.zlab.dinv.diffconfig;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.zlab.dinv.Config;
+import picocli.CommandLine;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class DiffHandler {
+public class DiffHandler implements Runnable {
 
     // public static Path oldProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
     // public static Path newProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
 
-    public static Path oldProjectRootDir = Paths.get("/Users/hanke/Project/dinv-test");
-    public static Path newProjectRootDir = Paths.get("/Users/hanke/Project/dinv-test1");
-    public static Path oldConfig2programLocationsPath = Paths.get("input/oldConfig2programLocations.json");
-    public static Path newConfig2programLocationsPath = Paths.get("input/newConfig2programLocations.json");
+    @CommandLine.Option(names = { "-oldInfoPath" }, required = true, description = "path to files generated from vasco")
+    private Path oldInfoPath;
 
-    public static void main(String[] args) throws IOException {
+    @CommandLine.Option(names = { "-newInfoPath" }, required = true, description = "path to files generated from vasco")
+    private Path newInfoPath;
+
+    @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
+    private Path targetOldSystemPath;
+
+    @CommandLine.Option(names = { "-targetNewSystemPath" }, required = true, description = "path to new system")
+    private Path targetNewSystemPath;
+
+    @Override
+    public void run() {
         // Input: program locations + source code
-        Map<String, Map<String, Map<String, Set<Integer>>>> oldConfig2branchProgramLocations = Utils.loadFields2Locations(oldConfig2programLocationsPath);
-        Map<String, Map<String, Map<String, Set<Integer>>>> newConfig2branchProgramLocations = Utils.loadFields2Locations(newConfig2programLocationsPath);
+        Map<String, Map<String, Map<String, Set<Integer>>>> oldConfig2branchProgramLocations = Utils.loadFields2Locations(oldInfoPath.resolve("config2programLocations.json"));
+        Map<String, Map<String, Map<String, Set<Integer>>>> newConfig2branchProgramLocations = Utils.loadFields2Locations(newInfoPath.resolve("config2programLocations.json"));
 
         // Merge program locations
         Map<String, Set<Integer>> oldProgramLocations = mergeProgramLocations(oldConfig2branchProgramLocations);
         Map<String, Set<Integer>> newProgramLocations = mergeProgramLocations(newConfig2branchProgramLocations);
 
         // Given the program locations, return:
-        Map<String, Map<Integer, String>> oldProgramLocation2block =  retrieveHandlerBlock(oldProjectRootDir, oldProgramLocations);
-        Map<String, Map<Integer, String>> newProgramLocation2block =  retrieveHandlerBlock(newProjectRootDir, newProgramLocations);
+        Map<String, Map<Integer, String>> oldProgramLocation2block;
+        Map<String, Map<Integer, String>> newProgramLocation2block;
+        try {
+            oldProgramLocation2block =  retrieveHandlerBlock(targetOldSystemPath, oldProgramLocations);
+            newProgramLocation2block =  retrieveHandlerBlock(targetNewSystemPath, newProgramLocations);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         Map<String, Map<String, Set<String>>> oldConfig2handlers = constructConfig2Handlers(
                 oldConfig2branchProgramLocations,
@@ -189,5 +201,4 @@ public class DiffHandler {
     public static void computeConfigHandlerDiff() {
 
     }
-
 }

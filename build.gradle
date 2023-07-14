@@ -51,3 +51,8 @@ task modifiedConfigs(type: JavaExec) {
     mainClass.set('org.zlab.dinv.diffconfig.ConfigMain')
     classpath = sourceSets.main.runtimeClasspath
 }
+
+task diffHandler(type: JavaExec) {
+    mainClass.set('org.zlab.dinv.diffconfig.DiffHandlerMain')
+    classpath = sourceSets.main.runtimeClasspath
+}

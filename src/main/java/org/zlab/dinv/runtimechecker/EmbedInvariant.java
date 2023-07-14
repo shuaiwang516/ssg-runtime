@@ -17,7 +17,7 @@ import java.util.Set;
 public class EmbedInvariant implements Runnable {
 
     @CommandLine.Option(names = { "-infoPath" }, description = "path to files generated from vasco")
-    private String infopath;
+    private String infoPath;
 
     @CommandLine.Option(names = { "-targetSystemPath" }, description = "path to system being rewritten")
     private String targetSystemPath;
@@ -25,8 +25,8 @@ public class EmbedInvariant implements Runnable {
     @Override
     public void run() {
         Path systemInfoPath = Config.systemInfoPath;
-        if (infopath != null) {
-            systemInfoPath = Paths.get(infopath);
+        if (infoPath != null) {
+            systemInfoPath = Paths.get(infoPath);
         }
         Path projectRootDir = Config.projectRootDir;
         if (targetSystemPath != null) {

@@ -19,7 +19,7 @@ import java.util.*;
 public class ModifiedFields implements Runnable {
 
     @CommandLine.Option(names = { "-infoPath" }, required = true, description = "path to files generated from vasco")
-    private Path infopath;
+    private Path infoPath;
 
     @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
     private Path targetOldSystemPath;
@@ -40,7 +40,7 @@ public class ModifiedFields implements Runnable {
             Map<String, Set<String>> modifiedFields = captureModifiedFields(oldClassToFields, newClassToFields);
 
             // readNumericFields(outputPath);
-            org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedFields, infopath.resolve("modifiedFields.json"));
+            org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedFields, infoPath.resolve("modifiedFields.json"));
 
             // print diff fields
             printDiffFields(modifiedFields, oldClassToFields, newClassToFields);

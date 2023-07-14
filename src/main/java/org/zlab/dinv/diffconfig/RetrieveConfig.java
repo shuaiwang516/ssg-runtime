@@ -18,8 +18,8 @@ public class RetrieveConfig implements Runnable {
      * Iterate the target config class, return configuration + default value
      */
     @CommandLine.Option(names = { "-infoPath" }, required = true, description = "path to files generated from vasco")
-    private Path infopath;
-
+    private Path infoPath;
+    
     @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
     private Path targetOldSystemPath;
 
@@ -37,7 +37,7 @@ public class RetrieveConfig implements Runnable {
             // compute ModifiedConfigInfo
             ModifiedConfigInfo modifiedConfigInfo = computeModifiedConfigInfo(oldConfigInfo, newConfigInfo);
             // save modifiedConfigInfo
-            saveModifiedConfigInfo(modifiedConfigInfo, infopath);
+            saveModifiedConfigInfo(modifiedConfigInfo, infoPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
