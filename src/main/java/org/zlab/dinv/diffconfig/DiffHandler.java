@@ -104,11 +104,7 @@ public class DiffHandler implements Runnable {
             }
         }
 
-        org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig, oldInfoPath.resolve("modifiedHandlerConfigs.json"));
-
-        // only save the configs
-        // save the configurations
-        // merge configurations
+        // org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig, oldInfoPath.resolve("modifiedHandlerConfigs.json"));
         RetrieveConfig.saveConfigs(getConfigurationNames(modifiedHandlerConfig), oldInfoPath.resolve("changedHandlerConfig.json"));
     }
 
