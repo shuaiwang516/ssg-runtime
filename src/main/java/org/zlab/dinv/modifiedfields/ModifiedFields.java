@@ -54,7 +54,7 @@ public class ModifiedFields implements Runnable {
      * Simple static analysis to extract the numeric fields from a list of target classes.
      * The class should be given with full qualified.
      * input: (1) system source code (2) a list of classes
-     * output: a list of numeric fields written into output/numeric_fields.json
+     * output: Map<ClassName, Map<Field, Type>>
      */
     public static Map<String, Map<String, String>> extractFields(
             Path projectRootDir, List<String> targetPrefixes) throws IOException {
