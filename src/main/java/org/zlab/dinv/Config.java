@@ -15,7 +15,7 @@ public class Config {
     // public static String projectRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop1/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/";
     // public static String newProjectRootDir = "/Users/hanke/Desktop/Project/hadoop/hadoop2/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/";
 
-    public static final int EDIT_DISTANCE_THRESHOLD = 60;
+    public static final int EDIT_DISTANCE_THRESHOLD = 40;
 
     // public static List<String> targetPrefixes = new LinkedList<>();
     // static {

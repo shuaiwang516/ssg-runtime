@@ -19,7 +19,7 @@ public class RetrieveConfig implements Runnable {
      */
     @CommandLine.Option(names = { "-infoPath" }, required = true, description = "path to files generated from vasco")
     private Path infoPath;
-    
+
     @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
     private Path targetOldSystemPath;
 
@@ -194,11 +194,11 @@ public class RetrieveConfig implements Runnable {
         saveConfigs(modifiedConfigInfo.boundaryRelatedConfig, outputPath.resolve("boundaryRelatedConfig.json"));
     }
 
-    public static void saveConfigs(Set<String> programLocations, Path filePath) {
+    public static void saveConfigs(Set<String> configs, Path filePath) {
         createOutputDirIfNotExist();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(filePath.toFile(), programLocations);
+            objectMapper.writeValue(filePath.toFile(), configs);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

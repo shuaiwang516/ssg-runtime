@@ -104,7 +104,12 @@ public class DiffHandler implements Runnable {
             }
         }
 
-        org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig, Paths.get("output/modifiedHandlerConfigs.json"));
+        org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig, oldInfoPath.resolve("modifiedHandlerConfigs.json"));
+
+        // only save the configs
+        // save the configurations
+        // merge configurations
+        RetrieveConfig.saveConfigs(getConfigurationNames(modifiedHandlerConfig), oldInfoPath.resolve("changedHandlerConfig.json"));
     }
 
     public static Map<String, Map<String, Set<String>>> constructConfig2Handlers(
@@ -198,7 +203,11 @@ public class DiffHandler implements Runnable {
         return dp[len1][len2];
     }
 
-    public static void computeConfigHandlerDiff() {
-
+    public Set<String> getConfigurationNames(Map<String, Set<String>> modifiedHandlerConfig) {
+        Set<String> configs = new HashSet<>();
+        for (Set<String> configNames: modifiedHandlerConfig.values()) {
+            configs.addAll(configNames);
+        }
+        return configs;
     }
 }
