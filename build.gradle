@@ -33,11 +33,6 @@ shadowJar {
     mergeServiceFiles()
 }
 
-task getModifiedFields(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass.set('org.zlab.dinv.extractvars.ModifiedFields')
-}
-
 application {
     mainClassName = 'org.zlab.dinv.visibility.Main'
 }
@@ -49,5 +44,10 @@ task embedInv(type: JavaExec) {
 
 task modifiedFields(type: JavaExec) {
     mainClass.set('org.zlab.dinv.modifiedfields.Main')
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task modifiedConfigs(type: JavaExec) {
+    mainClass.set('org.zlab.dinv.diffconfig.ConfigMain')
     classpath = sourceSets.main.runtimeClasspath
 }

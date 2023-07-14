@@ -12,10 +12,24 @@ This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
 ```
 
 ## Usage
+
+### Extract modified configs
+```bash
+./gradlew modifiedConfigs --args="-infoPath PATH_TO_INFO -targetOldSystemPath PATH_TO_OLD_SYSTEM -targetNewSystemPath PATH_TO_NEW_SYSTEM -tp CONFIX_CLASSES" > /dev/null
+
+./gradlew modifiedConfigs --args="-infoPath output -targetOldSystemPath /Users/hanke/Desktop/Project/cassandra/cassandra1 -targetNewSystemPath /Users/hanke/Desktop/Project/cassandra/cassandra2 -tp org.apache.cassandra.config.Config" > /dev/null
+```
+
+### Local variables rewrite
+```bash
+./gradlew run --args="-infoPath PATH_TO_INFO -targetSystemPath PATH_TO_TARGET_SYSTEM" > /dev/null
+```
+
+### Invariant Monitor
 Execute `org.zlab.dinv.runtimechecker.Main` to embed the invariants, recompile
 system with our runtime jar.
 
-### Cassandra
+#### Cassandra
 The following env variable will add our runtime jar to the Cassandra's classpath.
 ```bash
 cp /path/to/dinv-monitor-shadow.jar $CASSANDRA_DIR/lib
@@ -24,7 +38,7 @@ ant artifacts
 # $CASSANDRA_DIR/build/apache-cassandra-X.X.X-SNAPSHOT-bin.tar.gz
 ```
 
-### HDFS
+#### HDFS
 When compile HDFS, we modify the `$HADOOP_ROOT_PATH/hadoop-hdfs-project/hadoop-hdfs/pom.xml`, 
 put the jar file at 
 ```xml
@@ -37,16 +51,12 @@ put the jar file at
 </dependency>
 ```
 
-Test the dist version of HDSF, we need to put the runtime jar to the HDFS's classpath.
+Test the dist version of HDFS, we need to put the runtime jar to the HDFS's classpath.
 ```bash
 $HADOOP_ROOT_PATH/share/hadoop/hdfs/lib/dinv-monitor-shadow.jar
 ```
 
-## TODOs
-Handle invariants
-- comparison between pre and post state
 
-## Post Process inv
 Remove `$assertionsDisabled` related invariants
 ```bash
 # Mac
@@ -56,7 +66,7 @@ sed -i '/\$assertionsDisabled/d' filename.txt
 
 ```
 
-# Visibility Rewrite
+## Visibility Rewrite
 Our program analysis can track to some interesting variables. We want
 daikon to monitor them. However, those variables could be local variables
 and daikon won't monitor them. Therefore, we add a local dummy field to
@@ -90,7 +100,11 @@ pubilc Class Example {
 }
 ```
 
-## TODO
+## TODOs
+
+Handle invariants
+- comparison between pre and post state
+
 **Avoid the side effect**: the current implementation cannot handle the side effect related stmts.
 This will cause problems.
 
@@ -102,6 +116,7 @@ right = b;
 if (a++ > b) {
 
 }}
-
 ```
 
+Test configurations
+* ENUM: extract the constants

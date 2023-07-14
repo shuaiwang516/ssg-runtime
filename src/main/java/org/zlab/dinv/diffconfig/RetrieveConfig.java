@@ -1,5 +1,6 @@
 package org.zlab.dinv.diffconfig;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -9,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
+import static org.zlab.dinv.modifiedfields.Utils.createOutputDirIfNotExist;
 
 public class RetrieveConfig implements Runnable {
     /**
@@ -31,9 +34,10 @@ public class RetrieveConfig implements Runnable {
         try {
             ConfigInfo oldConfigInfo = extractConfigs(targetOldSystemPath, targetPrefixes);
             ConfigInfo newConfigInfo = extractConfigs(targetNewSystemPath, targetPrefixes);
-
             // compute ModifiedConfigInfo
-            computeModifiedConfigInfo(oldConfigInfo, newConfigInfo);
+            ModifiedConfigInfo modifiedConfigInfo = computeModifiedConfigInfo(oldConfigInfo, newConfigInfo);
+            // save modifiedConfigInfo
+            saveModifiedConfigInfo(modifiedConfigInfo, infopath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -171,6 +175,32 @@ public class RetrieveConfig implements Runnable {
                     boundaryRelatedConfig.add(configName);
                 }
             }
+        }
+    }
+
+    public static void saveModifiedConfigInfo(ModifiedConfigInfo modifiedConfigInfo, Path outputPath) {
+        // If directory doesn't exist, create it
+        if (!Files.exists(outputPath)) {
+            try {
+                Files.createDirectories(outputPath);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create directory: " + e.getMessage());
+            }
+        }
+        saveConfigs(modifiedConfigInfo.addedConfig, outputPath.resolve("addedClassConfig.json"));
+        saveConfigs(modifiedConfigInfo.deletedConfig, outputPath.resolve("deletedClassConfig.json"));
+        saveConfigs(modifiedConfigInfo.changedTypeConfig, outputPath.resolve("changedTypeConfig.json"));
+        saveConfigs(modifiedConfigInfo.changedDefaultConfig, outputPath.resolve("changedDefaultConfig.json"));
+        saveConfigs(modifiedConfigInfo.boundaryRelatedConfig, outputPath.resolve("boundaryRelatedConfig.json"));
+    }
+
+    public static void saveConfigs(Set<String> programLocations, Path filePath) {
+        createOutputDirIfNotExist();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(filePath.toFile(), programLocations);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
