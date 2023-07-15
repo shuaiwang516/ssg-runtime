@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import static org.zlab.dinv.modifiedfields.Utils.createOutputDirIfNotExist;
+import static org.zlab.dinv.modifiedfields.Utils.createDirIfNotExist;
 
 public class RetrieveConfig implements Runnable {
     /**
@@ -26,30 +26,31 @@ public class RetrieveConfig implements Runnable {
     @CommandLine.Option(names = { "-targetNewSystemPath" }, required = true, description = "path to new system")
     private Path targetNewSystemPath;
 
-    @CommandLine.Option(names = { "-tp" }, split = ",", required = true, description = "target prefix for filtering")
-    private List<String> targetPrefixes;
+    @CommandLine.Option(names = { "-tc" }, split = ",", required = true, description = "target config classes")
+    private List<String> targetClasses;
 
     @Override
     public void run() {
         try {
-            ConfigInfo oldConfigInfo = extractConfigs(targetOldSystemPath, targetPrefixes);
-            ConfigInfo newConfigInfo = extractConfigs(targetNewSystemPath, targetPrefixes);
+            ConfigInfo oldConfigInfo = extractConfigs(targetOldSystemPath, targetClasses);
+            ConfigInfo newConfigInfo = extractConfigs(targetNewSystemPath, targetClasses);
             // compute ModifiedConfigInfo
             ModifiedConfigInfo modifiedConfigInfo = computeModifiedConfigInfo(oldConfigInfo, newConfigInfo);
             // save modifiedConfigInfo
-            saveModifiedConfigInfo(modifiedConfigInfo, infoPath);
+            createDirIfNotExist(infoPath);
+            saveModifiedConfigInfo(oldConfigInfo, newConfigInfo, modifiedConfigInfo, infoPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static ConfigInfo extractConfigs(
-            Path projectRootDir, List<String> targetPrefixes) throws IOException {
+            Path projectRootDir, List<String> targetClasses) throws IOException {
 
         // remove $
-        List<String> targetPrefixesNoDollar = new LinkedList<>();
-        for (String classFullName: targetPrefixes) {
-            targetPrefixesNoDollar.add(org.zlab.dinv.runtimechecker.Utils.replaceDollarWithDot(classFullName));
+        List<String> targetClassesNoDollar = new LinkedList<>();
+        for (String classFullName: targetClasses) {
+            targetClassesNoDollar.add(org.zlab.dinv.runtimechecker.Utils.replaceDollarWithDot(classFullName));
         }
 
         // Walk the project directory structure and find all the Java source files
@@ -66,7 +67,7 @@ public class RetrieveConfig implements Runnable {
                         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
                             if (classDecl.getFullyQualifiedName().isPresent()) {
                                 String classFullName = classDecl.getFullyQualifiedName().get();
-                                if (!org.zlab.dinv.modifiedfields.Utils.startWithTargetPrefix(targetPrefixesNoDollar, classFullName))
+                                if (!targetClassesNoDollar.contains(classFullName))
                                     return;
                                 System.out.println("process class: " + classFullName);
                                 SingleClassConfigInfo singleClassConfigInfo = new SingleClassConfigInfo();
@@ -178,27 +179,51 @@ public class RetrieveConfig implements Runnable {
         }
     }
 
-    public static void saveModifiedConfigInfo(ModifiedConfigInfo modifiedConfigInfo, Path outputPath) {
-        // If directory doesn't exist, create it
-        if (!Files.exists(outputPath)) {
-            try {
-                Files.createDirectories(outputPath);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to create directory: " + e.getMessage());
-            }
-        }
+    public static void saveModifiedConfigInfo(
+            ConfigInfo oldConfigInfo, ConfigInfo newConfigInfo,
+            ModifiedConfigInfo modifiedConfigInfo, Path outputPath) {
+
+        saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithType), outputPath.resolve("oriConfig2Type.json"));
+        saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithInit), outputPath.resolve("oriConfig2Init.json"));
+        saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithType), outputPath.resolve("upConfig2Type.json"));
+        saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithInit), outputPath.resolve("upConfig2Init.json"));
+
         saveConfigs(modifiedConfigInfo.addedConfig, outputPath.resolve("addedClassConfig.json"));
         saveConfigs(modifiedConfigInfo.deletedConfig, outputPath.resolve("deletedClassConfig.json"));
         saveConfigs(modifiedConfigInfo.changedTypeConfig, outputPath.resolve("changedTypeConfig.json"));
         saveConfigs(modifiedConfigInfo.changedDefaultConfig, outputPath.resolve("changedDefaultConfig.json"));
         saveConfigs(modifiedConfigInfo.boundaryRelatedConfig, outputPath.resolve("boundaryRelatedConfig.json"));
+        // Save the last three as common configs
+        Set<String> commonConfigs = new HashSet<>();
+        commonConfigs.addAll(modifiedConfigInfo.changedTypeConfig);
+        commonConfigs.addAll(modifiedConfigInfo.changedDefaultConfig);
+        commonConfigs.addAll(modifiedConfigInfo.boundaryRelatedConfig);
+        saveConfigs(commonConfigs, outputPath.resolve("commonConfig.json"));
     }
 
     public static void saveConfigs(Set<String> configs, Path filePath) {
-        createOutputDirIfNotExist();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             objectMapper.writeValue(filePath.toFile(), configs);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Map<String, String> removeClassInfo(Map<String, Map<String, String>> classToFieldsWith_TYPE_OR_INIT) {
+        Map<String, String> ret = new HashMap<>();
+        for (String className: classToFieldsWith_TYPE_OR_INIT.keySet()) {
+            for (String configName: classToFieldsWith_TYPE_OR_INIT.get(className).keySet()) {
+                ret.put(configName, classToFieldsWith_TYPE_OR_INIT.get(className).get(configName));
+            }
+        }
+        return ret;
+    }
+
+    public static void saveConfigInfo(Map<String, String> configInfo, Path filePath) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(filePath.toFile(), configInfo);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

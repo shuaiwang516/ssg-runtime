@@ -27,8 +27,10 @@ public class Utils {
     }
 
     public static void createOutputDirIfNotExist() {
-        Path path = Paths.get("output");
+        createDirIfNotExist(Paths.get("output"));
+    }
 
+    public static void createDirIfNotExist(Path path) {
         // If directory doesn't exist, create it
         if (!Files.exists(path)) {
             try {
