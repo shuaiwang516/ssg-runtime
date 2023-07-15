@@ -1,9 +1,12 @@
 package org.zlab.dinv.diffconfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -46,6 +49,11 @@ public class RetrieveConfig implements Runnable {
 
     public static ConfigInfo extractConfigs(
             Path projectRootDir, List<String> targetClasses) throws IOException {
+        // set up symbolSolver
+        ReflectionTypeSolver typeSolver = new ReflectionTypeSolver();
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
+        ParserConfiguration config = new ParserConfiguration().setSymbolResolver(symbolSolver);
+        StaticJavaParser.setConfiguration(config);
 
         // remove $
         List<String> targetClassesNoDollar = new LinkedList<>();
@@ -67,6 +75,11 @@ public class RetrieveConfig implements Runnable {
                         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
                             if (classDecl.getFullyQualifiedName().isPresent()) {
                                 String classFullName = classDecl.getFullyQualifiedName().get();
+                                // Enum collector
+                                Map<String, List<String>> enumCollector = new HashMap<>();
+                                classDecl.accept(new EnumVisitor(), enumCollector);
+                                configInfo.enumClass2Constants.putAll(enumCollector);
+
                                 if (!targetClassesNoDollar.contains(classFullName))
                                     return;
                                 System.out.println("process class: " + classFullName);
@@ -185,8 +198,10 @@ public class RetrieveConfig implements Runnable {
 
         saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithType), outputPath.resolve("oriConfig2Type.json"));
         saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithInit), outputPath.resolve("oriConfig2Init.json"));
+        saveEnumInfo(oldConfigInfo.enumClass2Constants, outputPath.resolve("oriEnum2Constant.json"));
         saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithType), outputPath.resolve("upConfig2Type.json"));
         saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithInit), outputPath.resolve("upConfig2Init.json"));
+        saveEnumInfo(newConfigInfo.enumClass2Constants, outputPath.resolve("oriEnum2Constant.json"));
 
         saveConfigs(modifiedConfigInfo.addedConfig, outputPath.resolve("addedClassConfig.json"));
         saveConfigs(modifiedConfigInfo.deletedConfig, outputPath.resolve("deletedClassConfig.json"));
@@ -224,6 +239,15 @@ public class RetrieveConfig implements Runnable {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             objectMapper.writeValue(filePath.toFile(), configInfo);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void saveEnumInfo(Map<String, List<String>> enumClass2Constants, Path filePath) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(filePath.toFile(), enumClass2Constants);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
