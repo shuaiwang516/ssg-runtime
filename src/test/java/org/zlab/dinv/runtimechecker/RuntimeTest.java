@@ -59,7 +59,7 @@ public class RuntimeTest {
 
         Runtime.ViolationInfo response = (Runtime.ViolationInfo) in.readObject(); // read the server response
 
-        System.out.println("Received response: " + response.getMap());
+        System.out.println("Received response length " + response.getViolations().length);
 
         // clean up resources
         out.close();

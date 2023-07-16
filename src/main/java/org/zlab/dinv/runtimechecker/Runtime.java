@@ -5,11 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class Runtime {
     // maintain the violated invariants
@@ -17,22 +12,21 @@ public class Runtime {
     // when instrumenting the inv, we also need to add a single identifier to it.
 
     public static class ViolationInfo implements Serializable {
-        private final Map<Integer, Integer> map;
+        private final int[] violations;
 
-        public ViolationInfo(Map<Integer, Integer> map) {
-            this.map = map;
+        public ViolationInfo(int[] violations) {
+            this.violations = violations;
         }
 
-        public Map<Integer, Integer> getMap() {
-            return map;
+        public int[] getViolations() {
+            return violations;
         }
     }
 
-    private static final ConcurrentMap<Integer, Integer> violations = new ConcurrentHashMap<>();
+    private static final int[] violations = new int[1000];
 
     static {
         System.out.println("Invariant rt initialized!");
-        violations.put(-1, -1);
 
         try {
             dumpViolationServer();
@@ -57,11 +51,7 @@ public class Runtime {
     }
 
     public static void addViolation(int invId) {
-        int oriCount = 0;
-        if (violations.containsKey(invId)) {
-            oriCount = violations.get(invId);
-        }
-        violations.put(invId, ++oriCount);
+        violations[invId]++;
     }
 
     private static final int PORT = 62000; // the port to listen on
@@ -113,7 +103,7 @@ public class Runtime {
 
     private static Object processCommand(String command) {
         // only return the violations
-        return new ViolationInfo(new HashMap<>(violations));
+        return new ViolationInfo(violations);
     }
 
     public static Object getFirstItem(Object collection) {
