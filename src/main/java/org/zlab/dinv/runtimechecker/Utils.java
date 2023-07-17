@@ -1,9 +1,11 @@
 package org.zlab.dinv.runtimechecker;
 
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 
@@ -310,5 +312,26 @@ public class Utils {
                 dest.get(ppt).addAll(src.get(ppt));
             }
         }
+    }
+
+    public static void injectTmpVariable(String paramName, int collTmpCount, BlockStmt body, boolean first) {
+        String type = first? "first": "last";
+        String funcName = first? "getFirstItem": "getLastItem";
+
+        String tmpVarName_pre = String.format("tmp_pre_%s_%d", type, collTmpCount);
+        String initStmt_pre = String.format("int %s = Integer.MIN_VALUE;", tmpVarName_pre);
+        String try_stmt_pre = String.format("try {%s = org.zlab.dinv.runtimechecker.Runtime.%s(%s);} catch (Exception e) {}", tmpVarName_pre, funcName, paramName);
+        body.addStatement(collTmpCount, StaticJavaParser.parseStatement(try_stmt_pre));
+        body.addStatement(collTmpCount, StaticJavaParser.parseStatement(initStmt_pre));
+
+        String tmpVarName_post = String.format("tmp_post_%s_%d", type, collTmpCount);
+        String initStmt_post = String.format("int %s = Integer.MIN_VALUE;", tmpVarName_post);
+        String try_stmt_post = String.format("try {%s = org.zlab.dinv.runtimechecker.Runtime.%s(%s);} catch (Exception e) {}", tmpVarName_post, funcName, paramName);
+        body.addStatement(StaticJavaParser.parseStatement(initStmt_post));
+        body.addStatement(StaticJavaParser.parseStatement(try_stmt_post));
+
+        // comparison!
+        String collCompInv = String.format("%s == %s", tmpVarName_pre, tmpVarName_post);
+        body.addStatement(Utils.constructIfCondition(collCompInv));
     }
 }

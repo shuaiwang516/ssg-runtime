@@ -1,8 +1,0 @@
-org.apache.hadoop.hdfs.server.common.HdfsServerConstants$NamenodeRole
-org.apache.hadoop.hdfs.protocol.DatanodeID
-org.apache.hadoop.hdfs.protocol.DatanodeInfo$AdminStates
-org.apache.hadoop.hdfs.DFSPacket
-org.apache.hadoop.hdfs.protocol.datatransfer.Op
-org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier
-org.apache.hadoop.hdfs.server.protocol.SlowDiskReports$DiskOp
-org.apache.hadoop.hdfs.server.datanode.BlockReceiver$PacketResponder

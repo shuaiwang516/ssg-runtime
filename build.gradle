@@ -34,10 +34,10 @@ shadowJar {
     archiveVersion.set('')
     mergeServiceFiles()
 
-    dependencies {
-        exclude(dependency('com.github.javaparser:javaparser-core:3.25.2'))
-        exclude(dependency('com.github.javaparser:javaparser-symbol-solver-core:3.23.0'))
-    }
+//    dependencies {
+//        exclude(dependency('com.github.javaparser:javaparser-core:3.25.2'))
+//        exclude(dependency('com.github.javaparser:javaparser-symbol-solver-core:3.23.0'))
+//    }
 
     include 'org/zlab/dinv/runtimechecker/Runtime*'
     include 'org/zlab/dinv/runtimechecker/Quant*'

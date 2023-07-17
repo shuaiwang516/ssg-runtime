@@ -217,21 +217,11 @@ public class InstrumentInvariant {
                     assert types.size() <= 2;
                     for (Utils.CollectionCompareType compareType: types) {
                         if (compareType == Utils.CollectionCompareType.first) {
-                            String tmpVarName = String.format("tmp_pre_first_%d", collTmpCount);
-                            String initStmt = String.format("Object %s = org.zlab.dinv.runtimechecker.Runtime.getFirstItem(%s);", tmpVarName, paramName);
-                            // add this: Object tmpVarName = paramName
-                            body.addStatement(collTmpCount, StaticJavaParser.parseStatement(initStmt));
-                            String collCompInv = String.format("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(%s) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(%s)", paramName, tmpVarName);
-                            body.addStatement(Utils.constructIfCondition(collCompInv));
+                            Utils.injectTmpVariable(paramName, collTmpCount, body, true);
                         } else if (compareType == Utils.CollectionCompareType.last) {
-                            String tmpVarName = String.format("tmp_pre_last_%d", collTmpCount);
-                            String initStmt = String.format("Object %s = org.zlab.dinv.runtimechecker.Runtime.getLastItem(%s);", tmpVarName, paramName);
-                            // add this: Object tmpVarName = paramName
-                            body.addStatement(collTmpCount, StaticJavaParser.parseStatement(initStmt));
-                            String collCompInv = String.format("org.zlab.dinv.runtimechecker.Runtime.getLastItem(%s) == org.zlab.dinv.runtimechecker.Runtime.getLastItem(%s)", paramName, tmpVarName);
-                            body.addStatement(Utils.constructIfCondition(collCompInv));
+                            Utils.injectTmpVariable(paramName, collTmpCount, body, false);
                         }
-                        collTmpCount++;
+                        collTmpCount+=3;
                     }
                 }
 

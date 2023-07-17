@@ -1,10 +1,11 @@
 package org.zlab.dinv.runtimechecker;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 public class Runtime {
     // maintain the violated invariants
@@ -35,19 +36,19 @@ public class Runtime {
         }
 
         // FIXME: write the violation to disk (only for testing purpose: comment out later)
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                String json = mapper.writeValueAsString(violations);
-//                System.out.println(json);
-                // write to file
-                System.out.println("[hklog] system hook: dump violations");
-                File file = new File("violations.json");
-                mapper.writeValue(file, violations);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }));
+//         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//             ObjectMapper mapper = new ObjectMapper();
+//             try {
+//                 String json = mapper.writeValueAsString(violations);
+// //                System.out.println(json);
+//                 // write to file
+//                 System.out.println("[hklog] system hook: dump violations");
+//                 File file = new File("violations.json");
+//                 mapper.writeValue(file, violations);
+//             } catch (IOException e) {
+//                 e.printStackTrace();
+//             }
+//         }));
     }
 
     public static void addViolation(int invId) {
@@ -106,12 +107,55 @@ public class Runtime {
         return new ViolationInfo(violations);
     }
 
-    public static Object getFirstItem(Object collection) {
-        return null;
+    // return hashcode of the item
+    public static int getFirstItem(Object collection) {
+        if (collection instanceof List) {
+            List<?> list = (List<?>) collection;
+            if (!list.isEmpty()) {
+                return list.get(0).hashCode();
+            }
+        } else if (collection instanceof Object[]) {
+            Object[] array = (Object[]) collection;
+            if (array.length > 0) {
+                return array[0].hashCode();
+            }
+        } else if (collection instanceof int[]) {
+            int[] array = (int[]) collection;
+            if (array.length > 0) {
+                return array[0];
+            }
+        } else if (collection instanceof byte[]) {
+            byte[] array = (byte[]) collection;
+            if (array.length > 0) {
+                return array[0];
+            }
+        }
+        return Integer.MIN_VALUE;
     }
 
-    public static Object getLastItem(Object collection) {
-        return null;
+    public static int getLastItem(Object collection) {
+        if (collection instanceof List) {
+            List<?> list = (List<?>) collection;
+            if (!list.isEmpty()) {
+                return list.get(list.size() - 1).hashCode();
+            }
+        } else if (collection instanceof Object[]) {
+            Object[] array = (Object[]) collection;
+            if (array.length > 0) {
+                return array[array.length - 1].hashCode();
+            }
+        } else if (collection instanceof int[]) {
+            int[] array = (int[]) collection;
+            if (array.length > 0) {
+                return array[array.length - 1]; // int value itself serves as a hash code
+            }
+        } else if (collection instanceof byte[]) {
+            byte[] array = (byte[]) collection;
+            if (array.length > 0) {
+                return array[array.length - 1];
+            }
+        }
+        return Integer.MIN_VALUE;
     }
 
 }
