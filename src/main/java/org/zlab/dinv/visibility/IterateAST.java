@@ -1,5 +1,7 @@
 package org.zlab.dinv.visibility;
 
+import com.github.javaparser.Range;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.stmt.*;
@@ -19,6 +21,10 @@ public abstract class IterateAST {
         blockStmt.setStatements(newStatements);
     }
 
+    public BlockStmt processNonBlockStmt(Statement blockStmt, Set<Integer> lineSet) {
+        return null;
+    }
+
     public void iterateStmt(Statement stmt, Set<Integer> lineSet) {
         if (stmt instanceof IfStmt) {
             Statement iterateStmt = stmt;
@@ -27,6 +33,13 @@ public abstract class IterateAST {
                 Statement thenStmt = ((IfStmt) iterateStmt).getThenStmt();
                 if (thenStmt instanceof BlockStmt) {
                     processBlockStmt((BlockStmt) thenStmt, lineSet);
+                } else {
+                    // process non-block stmt, if we inject stmt here
+                    // we need to create a new block
+                    BlockStmt blockStmt = processNonBlockStmt(thenStmt, lineSet);
+                    if (blockStmt != null) {
+                        ((IfStmt) iterateStmt).setThenStmt(blockStmt);
+                    }
                 }
                 if (((IfStmt) iterateStmt).getElseStmt().isPresent()) {
                     Statement elseStmt =  ((IfStmt) iterateStmt).getElseStmt().get();
@@ -36,6 +49,12 @@ public abstract class IterateAST {
                         // this is a block o null
                         if (elseStmt instanceof BlockStmt)
                             processBlockStmt((BlockStmt) elseStmt, lineSet);
+                        else {
+                            BlockStmt blockStmt = processNonBlockStmt(elseStmt, lineSet);
+                            if (blockStmt != null) {
+                                ((IfStmt) iterateStmt).setElseStmt(blockStmt);
+                            }
+                        }
                         break;
                     }
                 } else {
@@ -48,6 +67,11 @@ public abstract class IterateAST {
             Statement body = ((WhileStmt) stmt).getBody();
             if (body instanceof BlockStmt) {
                 processBlockStmt((BlockStmt) body, lineSet);
+            } else {
+                BlockStmt blockStmt = processNonBlockStmt(body, lineSet);
+                if (blockStmt != null) {
+                    ((WhileStmt) stmt).setBody(blockStmt);
+                }
             }
         } else if (stmt instanceof TryStmt) {
             BlockStmt blockStmt = ((TryStmt) stmt).getTryBlock();

@@ -4,6 +4,7 @@ import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import org.zlab.dinv.visibility.IterateAST;
 import java.util.Set;
@@ -30,5 +31,26 @@ public class ExitPointVisitor extends IterateAST {
             }
         }
         iterateStmt(stmt, lineSet);
+    }
+
+    @Override
+    public BlockStmt processNonBlockStmt(Statement stmt, Set<Integer> lineSet) {
+        // if processed, return a block stmt
+        BlockStmt blockStmt = null;
+        if (stmt.getRange().isPresent()) {
+            blockStmt = new BlockStmt();
+            Range range = stmt.getRange().get();
+            int begin = range.begin.line;
+            if (lineSet.contains(begin)) {
+                // inject something
+                String exitField = String.format("EXIT%d", begin);
+                String exitVariableAssignExpr = String.format("%s = true;", exitField);
+                Statement exitVariableAssignStmt = StaticJavaParser.parseStatement(exitVariableAssignExpr);
+                blockStmt.addStatement(exitVariableAssignStmt);
+                blockStmt.addStatement(stmt);
+                return blockStmt;
+            }
+        }
+        return blockStmt;
     }
 }
