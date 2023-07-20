@@ -1,12 +1,13 @@
 package org.zlab.dinv.runtimechecker;
 
 import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.BooleanLiteralExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 
 import java.io.BufferedReader;
@@ -78,6 +79,25 @@ public class Utils {
 
         String condCheck = "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
 
+        return String.format("try {%s} catch (Exception e) {}", condCheck);
+
+    }
+
+    public static String constructExitIfCondition(String stmt, String exitPoint) {
+        int invId = InstrumentInvariant.curInvId++;
+
+        // transform fake sizeXXX related variables
+        if (stmt.contains("_daikonReflectMethod")) {
+            // replace this with ()
+            stmt = stmt.replaceAll("_daikonReflectMethod", "()");
+        }
+        if (stmt.contains("$")) {
+            // replace this with ()
+            stmt = stmt.replaceAll("\\$", ".");
+        }
+        //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
+
+        String condCheck = String.format("if ( %s && !(" + stmt + ")) {org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", exitPoint, invId);
         return String.format("try {%s} catch (Exception e) {}", condCheck);
 
     }
@@ -181,6 +201,18 @@ public class Utils {
         return ret;
     }
 
+    public static List<String> constructExitInvStmt(List<String> invs, String exitPoint) {
+        List<String> ret = new LinkedList<>();
+        for (String inv: invs) {
+            // special handle pre_post inv
+            if (excludeInv(inv))
+                continue;
+            // All the generated invs will be added
+            ret.add(constructExitIfCondition(inv, exitPoint));
+        }
+        return ret;
+    }
+
     public enum CollectionCompareType {
         first, last
     }
@@ -188,7 +220,7 @@ public class Utils {
     /**
      * Special handle firstitem(coll) == firstitem(\old(coll))
      */
-    public static Map<String, Set<CollectionCompareType>> constructCondCompareInvStmt(List<String> invs) {
+    public static Map<String, Set<CollectionCompareType>> constructCondCompareInvStmt(List<String> invs, String exitPoint) {
         Map<String, Set<CollectionCompareType>> ret = new HashMap<>();
         for (String inv: invs) {
             // special handle pre_post inv
@@ -314,7 +346,7 @@ public class Utils {
         }
     }
 
-    public static void injectTmpVariable(String paramName, int collTmpCount, BlockStmt body, boolean first) {
+    public static void injectTmpVariable(String paramName, int collTmpCount, BlockStmt body, boolean first, String exitPoint) {
         String type = first? "first": "last";
         String funcName = first? "getFirstItem": "getLastItem";
 
@@ -332,6 +364,40 @@ public class Utils {
 
         // comparison!
         String collCompInv = String.format("%s == %s", tmpVarName_pre, tmpVarName_post);
-        body.addStatement(Utils.constructIfCondition(collCompInv));
+        body.addStatement(Utils.constructExitIfCondition(collCompInv, exitPoint));
+    }
+
+    public static void injectExitPointMonitorVariables(ClassOrInterfaceDeclaration classDecl, Set<String > exitPointMonitorVariables, boolean isStatic) {
+        for (String fieldName: exitPointMonitorVariables) {
+            FieldDeclaration field = new FieldDeclaration();
+            field.addModifier(Modifier.Keyword.PRIVATE); // Add the 'private' modifier
+            field.setStatic(isStatic);
+
+            NodeList<VariableDeclarator> vars = new NodeList<>();
+
+            VariableDeclarator variable = new VariableDeclarator();
+            variable.setType(PrimitiveType.booleanType());
+            variable.setName(fieldName);
+            variable.setInitializer(new BooleanLiteralExpr(false)); // setting the default value to false
+
+            vars.add(variable);
+            field.setVariables(vars); // Set the type to int and the variable name to 'a'
+
+            // Add the new field to the class declaration
+            classDecl.getMembers().add(field);
+        }
+    }
+
+    public static Set<Integer> extractExitPointLineSet(Set<String> exitPoints) {
+        Set<Integer> lineSet = new HashSet<>();
+        for (String exitPoint: exitPoints) {
+            if (exitPoint.equals("EXIT")) {
+                lineSet.add(-1);
+            } else {
+                String number = exitPoint.substring(4);
+                lineSet.add(Integer.parseInt(number));
+            }
+        }
+        return lineSet;
     }
 }

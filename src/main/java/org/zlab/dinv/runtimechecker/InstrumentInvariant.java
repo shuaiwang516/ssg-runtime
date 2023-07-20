@@ -17,10 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class InstrumentInvariant {
 
@@ -98,7 +95,9 @@ public class InstrumentInvariant {
                     return;
 
                 LinkedList<String> enterInvs = new LinkedList<>();
-                LinkedList<String> exitInvs = new LinkedList<>();
+                // there could be multiple exit points
+                Map<String, List<String>> exitPoint2Invs = new HashMap<>();
+                // LinkedList<String> exitInvs = new LinkedList<>();
 
                 for (String ppt: invs.keySet()) {
                     // match the ppt to the method
@@ -135,22 +134,50 @@ public class InstrumentInvariant {
                         return;
                     }
 
-
                     if (methodName.equals(method.getNameAsString())) {
                         if (posStatus.equals("ENTER")) {
                             enterInvs.addAll(invs.get(ppt));
                         } else {
-                            exitInvs.addAll(invs.get(ppt));
+                            if (!exitPoint2Invs.containsKey(posStatus)) {
+                                exitPoint2Invs.put(posStatus, new LinkedList<>());
+                            }
+                            exitPoint2Invs.get(posStatus).addAll(invs.get(ppt));
                         }
                     }
                 }
 
                 // construct enter inv
                 List<String> enterInvsBlocks = Utils.constructInvStmt(enterInvs);
-                List<String> exitInvsBlocks = Utils.constructInvStmt(exitInvs);
-                Map<String, Set<Utils.CollectionCompareType>> exitCollComparison = Utils.constructCondCompareInvStmt(exitInvs);
 
-                if (enterInvsBlocks.isEmpty() && exitInvsBlocks.isEmpty() && exitCollComparison.isEmpty())
+                // handle multiple exit status
+                Map<String, List<String>> exitPoint2InvBlocks = new HashMap<>();
+                Map<String, Map<String, Set<Utils.CollectionCompareType>>> exitPoint2collComparison = new HashMap<>();
+                for (String exitPoint: exitPoint2Invs.keySet()) {
+                    List<String> exitInvs = exitPoint2Invs.get(exitPoint);
+                    List<String> invsBlock = Utils.constructExitInvStmt(exitInvs, exitPoint);
+                    if (!invsBlock.isEmpty())
+                        exitPoint2InvBlocks.put(exitPoint, invsBlock);
+                    Map<String, Set<Utils.CollectionCompareType>> exitCollComparison = Utils.constructCondCompareInvStmt(exitInvs, exitPoint);
+                    if (!exitCollComparison.isEmpty())
+                        exitPoint2collComparison.put(exitPoint, exitCollComparison);
+                }
+
+                Set<String> exitPoints = new HashSet<>(exitPoint2InvBlocks.keySet());
+                exitPoints.addAll(exitPoint2collComparison.keySet());
+
+                // inject local variables to class
+                // if exitPointMonitorVariables is not empty
+                if (!exitPoints.isEmpty()) {
+                    // add local variables
+                    Utils.injectExitPointMonitorVariables(classDecl,
+                            exitPoints, method.isStatic());
+                    // TODO: inject monitoring by traversing the method for all the blocks
+                    Set<Integer> lineSet = Utils.extractExitPointLineSet(exitPoints);
+                    ExitPointVisitor exitPointVisitor = new ExitPointVisitor();
+                    exitPointVisitor.process(method, lineSet);
+                }
+
+                if (enterInvsBlocks.isEmpty() && exitPoint2InvBlocks.isEmpty() && exitPoint2collComparison.isEmpty())
                     return;
 
                 // Create a new method with the wrapped name
@@ -173,7 +200,7 @@ public class InstrumentInvariant {
                     }
                 }
 
-//                body.addStatement("System.out.println(\"Before calling " + wrappedMethod.getNameAsString() + "()\");");
+               // body.addStatement("System.out.println(\"Before calling " + wrappedMethod.getNameAsString() + "()\");");
 
                 List<String> paramNames = new LinkedList<>();
                 for (Parameter parameter : wrappedMethod.getParameters()) {
@@ -197,32 +224,41 @@ public class InstrumentInvariant {
                             ");");
                 }
 
-//                body.addStatement("System.out.println(\"After calling " + wrappedMethod.getNameAsString() + "()\");");
+               // body.addStatement("System.out.println(\"After calling " + wrappedMethod.getNameAsString() + "()\");");
 
                 // Exit env
-                for (String exitInvsBlock: exitInvsBlocks) {
-                    try {
-                        body.addStatement(exitInvsBlock);
-                    } catch (Exception e) {
-                        // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
-                        System.out.println("exit add statement exception + " + e);
+                for (String exitPoint: exitPoint2InvBlocks.keySet()) {
+                    for (String exitInvBlock: exitPoint2InvBlocks.get(exitPoint)) {
+                        try {
+                            body.addStatement(exitInvBlock);
+                        } catch (Exception e) {
+                            // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
+                            System.out.println("exit add statement exception + " + e);
+                        }
                     }
                 }
 
                 // Collection comparsion
                 int collTmpCount = 0;
-                for (String paramName : exitCollComparison.keySet()) {
-                    // add a pre value for this variable
-                    Set<Utils.CollectionCompareType> types = exitCollComparison.get(paramName);
-                    assert types.size() <= 2;
-                    for (Utils.CollectionCompareType compareType: types) {
-                        if (compareType == Utils.CollectionCompareType.first) {
-                            Utils.injectTmpVariable(paramName, collTmpCount, body, true);
-                        } else if (compareType == Utils.CollectionCompareType.last) {
-                            Utils.injectTmpVariable(paramName, collTmpCount, body, false);
+                for (String exitPoint: exitPoint2collComparison.keySet()) {
+                    for (String paramName : exitPoint2collComparison.get(exitPoint).keySet()) {
+                        // add a pre value for this variable
+                        Set<Utils.CollectionCompareType> types = exitPoint2collComparison.get(exitPoint).get(paramName);
+                        assert types.size() <= 2;
+                        for (Utils.CollectionCompareType compareType: types) {
+                            if (compareType == Utils.CollectionCompareType.first) {
+                                Utils.injectTmpVariable(paramName, collTmpCount, body, true, exitPoint);
+                            } else if (compareType == Utils.CollectionCompareType.last) {
+                                Utils.injectTmpVariable(paramName, collTmpCount, body, false, exitPoint);
+                            }
+                            collTmpCount+=3;
                         }
-                        collTmpCount+=3;
                     }
+                }
+
+                // reset all exit point variables
+                for (String exitPoint: exitPoints) {
+                    body.addStatement(String.format("%s = false;", exitPoint));
                 }
 
                 if (!returnType.isVoidType()) {
