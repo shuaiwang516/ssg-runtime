@@ -18,6 +18,11 @@ import java.util.*;
 
 public class Utils {
 
+    public static final String getFirstItemPrefix = "org.zlab.dinv.runtimechecker.Runtime.getFirstItem(";
+    public static final String getFirstItemOldPrefix = "org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\\old(";
+    public static final String getLastItemPrefix = "org.zlab.dinv.runtimechecker.Runtime.getLastItem(";
+    public static final String getLastItemOldPrefix = "org.zlab.dinv.runtimechecker.Runtime.getLastItem(\\old(";
+
     public static String getMethodName(String methodSig) {
         // input: DataStructures.StackArTester.createItem(int)
         // output: createItem
@@ -121,14 +126,14 @@ public class Utils {
         if (vars.length != 2)
             return false;
 
-        if (vars[0].startsWith("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(") && vars[1].startsWith("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\\old(")) {
+        if (vars[0].startsWith(getFirstItemPrefix) && vars[1].startsWith(getFirstItemOldPrefix)) {
             // get the target string
-            String left = vars[0].substring(50, vars[0].length()-1);
-            String right = vars[1].substring(55, vars[1].length()-2);
+            String left = vars[0].substring(getFirstItemPrefix.length(), vars[0].length()-1);
+            String right = vars[1].substring(getFirstItemOldPrefix.length(), vars[1].length()-2);
             return left.equals(right);
-        } else if (vars[0].startsWith("org.zlab.dinv.runtimechecker.Runtime.getLastItem(") && vars[1].startsWith("org.zlab.dinv.runtimechecker.Runtime.getLastItem(\\old(")) {
-            String left = vars[0].substring(49, vars[0].length()-1);
-            String right = vars[1].substring(49, vars[1].length()-2);
+        } else if (vars[0].startsWith(getLastItemPrefix) && vars[1].startsWith(getLastItemOldPrefix)) {
+            String left = vars[0].substring(getLastItemPrefix.length(), vars[0].length()-1);
+            String right = vars[1].substring(getLastItemOldPrefix.length(), vars[1].length()-2);
             return left.equals(right);
         }
         return false;
