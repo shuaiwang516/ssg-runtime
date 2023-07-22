@@ -38,10 +38,10 @@ public class ExitPointVisitor extends IterateAST {
         // if processed, return a block stmt
         BlockStmt blockStmt = null;
         if (stmt.getRange().isPresent()) {
-            blockStmt = new BlockStmt();
             Range range = stmt.getRange().get();
             int begin = range.begin.line;
             if (lineSet.contains(begin)) {
+                blockStmt = new BlockStmt();
                 // inject something
                 String exitField = String.format("EXIT%d", begin);
                 String exitVariableAssignExpr = String.format("%s = true;", exitField);
