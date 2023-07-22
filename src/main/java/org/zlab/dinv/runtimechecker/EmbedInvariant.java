@@ -54,7 +54,7 @@ public class EmbedInvariant implements Runnable {
                     .forEach(p -> {
                         try {
                             // debug
-                            if (!p.toString().contains("RangeTombstoneList")) return;
+                            // if (!p.toString().contains("RangeTombstoneList")) return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                             // Traverse the AST and perform the desired processing
                             cu.accept(new InstrumentInvariant.InstClassVisitor(invs), null);
