@@ -13,16 +13,19 @@ This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
 
 ## Usage
 
+### Scripts
+```bash
+# isSerialize likely invariants
+dinv-scripts/cass_isSerialize.sh
+# Visibility Rewrite
+dinv-scripts/cass_vis_rewrite.sh
+```
+
 ### Extract modified configs
 ```bash
 ./gradlew modifiedConfigs --args="-infoPath PATH_TO_INFO -targetOldSystemPath PATH_TO_OLD_SYSTEM -targetNewSystemPath PATH_TO_NEW_SYSTEM -tp CONFIX_CLASSES" > /dev/null
 
 ./gradlew modifiedConfigs --args="-infoPath output -targetOldSystemPath /Users/hanke/Desktop/Project/cassandra/cassandra1 -targetNewSystemPath /Users/hanke/Desktop/Project/cassandra/cassandra2 -tp org.apache.cassandra.config.Config" > /dev/null
-```
-
-### Local variables rewrite
-```bash
-./gradlew run --args="-infoPath PATH_TO_INFO -targetSystemPath PATH_TO_TARGET_SYSTEM" > /dev/null
 ```
 
 ### Invariant Monitor

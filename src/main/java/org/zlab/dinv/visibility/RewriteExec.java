@@ -2,49 +2,44 @@ package org.zlab.dinv.visibility;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import org.zlab.dinv.Config;
 import picocli.CommandLine;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 @CommandLine.Command(name = "RewriteExec", mixinStandardHelpOptions = true, version = "1.0",
         description = "RewriteExec does amazing things.")
 public class RewriteExec implements Runnable {
 
+    private final String MODIFIED_FOLDER_NAME = "modified";
+
     @CommandLine.Option(names = { "-infoPath" }, description = "path to files generated from vasco")
-    private String infopath;
+    private Path infoPath;
 
     @CommandLine.Option(names = { "-targetSystemPath" }, description = "path to system being rewritten")
-    private String targetSystemPath;
+    private Path targetSystemPath;
 
-    // input: Map<String, Map<String, Set<Integer>>> targetIfBranches
-    //      - {Class-> {MethodName, lineSet}}
-    // output: overwrite the if branches as local fields, so daikon can instrument them
+    @CommandLine.Option(names = { "-upgradeVersion" }, required = true, description = "upgrade version folder name")
+    private String upgradeVersion;
+
 
     @Override
     public void run() {
         // use arg to decide the systemInfo path
-        Path systemInfoPath = Config.systemInfoPath;
-        if (infopath != null) {
-            systemInfoPath = Paths.get(infopath);
-        }
-        Path projectRootDir = Config.projectRootDir;
-        if (targetSystemPath != null) {
-            projectRootDir = Paths.get(targetSystemPath);
-        }
-        System.out.println("[RewriteExec] systemInfoPath = " + systemInfoPath);
-        System.out.println("[RewriteExec] target projectRootDir = " + projectRootDir);
+        Path modifiedPath = infoPath.resolve(MODIFIED_FOLDER_NAME).resolve(upgradeVersion);
+
+        System.out.println("[RewriteExec] infoPath = " + infoPath);
+        System.out.println("[RewriteExec] target targetSystemPath = " + targetSystemPath);
+        System.out.println("[RewriteExec] upgrade version = " + upgradeVersion);
 
         // make sure at least one info file is provided
         Path outputStreamBranchLocationPath =
-                systemInfoPath.resolve("programLocations_alg4_outputstream_branches.json");
+                infoPath.resolve("programLocations_alg4_outputstream_branches.json");
         Path dataBranchLocationPath =
-                systemInfoPath.resolve("programLocations_alg4_data_branches.json");
-        Path serializeLocationsPath = systemInfoPath.resolve("isSerializeProgramLocations.json");
+                infoPath.resolve("programLocations_alg4_data_branches.json");
+        Path serializeLocationsPath = modifiedPath.resolve("isSerializeProgramLocations.json");
 
         if (!serializeLocationsPath.toFile().exists()
                 && !outputStreamBranchLocationPath.toFile().exists()
@@ -75,16 +70,16 @@ public class RewriteExec implements Runnable {
         }
 
         try {
-            rewriteVisibility(projectRootDir, serializeLocations, branchLocations, systemInfoPath);
+            rewriteVisibility(targetSystemPath, serializeLocations, branchLocations, infoPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void rewriteVisibility(Path projectRootDir,
+    public void rewriteVisibility(Path targetSystemPath,
                                          Map<String, Set<Integer>> serializeLocations,
                                          Map<String, Set<Integer>> branchLocations,
-                                         Path systemInfoPath
+                                         Path infoPath
                                   )
             throws IOException {
         if (serializeLocations == null && branchLocations == null) {
@@ -104,7 +99,7 @@ public class RewriteExec implements Runnable {
         }
 
         // Walk the project directory structure and find all the Java source files
-        Files.walk(projectRootDir)
+        Files.walk(targetSystemPath)
                 .filter(Files::isRegularFile)
                 .filter(p -> p.toString().endsWith(".java"))
                 .forEach(p -> {
@@ -125,14 +120,14 @@ public class RewriteExec implements Runnable {
 
         // isSerialize ppt vars
         if (instSer != null) {
-            Utils.savePptVars(instSer.pptVars, systemInfoPath.resolve("pptVars_alg3.json"));
-            Utils.PPT2DaikonInput(instSer.pptVars, systemInfoPath.resolve("instrument_alg3_vars_file"));
+            Utils.savePptVars(instSer.pptVars, infoPath.resolve("pptVars_alg3.json"));
+            Utils.PPT2DaikonInput(instSer.pptVars, infoPath.resolve("instrument_alg3_vars_file"));
         }
 
         if (instField != null) {
             // branch ppt vars
-            Utils.savePptVars(instField.pptVars, systemInfoPath.resolve("pptVars_alg4.json"));
-            Utils.PPT2DaikonInput(instField.pptVars, systemInfoPath.resolve("instrument_alg4_vars_file"));
+            Utils.savePptVars(instField.pptVars, infoPath.resolve("pptVars_alg4.json"));
+            Utils.PPT2DaikonInput(instField.pptVars, infoPath.resolve("instrument_alg4_vars_file"));
         }
     }
 }
