@@ -58,7 +58,7 @@ task modifiedFields(type: JavaExec) {
 }
 
 task modifiedConfigs(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.diffconfig.ConfigMain')
+    mainClass.set('org.zlab.dinv.diffconfig.RetrieveDiffConfigMain')
     classpath = sourceSets.main.runtimeClasspath
 }
 

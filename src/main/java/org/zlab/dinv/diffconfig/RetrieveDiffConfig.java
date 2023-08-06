@@ -143,7 +143,7 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         saveEnumInfo(oldConfigInfo.enumClass2Constants, outputPath.resolve("oriEnum2Constant.json"));
         saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithType), outputPath.resolve("upConfig2Type.json"));
         saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithInit), outputPath.resolve("upConfig2Init.json"));
-        saveEnumInfo(newConfigInfo.enumClass2Constants, outputPath.resolve("oriEnum2Constant.json"));
+        saveEnumInfo(newConfigInfo.enumClass2Constants, outputPath.resolve("upEnum2Constant.json"));
 
         saveConfigs(modifiedConfigInfo.addedConfig, outputPath.resolve("addedClassConfig.json"));
         saveConfigs(modifiedConfigInfo.deletedConfig, outputPath.resolve("deletedClassConfig.json"));
