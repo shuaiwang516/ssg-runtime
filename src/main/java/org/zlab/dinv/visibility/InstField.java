@@ -61,11 +61,16 @@ public class InstField extends RewriteAST {
             String leftAssignExpr = String.format("%s = (%s);", leftNewField, leftExpr.toString());
             String rightAssignExpr = String.format("%s = (%s);", rightNewField, rightExpr.toString());
 
-            Statement newLeftStmt = StaticJavaParser.parseStatement(leftAssignExpr);
-            Statement newRightStmt = StaticJavaParser.parseStatement(rightAssignExpr);
+            String leftAssignExceptionExpr = String.format("%s = 0L;", leftNewField);
+            String rightAssignExceptionExpr = String.format("%s = 0L;", rightNewField);
 
-            newStatements.add(newStatements.indexOf(stmt), newLeftStmt);
-            newStatements.add(newStatements.indexOf(stmt), newRightStmt);
+
+            // wrap it with try-catch
+            String tryCatchWrappedString = org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(
+                    leftAssignExpr + rightAssignExpr, leftAssignExceptionExpr + rightAssignExceptionExpr);
+            Statement tryCatchWrappedStmt = StaticJavaParser.parseStatement(tryCatchWrappedString);
+
+            newStatements.add(newStatements.indexOf(stmt), tryCatchWrappedStmt);
             return;
         }
 

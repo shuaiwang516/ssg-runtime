@@ -83,10 +83,17 @@ public class Utils {
         //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
 
         String condCheck = "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
-
-        return String.format("try {%s} catch (Exception e) {}", condCheck);
-
+        return wrapWithTryCatch(condCheck);
     }
+
+    public static String wrapWithTryCatch(String tryStmt) {
+        return String.format("try {%s} catch (Exception e) {}", tryStmt);
+    }
+
+    public static String wrapWithTryCatch(String tryStmt, String exceptionStmt) {
+        return String.format("try {%s} catch (Exception e) {%s}", tryStmt, exceptionStmt);
+    }
+
 
     public static String constructExitIfCondition(String stmt, String exitPoint) {
         int invId = InstrumentInvariant.curInvId++;
