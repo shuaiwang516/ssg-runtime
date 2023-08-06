@@ -23,6 +23,11 @@ public class Utils {
     public static final String getLastItemPrefix = "org.zlab.dinv.runtimechecker.Runtime.getLastItem(";
     public static final String getLastItemOldPrefix = "org.zlab.dinv.runtimechecker.Runtime.getLastItem(\\old(";
 
+    public static final String leftMatcher = "this.left_";
+    public static final String rightMatcher = "this.right_";
+    public static final String staticLeftMatcher = "left_";
+    public static final String staticRightMatcher = "right_";
+
     public static String getMethodName(String methodSig) {
         // input: DataStructures.StackArTester.createItem(int)
         // output: createItem
@@ -198,7 +203,38 @@ public class Utils {
         if (inv.contains("Exiting Daikon.")) {
             return true;
         }
+        if (!compareCorrectVar(inv))
+            return true;
         return false;
+    }
+
+    /**
+     * Make sure we are comparing correct pair of variables
+     * this.left_25 with this.right_25
+     */
+    public static boolean compareCorrectVar(String inv) {
+        if (inv.contains(leftMatcher) || inv.contains(rightMatcher)) {
+            return innerCompareCorrectVar(inv, leftMatcher, rightMatcher);
+        } else if (inv.contains(staticLeftMatcher) || inv.contains(staticRightMatcher)) {
+            return innerCompareCorrectVar(inv, staticLeftMatcher, staticRightMatcher);
+        } else
+            return true;
+    }
+
+    public static boolean innerCompareCorrectVar(String inv, String lMatch, String rMatch) {
+        String[] items = inv.split(" ");
+        Set<String> numberSet = new HashSet<>();
+        for (String item : items) {
+            if (item.startsWith(lMatch)) {
+                numberSet.add(item.substring(lMatch.length()));
+            }
+            if (item.startsWith(rMatch)) {
+                numberSet.add(item.substring(rMatch.length()));
+            }
+        }
+        // if (!(numberSet.size() <= 1))
+        //     System.out.println("excluded inv: " + inv);
+        return numberSet.size() <= 1;
     }
 
     public static List<String> constructInvStmt(List<String> invs) {

@@ -68,7 +68,7 @@ public class InstrumentInvariant {
             super.visit(classDecl, arg);
 
             // perform instrumentation
-            System.out.println("className = " + classDecl.getName());
+            System.out.println("Processing className = " + classDecl.getName());
             classDecl.findAll(MethodDeclaration.class).forEach(method -> {
 
                 // if it's a main function
