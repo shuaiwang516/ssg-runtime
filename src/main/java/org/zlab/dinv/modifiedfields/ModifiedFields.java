@@ -129,17 +129,33 @@ public class ModifiedFields implements Runnable {
                 modifiedFields.put(className, new HashSet<>(oldClassToFields.get(className).keySet()));
                 continue;
             }
+
             // fields are modified/removed
             Map<String, String> oldFields = oldClassToFields.get(className);
             Map<String, String> newFields = newClassToFields.get(className);
-            for (String fieldName: oldFields.keySet()) {
-                if (!newFields.containsKey(fieldName)) {
-                    // removed field
+            boolean addedNewFields = false;
+            // check added New fields
+            for (String fieldName: newFields.keySet()) {
+                if (!oldFields.containsKey(fieldName)) {
+                    addedNewFields = true;
+                    break;
+                }
+            }
+            if (addedNewFields) {
+                // If some fields are added, include all old fields: HBase-25238, proto mismatch
+                for (String fieldName: oldFields.keySet())
                     addField(className, fieldName, modifiedFields);
-                } else {
-                    if (!oldFields.get(fieldName).equals(newFields.get(fieldName))) {
-                        // modified field
+            } else {
+                // removed/type changed fields
+                for (String fieldName: oldFields.keySet()) {
+                    if (!newFields.containsKey(fieldName)) {
+                        // removed field
                         addField(className, fieldName, modifiedFields);
+                    } else {
+                        if (!oldFields.get(fieldName).equals(newFields.get(fieldName))) {
+                            // type changed modified field
+                            addField(className, fieldName, modifiedFields);
+                        }
                     }
                 }
             }
