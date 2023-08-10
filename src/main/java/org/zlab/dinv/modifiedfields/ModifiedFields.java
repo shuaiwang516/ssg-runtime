@@ -33,21 +33,30 @@ public class ModifiedFields implements Runnable {
     @Override
     public void run() {
         try {
-            Map<String, Map<String, String>> oldClassToFields = extractFields(targetOldSystemPath, targetPrefixes);
-            Map<String, Map<String, String>> newClassToFields = extractFields(targetNewSystemPath, targetPrefixes);
+            FieldEnumInfo oldFieldEnumInfo = extractFields(targetOldSystemPath, targetPrefixes);
+            FieldEnumInfo newFieldEnumInfo = extractFields(targetNewSystemPath, targetPrefixes);
 
             // calculate the modified fields
-            Map<String, Set<String>> modifiedFields = captureModifiedFields(oldClassToFields, newClassToFields);
+            Map<String, Set<String>> modifiedFields = captureModifiedFields(oldFieldEnumInfo.fieldInfo, newFieldEnumInfo.fieldInfo);
+            Set<String> modifiedEnums = captureModifiedEnum(oldFieldEnumInfo.enumInfo, newFieldEnumInfo.enumInfo);
+
+            System.out.println("modified enums: " + modifiedEnums);
 
             // readNumericFields(outputPath);
             org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedFields, infoPath.resolve("modifiedFields.json"));
+            org.zlab.dinv.modifiedfields.Utils.saveModifiedEnums(modifiedEnums, infoPath.resolve("modifiedEnums.json"));
 
             // print diff fields
-            printDiffFields(modifiedFields, oldClassToFields, newClassToFields);
+            printDiffFields(modifiedFields, oldFieldEnumInfo.fieldInfo, newFieldEnumInfo.fieldInfo);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static class FieldEnumInfo {
+        public Map<String, Map<String, String>> fieldInfo = new HashMap<>();
+        public Map<String, List<String>> enumInfo = new HashMap<>();
     }
 
     /**
@@ -56,7 +65,7 @@ public class ModifiedFields implements Runnable {
      * input: (1) system source code (2) a list of classes
      * output: Map<ClassName, Map<Field, Type>>
      */
-    public static Map<String, Map<String, String>> extractFields(
+    public static FieldEnumInfo extractFields(
             Path projectRootDir, List<String> targetPrefixes) throws IOException {
 
         // remove $
@@ -65,8 +74,8 @@ public class ModifiedFields implements Runnable {
             targetPrefixesNoDollar.add(org.zlab.dinv.runtimechecker.Utils.replaceDollarWithDot(classFullName));
         }
 
+        FieldEnumInfo fieldEnumInfo = new FieldEnumInfo();
         // Walk the project directory structure and find all the Java source files
-        Map<String, Map<String, String>> classToFields = new HashMap<>();
 
         Files.walk(projectRootDir)
                 .filter(Files::isRegularFile)
@@ -75,7 +84,12 @@ public class ModifiedFields implements Runnable {
                     try {
                         // debug
                         // if (!p.toString().contains("/FSEditLogAsync.java")) return;
+                        // exclude YARN for hdfs
+                        if (p.toString().contains("hadoop-yarn-project"))
+                            return;
+                        System.out.println("processing file " + p);
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
+                        // field info
                         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
                             if (classDecl.getFullyQualifiedName().isPresent()) {
                                 String classFullName = classDecl.getFullyQualifiedName().get();
@@ -84,11 +98,13 @@ public class ModifiedFields implements Runnable {
                                 System.out.println("process class: " + classFullName);
                                 Map<String, String> fields = new HashMap<>();
                                 classDecl.accept(new FieldVisitor(), fields);
-                                classToFields.put(classFullName, fields);
+                                fieldEnumInfo.fieldInfo.put(classFullName, fields);
                             } else {
                                 System.out.println("class " +  classDecl.getName() + " full name is null");
                             }
                         });
+                        // enum info
+                        cu.accept(new EnumVisitor(), fieldEnumInfo.enumInfo);
                         // Files.write(p, cu.toString().getBytes());
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -100,7 +116,7 @@ public class ModifiedFields implements Runnable {
         //         System.out.printf("\t\tfield = %s, type = %s\n", field, classToFields.get(clazz).get(field));
         //     }
         // }
-        return classToFields;
+        return fieldEnumInfo;
     }
 
     public static void addField(String className, String fieldName, Map<String, Set<String>> modifiedFields) {
@@ -161,6 +177,35 @@ public class ModifiedFields implements Runnable {
             }
         }
         return modifiedFields;
+    }
+
+    public Set<String> captureModifiedEnum(Map<String, List<String>> oldEnumInfo,
+                                                         Map<String, List<String>> newEnumInfo) {
+        Set<String> modifiedEnums = new HashSet<>();
+        // Removed Enum
+        for (String enumClassFullName: oldEnumInfo.keySet()) {
+            boolean modified = false;
+            if (!newEnumInfo.containsKey(enumClassFullName))
+                modified = true;
+            else {
+                // modified Enum?
+                List<String> oldConstants = oldEnumInfo.get(enumClassFullName);
+                List<String> newConstants = newEnumInfo.get(enumClassFullName);
+                if (oldConstants.size() != newConstants.size())
+                    modified = true;
+                else {
+                    for (int i = 0; i < oldConstants.size(); i++) {
+                        if (!oldConstants.get(i).equals(newConstants.get(i))) {
+                            modified = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (modified)
+                modifiedEnums.add(enumClassFullName);
+        }
+        return modifiedEnums;
     }
 
     public void printDiffFields(Map<String, Set<String>> modifiedFields,

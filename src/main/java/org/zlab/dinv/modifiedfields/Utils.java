@@ -64,6 +64,29 @@ public class Utils {
         }
     }
 
+    public static void saveModifiedEnums(Set<String> modifiedEnums, Path filePath) {
+        createOutputDirIfNotExist();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(filePath.toFile(), modifiedEnums);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Set<String> loadModifiedEnums(Path filePath) {
+        // Read the map from the JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Set<String> mapFromFile = objectMapper.readValue(filePath.toFile(),
+                    new TypeReference<Set<String>>() {});
+            return mapFromFile;
+        } catch (IOException e) {
+            System.err.println("Exception happen when loading output from " + filePath);
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Map<String, Set<Integer>> replaceDollarWithDot(Map<String, Set<Integer>> fields) {
         Map<String, Set<Integer>> ret = new HashMap<>();
         for (Map.Entry<String, Set<Integer>> entry: fields.entrySet()) {
