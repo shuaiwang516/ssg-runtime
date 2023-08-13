@@ -55,6 +55,8 @@ public class EmbedInvariant implements Runnable {
                         try {
                             // debug
                             // if (!p.toString().contains("RangeTombstoneList")) return;
+                            if (org.zlab.dinv.Utils.exclude(p))
+                                return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                             // Traverse the AST and perform the desired processing
                             cu.accept(new InstrumentInvariant.InstClassVisitor(invs), null);

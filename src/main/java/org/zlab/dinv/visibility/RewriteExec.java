@@ -19,7 +19,7 @@ public class RewriteExec implements Runnable {
     private Path infoPath;
 
     @CommandLine.Option(names = { "-targetSystemPath" }, description = "path to system being rewritten")
-    private Path targetSystemPath;
+    private List<Path> targetSystemPath;
 
     @CommandLine.Option(names = { "-upgradeVersion" }, required = true, description = "upgrade version folder name")
     private String upgradeVersion;
@@ -76,7 +76,7 @@ public class RewriteExec implements Runnable {
         }
     }
 
-    public void rewriteVisibility(Path targetSystemPath,
+    public void rewriteVisibility(List<Path> targetSystemPath,
                                          Map<String, Set<Integer>> serializeLocations,
                                          Map<String, Set<Integer>> branchLocations,
                                          Path infoPath
@@ -99,24 +99,28 @@ public class RewriteExec implements Runnable {
         }
 
         // Walk the project directory structure and find all the Java source files
-        Files.walk(targetSystemPath)
-                .filter(Files::isRegularFile)
-                .filter(p -> p.toString().endsWith(".java"))
-                .forEach(p -> {
-                    try {
-                        // debug
-                        // if (!p.toString().contains("/RewindableDataInputStreamPlus.java")) return;
-                        CompilationUnit cu = StaticJavaParser.parse(p.toFile());
-                        // Traverse the AST and perform the desired processing
-                        if (instSer != null)
-                            instSer.process(cu);
-                        if (instField != null)
-                            instField.process(cu);
-                        Files.write(p, cu.toString().getBytes());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+        for (Path systemPath: targetSystemPath) {
+            Files.walk(systemPath)
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .forEach(p -> {
+                        try {
+                            // debug
+                            // if (!p.toString().contains("/RewindableDataInputStreamPlus.java")) return;
+                            if (org.zlab.dinv.Utils.exclude(p))
+                                return;
+                            CompilationUnit cu = StaticJavaParser.parse(p.toFile());
+                            // Traverse the AST and perform the desired processing
+                            if (instSer != null)
+                                instSer.process(cu);
+                            if (instField != null)
+                                instField.process(cu);
+                            Files.write(p, cu.toString().getBytes());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+        }
 
         // isSerialize ppt vars
         if (instSer != null) {

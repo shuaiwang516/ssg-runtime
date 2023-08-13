@@ -84,8 +84,7 @@ public class ModifiedFields implements Runnable {
                     try {
                         // debug
                         // if (!p.toString().contains("/FSEditLogAsync.java")) return;
-                        // exclude YARN for hdfs
-                        if (p.toString().contains("hadoop-yarn-project"))
+                        if (org.zlab.dinv.Utils.exclude(p))
                             return;
                         System.out.println("processing file " + p);
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
