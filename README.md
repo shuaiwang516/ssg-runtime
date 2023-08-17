@@ -43,7 +43,8 @@ ant artifacts
 
 #### HDFS
 When compile HDFS, we modify the `$HADOOP_ROOT_PATH/hadoop-hdfs-project/hadoop-hdfs/pom.xml`, 
-put the jar file at 
+create a lib folder: `$HADOOP_ROOT_PATH/hadoop-hdfs-project/hadoop-hdfs/lib/` and put
+the jar here.
 ```xml
 <dependency>
     <groupId>org.zlab</groupId>
@@ -59,15 +60,9 @@ Test the dist version of HDFS, we need to put the runtime jar to the HDFS's clas
 $HADOOP_ROOT_PATH/share/hadoop/hdfs/lib/dinv-monitor-shadow.jar
 ```
 
+After building the dist version, after untar, also create a lib folder
+and add this jar file.
 
-Remove `$assertionsDisabled` related invariants
-```bash
-# Mac
-sed -i '' '/\$assertionsDisabled/d' input/cassandra_inv
-# Linux
-sed -i '/\$assertionsDisabled/d' filename.txt
-
-```
 
 ## Visibility Rewrite
 Our program analysis can track to some interesting variables. We want
