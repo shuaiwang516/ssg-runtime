@@ -73,7 +73,7 @@ public class RuntimeTest {
 
     @Test
     public void test() {
-
+        System.out.println("hello");
     }
 
 }

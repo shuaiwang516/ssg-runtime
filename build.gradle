@@ -66,3 +66,10 @@ task diffHandler(type: JavaExec) {
     mainClass.set('org.zlab.dinv.diffconfig.DiffHandlerMain')
     classpath = sourceSets.main.runtimeClasspath
 }
+
+test {
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
