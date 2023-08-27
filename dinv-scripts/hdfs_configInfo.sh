@@ -1,7 +1,7 @@
 #!/bin/bash
 
-OLD_SYSTEM_PATH="/home/khan/project/system/hadoop/hadoop1"
-NEW_SYSTEM_PATH="/home/khan/project/system/hadoop/hadoop2"
+OLD_SYSTEM_PATH="/home/khan/project/system/hadoop/hadoop1/hadoop-hdfs-project/hadoop-hdfs-client/src/main/java/org/apache/hadoop/hdfs/"
+NEW_SYSTEM_PATH="/home/khan/project/system/hadoop/hadoop2/hadoop-hdfs-project/hadoop-hdfs-client/src/main/java/org/apache/hadoop/hdfs/"
 
 INFO_PATH="output" # Store the output config info
 TARGET_CONFIG_CLASSES="org.apache.hadoop.hdfs.client.HdfsClientConfigKeys"
