@@ -99,7 +99,7 @@ public abstract class ConfigRetriever {
                             }
                         });
                         // Files.write(p, cu.toString().getBytes());
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
