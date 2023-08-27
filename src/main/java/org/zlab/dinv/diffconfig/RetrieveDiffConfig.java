@@ -37,6 +37,13 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         try {
             ConfigInfo oldConfigInfo = extractConfigs(targetOldSystemPath, targetClasses);
             ConfigInfo newConfigInfo = extractConfigs(targetNewSystemPath, targetClasses);
+
+            // post process for HDFS: merge configs
+            if (targetOldSystemPath.toString().contains("hadoop-hdfs-project")) {
+                oldConfigInfo = hdfs_post_process(oldConfigInfo);
+                newConfigInfo = hdfs_post_process(newConfigInfo);
+            }
+
             // compute ModifiedConfigInfo
             ModifiedConfigInfo modifiedConfigInfo = computeModifiedConfigInfo(oldConfigInfo, newConfigInfo);
             // save modifiedConfigInfo
@@ -156,6 +163,63 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         commonConfigs.addAll(modifiedConfigInfo.changedDefaultConfig);
         commonConfigs.addAll(modifiedConfigInfo.boundaryRelatedConfig);
         saveConfigs(commonConfigs, outputPath.resolve("commonConfig.json"));
+    }
+
+    public static ConfigInfo hdfs_post_process(ConfigInfo configInfo) {
+        ConfigInfo mergedConfigInfo = new ConfigInfo();
+        for (String clazz: configInfo.classToFieldsWithType.keySet()) {
+            for (String config1: configInfo.classToFieldsWithType.get(clazz).keySet()) {
+
+                // skip default
+                if (config1.endsWith("_DEFAULT"))
+                    continue;;
+
+                String type1 = configInfo.classToFieldsWithType.get(clazz).get(config1);
+                String init1 = null;
+                if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config1)) {
+                    init1 = configInfo.classToFieldsWithInit.get(clazz).get(config1);
+                }
+
+                String configName = config1;
+                String configType = type1;
+                String configInit = init1;
+
+                if (init1 != null) {
+                    String configRealName = init1.replace("\"", "");
+
+                    String config2;
+                    if (config1.endsWith("_KEY")) {
+                        config2 = config1.substring(0, config1.length() - 4) + "_DEFAULT";
+                    } else {
+                        config2 = config1 + "_DEFAULT";
+                    }
+                    // look for default value (this is init)
+                    if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config2)) {
+                        // Merge
+                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz).get(config2);
+                        String configRealType = configInfo.classToFieldsWithType.get(clazz).get(config2);
+
+                        configName = configRealName;
+                        configType = configRealType;
+                        configInit = configRealInit;
+                    }
+                }
+
+                // include this config
+                if (!mergedConfigInfo.classToFieldsWithType.containsKey(clazz)) {
+                    mergedConfigInfo.classToFieldsWithType.put(clazz, new HashMap<>());
+                }
+                mergedConfigInfo.classToFieldsWithType.get(clazz).put(configName, configType);
+                if (configInit != null) {
+                    if (!mergedConfigInfo.classToFieldsWithInit.containsKey(clazz)) {
+                        mergedConfigInfo.classToFieldsWithInit.put(clazz, new HashMap<>());
+                    }
+                    mergedConfigInfo.classToFieldsWithInit.get(clazz).put(configName, configInit);
+                }
+            }
+        }
+
+        return mergedConfigInfo;
     }
 
 }
