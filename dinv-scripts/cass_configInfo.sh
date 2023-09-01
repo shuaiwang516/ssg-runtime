@@ -1,7 +1,7 @@
 #!/bin/bash
 
-OLD_SYSTEM_PATH="/home/khan/project/system/cassandra/cassandra1/src/java/"
-NEW_SYSTEM_PATH="/home/khan/project/system/cassandra/cassandra2/src/java/"
+OLD_SYSTEM_PATH="/Users/hanke/Desktop/Project/cassandra/cassandra1/src/java"
+NEW_SYSTEM_PATH="/Users/hanke/Desktop/Project/cassandra/cassandra2/src/java"
 
 INFO_PATH="output" # Store the output config info
 TARGET_CONFIG_CLASSES="org.apache.cassandra.config.Config"

@@ -68,7 +68,7 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         diffConfig(oldConfigInfo.classToFieldsWithType, newConfigInfo.classToFieldsWithType, deletedConfig);
 
         computeDefaultValueChangedConfig(oldConfigInfo, newConfigInfo, changedTypeConfig, changedDefaultConfig);
-        computeBoundaryRelatedConfig(oldConfigInfo, boundaryRelatedConfig);
+        computeBoundaryRelatedConfig(oldConfigInfo, newConfigInfo, boundaryRelatedConfig);
         return new ModifiedConfigInfo(
                 addedConfig,
                 deletedConfig,
@@ -131,13 +131,16 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         }
     }
 
-    public static void computeBoundaryRelatedConfig(ConfigInfo configInfo, Set<String> boundaryRelatedConfig) {
-        for (String className: configInfo.classToFieldsWithType.keySet()) {
-            for (String configName: configInfo.classToFieldsWithType.get(className).keySet()) {
-                if (configName.toLowerCase().contains("size")) {
-                    boundaryRelatedConfig.add(configName);
+    public static void computeBoundaryRelatedConfig(ConfigInfo oldConfigInfo, ConfigInfo newConfigInfo,Set<String> boundaryRelatedConfig) {
+        for (String className: oldConfigInfo.classToFieldsWithType.keySet()) {
+            if (newConfigInfo.classToFieldsWithType.containsKey(className)) {
+                for (String configName: oldConfigInfo.classToFieldsWithType.get(className).keySet()) {
+                    if (configName.toLowerCase().contains("size") && newConfigInfo.classToFieldsWithType.get(className).containsKey(configName)) {
+                        boundaryRelatedConfig.add(configName);
+                    }
                 }
             }
+
         }
     }
 
