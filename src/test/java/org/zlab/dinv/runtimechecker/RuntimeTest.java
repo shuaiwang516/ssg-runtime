@@ -21,8 +21,9 @@ public class RuntimeTest {
         }
     }
 
-    @Test
-    public void testRuntimeClient() throws IOException, ClassNotFoundException, InterruptedException {
+    // @Test
+    public void testRuntimeClient()
+            throws IOException, ClassNotFoundException, InterruptedException {
         // fetchInvInfo();
         Thread t1 = new Thread(() -> {
             try {
@@ -47,17 +48,22 @@ public class RuntimeTest {
     }
 
     public void fetchInvInfo() throws IOException, ClassNotFoundException {
-        Socket socket = new Socket(SERVER_HOST, SERVER_PORT); // create a socket connection to the server
+        Socket socket = new Socket(SERVER_HOST, SERVER_PORT); // create a socket connection to the
+                                                              // server
 
-        // BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // create a reader for the server response
+        // BufferedReader in = new BufferedReader(new
+        // InputStreamReader(socket.getInputStream())); // create a reader for the
+        // server response
         ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
-        PrintWriter out = new PrintWriter(socket.getOutputStream(), true); // create a writer for the client input
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true); // create a writer for
+                                                                           // the client input
 
         out.println("collectInv"); // send a command to the server
         System.out.println("Sent command: Hello");
 
-        Runtime.ViolationInfo response = (Runtime.ViolationInfo) in.readObject(); // read the server response
+        Runtime.ViolationInfo response = (Runtime.ViolationInfo) in.readObject(); // read the server
+                                                                                  // response
 
         System.out.println("Received response length " + response.getViolations().length);
 

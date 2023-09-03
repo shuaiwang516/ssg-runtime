@@ -47,7 +47,8 @@ public class RetrieveHandlerBlock extends IterateAST {
         });
     }
 
-    public void recurProcess(Statement stmt, NodeList<Statement> newStatements, Set<Integer> lineSet) {
+    public void recurProcess(Statement stmt, NodeList<Statement> newStatements,
+            Set<Integer> lineSet) {
         if (stmt.getRange().isPresent()) {
             Range range = stmt.getRange().get();
             int begin = range.begin.line;

@@ -35,20 +35,21 @@ public class Runtime {
             throw new RuntimeException(e);
         }
 
-        // FIXME: write the violation to disk (only for testing purpose: comment out later)
-//         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-//             ObjectMapper mapper = new ObjectMapper();
-//             try {
-//                 String json = mapper.writeValueAsString(violations);
-// //                System.out.println(json);
-//                 // write to file
-//                 System.out.println("[hklog] system hook: dump violations");
-//                 File file = new File("violations.json");
-//                 mapper.writeValue(file, violations);
-//             } catch (IOException e) {
-//                 e.printStackTrace();
-//             }
-//         }));
+        // FIXME: write the violation to disk (only for testing purpose: comment out
+        // later)
+        // java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        // ObjectMapper mapper = new ObjectMapper();
+        // try {
+        // String json = mapper.writeValueAsString(violations);
+        // // System.out.println(json);
+        // // write to file
+        // System.out.println("[hklog] system hook: dump violations");
+        // File file = new File("violations.json");
+        // mapper.writeValue(file, violations);
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        // }));
     }
 
     public static void addViolation(int invId) {
@@ -68,10 +69,13 @@ public class Runtime {
                     // handle client connection in a new thread
                     new Thread(() -> {
                         try {
-                            System.out.println("Client connected from " + clientSocket.getInetAddress().getHostAddress());
+                            System.out.println("Client connected from "
+                                    + clientSocket.getInetAddress().getHostAddress());
 
-                            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                            ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                            BufferedReader in = new BufferedReader(
+                                    new InputStreamReader(clientSocket.getInputStream()));
+                            ObjectOutputStream out = new ObjectOutputStream(
+                                    clientSocket.getOutputStream());
 
                             String inputLine;
                             while ((inputLine = in.readLine()) != null) {
@@ -99,7 +103,7 @@ public class Runtime {
             }
         });
         serverThread.start();
-//        serverThread.join();
+        // serverThread.join();
     }
 
     private static Object processCommand(String command) {

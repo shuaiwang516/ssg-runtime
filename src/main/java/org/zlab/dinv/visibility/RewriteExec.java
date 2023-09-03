@@ -9,21 +9,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-@CommandLine.Command(name = "RewriteExec", mixinStandardHelpOptions = true, version = "1.0",
-        description = "RewriteExec does amazing things.")
+@CommandLine.Command(name = "RewriteExec", mixinStandardHelpOptions = true, version = "1.0", description = "RewriteExec does amazing things.")
 public class RewriteExec implements Runnable {
 
     private final String MODIFIED_FOLDER_NAME = "modified";
 
-    @CommandLine.Option(names = { "-infoPath" }, description = "path to files generated from vasco")
+    @CommandLine.Option(names = {"-infoPath"}, description = "path to files generated from vasco")
     private Path infoPath;
 
-    @CommandLine.Option(names = { "-targetSystemPath" }, description = "path to system being rewritten")
+    @CommandLine.Option(names = {
+            "-targetSystemPath"}, description = "path to system being rewritten")
     private List<Path> targetSystemPath;
 
-    @CommandLine.Option(names = { "-upgradeVersion" }, required = true, description = "upgrade version folder name")
+    @CommandLine.Option(names = {
+            "-upgradeVersion"}, required = true, description = "upgrade version folder name")
     private String upgradeVersion;
-
 
     @Override
     public void run() {
@@ -35,23 +35,23 @@ public class RewriteExec implements Runnable {
         System.out.println("[RewriteExec] upgrade version = " + upgradeVersion);
 
         // make sure at least one info file is provided
-        Path outputStreamBranchLocationPath =
-                infoPath.resolve("programLocations_alg4_outputstream_branches.json");
-        Path dataBranchLocationPath =
-                infoPath.resolve("programLocations_alg4_data_branches.json");
+        Path outputStreamBranchLocationPath = infoPath
+                .resolve("programLocations_alg4_outputstream_branches.json");
+        Path dataBranchLocationPath = infoPath.resolve("programLocations_alg4_data_branches.json");
         Path serializeLocationsPath = modifiedPath.resolve("isSerializeProgramLocations.json");
 
         if (!serializeLocationsPath.toFile().exists()
                 && !outputStreamBranchLocationPath.toFile().exists()
                 && !dataBranchLocationPath.toFile().exists()) {
-            throw new RuntimeException("no program location file is provided" +
-                    ", please check the input path");
+            throw new RuntimeException(
+                    "no program location file is provided" + ", please check the input path");
         }
 
         // isSerialize inst
         Map<String, Set<Integer>> serializeLocations = null;
         if (serializeLocationsPath.toFile().exists()) {
-            serializeLocations = org.zlab.dinv.modifiedfields.Utils.replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
+            serializeLocations = org.zlab.dinv.modifiedfields.Utils
+                    .replaceDollarWithDot(Utils.loadProgramLocations(serializeLocationsPath));
         } else {
             System.out.println("[Warning] serializeLocations is not provided, choose not to use");
         }
@@ -59,14 +59,17 @@ public class RewriteExec implements Runnable {
         // branch comparison inst
         Map<String, Set<Integer>> branchLocations = null;
         Map<String, Set<Integer>> dataBranchLocations = null;
-        if (outputStreamBranchLocationPath.toFile().exists() && dataBranchLocationPath.toFile().exists()) {
+        if (outputStreamBranchLocationPath.toFile().exists()
+                && dataBranchLocationPath.toFile().exists()) {
             branchLocations = Utils.loadProgramLocations(outputStreamBranchLocationPath);
             dataBranchLocations = Utils.loadProgramLocations(dataBranchLocationPath);
             // merge two branch locations
             Utils.mergeProgramLocations(branchLocations, dataBranchLocations);
-            branchLocations = org.zlab.dinv.modifiedfields.Utils.replaceDollarWithDot(branchLocations);
+            branchLocations = org.zlab.dinv.modifiedfields.Utils
+                    .replaceDollarWithDot(branchLocations);
         } else {
-            System.out.println("[Warning] data/outputstream locations are not both provided, choose not to use");
+            System.out.println(
+                    "[Warning] data/outputstream locations are not both provided, choose not to use");
         }
 
         try {
@@ -77,11 +80,8 @@ public class RewriteExec implements Runnable {
     }
 
     public void rewriteVisibility(List<Path> targetSystemPath,
-                                         Map<String, Set<Integer>> serializeLocations,
-                                         Map<String, Set<Integer>> branchLocations,
-                                         Path infoPath
-                                  )
-            throws IOException {
+            Map<String, Set<Integer>> serializeLocations, Map<String, Set<Integer>> branchLocations,
+            Path infoPath) throws IOException {
         if (serializeLocations == null && branchLocations == null) {
             System.out.println("no location is not provided, return");
         }
@@ -99,14 +99,13 @@ public class RewriteExec implements Runnable {
         }
 
         // Walk the project directory structure and find all the Java source files
-        for (Path systemPath: targetSystemPath) {
-            Files.walk(systemPath)
-                    .filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .forEach(p -> {
+        for (Path systemPath : targetSystemPath) {
+            Files.walk(systemPath).filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                         try {
                             // debug
-                            // if (!p.toString().contains("/RewindableDataInputStreamPlus.java")) return;
+                            // if (!p.toString().contains("/RewindableDataInputStreamPlus.java"))
+                            // return;
                             if (org.zlab.dinv.Utils.exclude(p))
                                 return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());

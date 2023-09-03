@@ -74,11 +74,11 @@ public class InstrumentInvariant {
                 // if it's a main function
                 if (Utils.isMainMethod(method)) {
                     if (method.getBody().isPresent()) {
-                        method.getBody().get().addStatement(0, StaticJavaParser.parseStatement("try {" +
-                                "Class.forName(\"org.zlab.dinv.runtimechecker.Runtime\");" +
-                                "}" +
-                                "catch (ClassNotFoundException e)" +
-                                "{throw new RuntimeException(e);}"));
+                        method.getBody().get().addStatement(0,
+                                StaticJavaParser.parseStatement("try {"
+                                        + "Class.forName(\"org.zlab.dinv.runtimechecker.Runtime\");"
+                                        + "}" + "catch (ClassNotFoundException e)"
+                                        + "{throw new RuntimeException(e);}"));
                     }
                 }
 
@@ -99,7 +99,7 @@ public class InstrumentInvariant {
                 Map<String, List<String>> exitPoint2Invs = new HashMap<>();
                 // LinkedList<String> exitInvs = new LinkedList<>();
 
-                for (String ppt: invs.keySet()) {
+                for (String ppt : invs.keySet()) {
                     // match the ppt to the method
                     String[] strs = ppt.split(":::");
                     if (strs.length != 2)
@@ -110,10 +110,10 @@ public class InstrumentInvariant {
                     // FIXME: handle object
                     if (posStatus.equals("OBJECT")) {
                         // if (method.isStatic())
-                        //     continue;
+                        // continue;
                         // // check class match!
                         // if (!Utils.isMatchPpt2(classDecl, pptMethodSig))
-                        //     continue;
+                        // continue;
                         //
                         // exitInvs.addAll(invs.get(ppt));
                         continue;
@@ -130,7 +130,8 @@ public class InstrumentInvariant {
                             continue;
                         }
                     } catch (RuntimeException e) {
-                        System.out.println("skip class " + classDecl.getName() + " because of " + e);
+                        System.out
+                                .println("skip class " + classDecl.getName() + " because of " + e);
                         return;
                     }
 
@@ -152,12 +153,13 @@ public class InstrumentInvariant {
                 // handle multiple exit status
                 Map<String, List<String>> exitPoint2InvBlocks = new HashMap<>();
                 Map<String, Map<String, Set<Utils.CollectionCompareType>>> exitPoint2collComparison = new HashMap<>();
-                for (String exitPoint: exitPoint2Invs.keySet()) {
+                for (String exitPoint : exitPoint2Invs.keySet()) {
                     List<String> exitInvs = exitPoint2Invs.get(exitPoint);
                     List<String> invsBlock = Utils.constructExitInvStmt(exitInvs, exitPoint);
                     if (!invsBlock.isEmpty())
                         exitPoint2InvBlocks.put(exitPoint, invsBlock);
-                    Map<String, Set<Utils.CollectionCompareType>> exitCollComparison = Utils.constructCondCompareInvStmt(exitInvs, exitPoint);
+                    Map<String, Set<Utils.CollectionCompareType>> exitCollComparison = Utils
+                            .constructCondCompareInvStmt(exitInvs, exitPoint);
                     if (!exitCollComparison.isEmpty())
                         exitPoint2collComparison.put(exitPoint, exitCollComparison);
                 }
@@ -169,15 +171,15 @@ public class InstrumentInvariant {
                 // if exitPointMonitorVariables is not empty
                 if (!exitPoints.isEmpty()) {
                     // add local variables
-                    Utils.injectExitPointMonitorVariables(classDecl,
-                            exitPoints, method.isStatic());
+                    Utils.injectExitPointMonitorVariables(classDecl, exitPoints, method.isStatic());
                     // TODO: inject monitoring by traversing the method for all the blocks
                     Set<Integer> lineSet = Utils.extractExitPointLineSet(exitPoints);
                     ExitPointVisitor exitPointVisitor = new ExitPointVisitor();
                     exitPointVisitor.process(method, lineSet);
                 }
 
-                if (enterInvsBlocks.isEmpty() && exitPoint2InvBlocks.isEmpty() && exitPoint2collComparison.isEmpty())
+                if (enterInvsBlocks.isEmpty() && exitPoint2InvBlocks.isEmpty()
+                        && exitPoint2collComparison.isEmpty())
                     return;
 
                 // Create a new method with the wrapped name
@@ -191,16 +193,19 @@ public class InstrumentInvariant {
                 BlockStmt body = new BlockStmt();
 
                 // Enter env
-                for (String enterInvsBlock: enterInvsBlocks) {
+                for (String enterInvsBlock : enterInvsBlocks) {
                     try {
                         body.addStatement(enterInvsBlock);
                     } catch (Exception e) {
-                        // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
+                        // FIXME: if (!size !=
+                        // size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken
+                        // inv!"); }
                         System.out.println("enter add statement exception + " + e);
                     }
                 }
 
-               // body.addStatement("System.out.println(\"Before calling " + wrappedMethod.getNameAsString() + "()\");");
+                // body.addStatement("System.out.println(\"Before calling " +
+                // wrappedMethod.getNameAsString() + "()\");");
 
                 List<String> paramNames = new LinkedList<>();
                 for (Parameter parameter : wrappedMethod.getParameters()) {
@@ -212,27 +217,27 @@ public class InstrumentInvariant {
 
                 if (!returnType.isVoidType()) {
                     VariableDeclarationExpr variableDeclaration = new VariableDeclarationExpr(
-                            returnType,
-                            "returnValue");
+                            returnType, "returnValue");
                     body.addStatement(variableDeclaration);
-                    body.addStatement("returnValue = " + method.getNameAsString() + "(" +
-                            concatenatedParameter +
-                            ");");
+                    body.addStatement("returnValue = " + method.getNameAsString() + "("
+                            + concatenatedParameter + ");");
                 } else {
-                    body.addStatement(method.getNameAsString() + "(" +
-                            concatenatedParameter +
-                            ");");
+                    body.addStatement(
+                            method.getNameAsString() + "(" + concatenatedParameter + ");");
                 }
 
-               // body.addStatement("System.out.println(\"After calling " + wrappedMethod.getNameAsString() + "()\");");
+                // body.addStatement("System.out.println(\"After calling " +
+                // wrappedMethod.getNameAsString() + "()\");");
 
                 // Exit env
-                for (String exitPoint: exitPoint2InvBlocks.keySet()) {
-                    for (String exitInvBlock: exitPoint2InvBlocks.get(exitPoint)) {
+                for (String exitPoint : exitPoint2InvBlocks.keySet()) {
+                    for (String exitInvBlock : exitPoint2InvBlocks.get(exitPoint)) {
                         try {
                             body.addStatement(exitInvBlock);
                         } catch (Exception e) {
-                            // FIXME: if (!size != size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken inv!"); }
+                            // FIXME: if (!size !=
+                            // size(DataStructures.StackArTester.s.theArray[])-1){System.out.println("broken
+                            // inv!"); }
                             System.out.println("exit add statement exception + " + e);
                         }
                     }
@@ -240,24 +245,27 @@ public class InstrumentInvariant {
 
                 // Collection comparsion
                 int collTmpCount = 0;
-                for (String exitPoint: exitPoint2collComparison.keySet()) {
+                for (String exitPoint : exitPoint2collComparison.keySet()) {
                     for (String paramName : exitPoint2collComparison.get(exitPoint).keySet()) {
                         // add a pre value for this variable
-                        Set<Utils.CollectionCompareType> types = exitPoint2collComparison.get(exitPoint).get(paramName);
+                        Set<Utils.CollectionCompareType> types = exitPoint2collComparison
+                                .get(exitPoint).get(paramName);
                         assert types.size() <= 2;
-                        for (Utils.CollectionCompareType compareType: types) {
+                        for (Utils.CollectionCompareType compareType : types) {
                             if (compareType == Utils.CollectionCompareType.first) {
-                                Utils.injectTmpVariable(paramName, collTmpCount, body, true, exitPoint);
+                                Utils.injectTmpVariable(paramName, collTmpCount, body, true,
+                                        exitPoint);
                             } else if (compareType == Utils.CollectionCompareType.last) {
-                                Utils.injectTmpVariable(paramName, collTmpCount, body, false, exitPoint);
+                                Utils.injectTmpVariable(paramName, collTmpCount, body, false,
+                                        exitPoint);
                             }
-                            collTmpCount+=3;
+                            collTmpCount += 3;
                         }
                     }
                 }
 
                 // reset all exit point variables
-                for (String exitPoint: exitPoints) {
+                for (String exitPoint : exitPoints) {
                     body.addStatement(String.format("%s = false;", exitPoint));
                 }
 
@@ -274,7 +282,6 @@ public class InstrumentInvariant {
 
     public static void testCassandra() throws IOException {
         Path targetInv = Paths.get("input/cassandra_inv");
-
 
         Path targetFile = Paths.get("input/StackArTester.java");
 

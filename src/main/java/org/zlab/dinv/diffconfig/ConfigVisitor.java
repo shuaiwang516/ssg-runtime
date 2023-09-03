@@ -14,28 +14,33 @@ import java.util.List;
 public class ConfigVisitor extends VoidVisitorAdapter<SingleClassConfigInfo> {
 
     @Override
-    public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, SingleClassConfigInfo singleClassConfigInfo) {
+    public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration,
+            SingleClassConfigInfo singleClassConfigInfo) {
         // there's no need to iterate the inner static class since it's done outside
         // super.visit(classOrInterfaceDeclaration, singleClassConfigInfo);
 
         List<FieldDeclaration> fields = classOrInterfaceDeclaration.getFields();
-        for (FieldDeclaration field: fields) {
-            for (VariableDeclarator variableDeclarator: field.getVariables()) {
+        for (FieldDeclaration field : fields) {
+            for (VariableDeclarator variableDeclarator : field.getVariables()) {
                 // we might resolve it
                 Type type = variableDeclarator.getType();
                 String typeString = type.asString();
                 try {
                     ResolvedType resolvedType = type.resolve();
                     if (resolvedType.isReferenceType()) {
-                        ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                        ResolvedReferenceType resolvedReferenceType = resolvedType
+                                .asReferenceType();
                         typeString = resolvedReferenceType.getQualifiedName();
                     }
-                } catch (UnsolvedSymbolException ignored) {}
+                } catch (UnsolvedSymbolException ignored) {
+                }
 
-                singleClassConfigInfo.typeCollector.put(variableDeclarator.getNameAsString(), typeString);
+                singleClassConfigInfo.typeCollector.put(variableDeclarator.getNameAsString(),
+                        typeString);
 
                 if (variableDeclarator.getInitializer().isPresent()) {
-                    singleClassConfigInfo.initCollector.put(variableDeclarator.getNameAsString(), variableDeclarator.getInitializer().get().toString());
+                    singleClassConfigInfo.initCollector.put(variableDeclarator.getNameAsString(),
+                            variableDeclarator.getInitializer().get().toString());
                 }
             }
         }

@@ -10,7 +10,8 @@ import java.util.Set;
 
 public abstract class IterateAST {
 
-    public abstract void recurProcess(Statement stmt, NodeList<Statement> newStatements, Set<Integer> lineSet);
+    public abstract void recurProcess(Statement stmt, NodeList<Statement> newStatements,
+            Set<Integer> lineSet);
 
     public void processBlockStmt(BlockStmt blockStmt, Set<Integer> lineSet) {
         NodeList<Statement> statements = blockStmt.getStatements();
@@ -42,7 +43,7 @@ public abstract class IterateAST {
                     }
                 }
                 if (((IfStmt) iterateStmt).getElseStmt().isPresent()) {
-                    Statement elseStmt =  ((IfStmt) iterateStmt).getElseStmt().get();
+                    Statement elseStmt = ((IfStmt) iterateStmt).getElseStmt().get();
                     if (elseStmt instanceof IfStmt) {
                         iterateStmt = elseStmt;
                     } else {
@@ -63,7 +64,7 @@ public abstract class IterateAST {
             }
         } else if (stmt instanceof BlockStmt) {
             processBlockStmt((BlockStmt) stmt, lineSet);
-        }  else if (stmt instanceof WhileStmt) {
+        } else if (stmt instanceof WhileStmt) {
             Statement body = ((WhileStmt) stmt).getBody();
             if (body instanceof BlockStmt) {
                 processBlockStmt((BlockStmt) body, lineSet);

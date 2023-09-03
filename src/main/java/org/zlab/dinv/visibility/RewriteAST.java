@@ -24,7 +24,8 @@ public abstract class RewriteAST extends IterateAST {
         this.programLocations = programLocations;
     }
 
-    public abstract void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic, String fieldName);
+    public abstract void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic,
+            String fieldName);
 
     public void process(CompilationUnit cu) {
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
@@ -46,11 +47,11 @@ public abstract class RewriteAST extends IterateAST {
                 methodDecl.getBody().ifPresent(body -> processBlockStmt(body, lineSet));
             });
 
-            for (String newStaticField: newStaticFields) {
+            for (String newStaticField : newStaticFields) {
                 addField(classDecl, true, newStaticField);
             }
 
-            for (String newNonStaticField: newNonStaticFields) {
+            for (String newNonStaticField : newNonStaticFields) {
                 addField(classDecl, false, newNonStaticField);
             }
 

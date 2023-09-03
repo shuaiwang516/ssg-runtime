@@ -18,13 +18,15 @@ public class InstSer extends RewriteAST {
         super(programLocations);
     }
 
-    public void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic, String fieldName) {
+    public void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic,
+            String fieldName) {
         FieldDeclaration field = new FieldDeclaration();
         field.addModifier(Modifier.Keyword.PRIVATE); // Add the 'private' modifier
         field.setStatic(isStatic);
 
         NodeList<VariableDeclarator> vars = new NodeList<>();
-        VariableDeclarator variableDeclarator = new VariableDeclarator(com.github.javaparser.ast.type.PrimitiveType.booleanType(), fieldName);
+        VariableDeclarator variableDeclarator = new VariableDeclarator(
+                com.github.javaparser.ast.type.PrimitiveType.booleanType(), fieldName);
         variableDeclarator.setInitializer(new BooleanLiteralExpr(false));
         vars.add(variableDeclarator);
         field.setVariables(vars); // Set the type to int and the variable name to 'a'
@@ -32,7 +34,8 @@ public class InstSer extends RewriteAST {
         classDecl.getMembers().add(field);
     }
 
-    public void recurProcess(Statement stmt, NodeList<Statement> newStatements, Set<Integer> lineSet) {
+    public void recurProcess(Statement stmt, NodeList<Statement> newStatements,
+            Set<Integer> lineSet) {
         if (stmt.getRange().isPresent()) {
             Range range = stmt.getRange().get();
             int begin = range.begin.line;
@@ -43,12 +46,14 @@ public class InstSer extends RewriteAST {
                 String isSerializeNewField = String.format("isSerialize_%d", fieldId++);
                 if (isStatic) {
                     newStaticFields.add(isSerializeNewField);
-                    Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName, isSerializeNewField);
+                    Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName,
+                            isSerializeNewField);
 
                 } else {
                     newNonStaticFields.add(isSerializeNewField);
                     isSerializeNewField = "this." + isSerializeNewField;
-                    Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName, isSerializeNewField);
+                    Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName,
+                            isSerializeNewField);
                 }
                 String isSerializeAssignExpr = String.format("%s = true;", isSerializeNewField);
                 Statement isSerializeStmt = StaticJavaParser.parseStatement(isSerializeAssignExpr);

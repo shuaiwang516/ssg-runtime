@@ -36,12 +36,15 @@ public class LoadInvariant {
         return resultMap;
     }
 
-
     public static void main(String[] args) {
-        // use the following command to print the inv to a file, then parse it using load function.
-        // java -cp $DAIKONDIR/daikon.jar daikon.PrintInvariants  /Users/hanke/Desktop/Project/daikon/examples/java-examples/StackAr/StackArTester.inv.gz > inv
+        // use the following command to print the inv to a file, then parse it using
+        // load function.
+        // java -cp $DAIKONDIR/daikon.jar daikon.PrintInvariants
+        // /Users/hanke/Desktop/Project/daikon/examples/java-examples/StackAr/StackArTester.inv.gz
+        // > inv
 
-        Path p = Paths.get("/Users/hanke/Desktop/Project/daikon/examples/java-examples/StackAr/inv");
+        Path p = Paths
+                .get("/Users/hanke/Desktop/Project/daikon/examples/java-examples/StackAr/inv");
         Map<String, Set<String>> invs = load(p);
 
     }

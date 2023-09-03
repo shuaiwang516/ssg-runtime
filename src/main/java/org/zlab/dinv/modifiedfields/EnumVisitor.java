@@ -23,7 +23,3 @@ public class EnumVisitor extends VoidVisitorAdapter<Map<String, List<String>>> {
         enumInfo.put(enumName, constants);
     }
 }
-
-
-
-

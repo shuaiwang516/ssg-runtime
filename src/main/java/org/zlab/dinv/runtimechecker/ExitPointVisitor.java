@@ -16,7 +16,8 @@ public class ExitPointVisitor extends IterateAST {
     }
 
     @Override
-    public void recurProcess(Statement stmt, NodeList<Statement> newStatements, Set<Integer> lineSet) {
+    public void recurProcess(Statement stmt, NodeList<Statement> newStatements,
+            Set<Integer> lineSet) {
         if (stmt.getRange().isPresent()) {
             Range range = stmt.getRange().get();
             int begin = range.begin.line;
@@ -26,7 +27,8 @@ public class ExitPointVisitor extends IterateAST {
                 // isSerialize_fieldId = true;
                 String exitField = String.format("EXIT%d", begin);
                 String exitVariableAssignExpr = String.format("%s = true;", exitField);
-                Statement exitVariableAssignStmt = StaticJavaParser.parseStatement(exitVariableAssignExpr);
+                Statement exitVariableAssignStmt = StaticJavaParser
+                        .parseStatement(exitVariableAssignExpr);
                 newStatements.add(newStatements.indexOf(stmt), exitVariableAssignStmt);
             }
         }
@@ -45,7 +47,8 @@ public class ExitPointVisitor extends IterateAST {
                 // inject something
                 String exitField = String.format("EXIT%d", begin);
                 String exitVariableAssignExpr = String.format("%s = true;", exitField);
-                Statement exitVariableAssignStmt = StaticJavaParser.parseStatement(exitVariableAssignExpr);
+                Statement exitVariableAssignStmt = StaticJavaParser
+                        .parseStatement(exitVariableAssignExpr);
                 blockStmt.addStatement(exitVariableAssignStmt);
                 blockStmt.addStatement(stmt);
                 return blockStmt;

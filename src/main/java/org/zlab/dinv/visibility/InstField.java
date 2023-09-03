@@ -19,25 +19,28 @@ public class InstField extends RewriteAST {
         super(programLocations);
     }
 
-    public void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic, String fieldName) {
+    public void addField(ClassOrInterfaceDeclaration classDecl, boolean isStatic,
+            String fieldName) {
         FieldDeclaration field = new FieldDeclaration();
         field.addModifier(Modifier.Keyword.PRIVATE); // Add the 'private' modifier
         field.setStatic(isStatic);
 
         NodeList<VariableDeclarator> vars = new NodeList<>();
-        vars.add(new VariableDeclarator(com.github.javaparser.ast.type.PrimitiveType.longType(), fieldName));
+        vars.add(new VariableDeclarator(com.github.javaparser.ast.type.PrimitiveType.longType(),
+                fieldName));
         field.setVariables(vars); // Set the type to int and the variable name to 'a'
 
         // Add the new field to the class declaration
         classDecl.getMembers().add(field);
     }
 
-    public void recurProcessBinaryExpr(Statement stmt, BinaryExpr binaryExpr, NodeList<Statement> newStatements) {
+    public void recurProcessBinaryExpr(Statement stmt, BinaryExpr binaryExpr,
+            NodeList<Statement> newStatements) {
         BinaryExpr.Operator operator = binaryExpr.getOperator();
-        if (operator == BinaryExpr.Operator.GREATER ||
-                operator == BinaryExpr.Operator.GREATER_EQUALS ||
-                operator == BinaryExpr.Operator.LESS ||
-                operator == BinaryExpr.Operator.LESS_EQUALS) {
+        if (operator == BinaryExpr.Operator.GREATER
+                || operator == BinaryExpr.Operator.GREATER_EQUALS
+                || operator == BinaryExpr.Operator.LESS
+                || operator == BinaryExpr.Operator.LESS_EQUALS) {
 
             Expression leftExpr = binaryExpr.getLeft();
             Expression rightExpr = binaryExpr.getRight();
@@ -47,27 +50,32 @@ public class InstField extends RewriteAST {
             if (isStatic) {
                 newStaticFields.add(leftNewField);
                 newStaticFields.add(rightNewField);
-                Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName, leftNewField);
-                Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName, rightNewField);
+                Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName,
+                        leftNewField);
+                Utils.recordStaticPptVar(pptVars, currentClassFullName, currentMethodName,
+                        rightNewField);
             } else {
                 newNonStaticFields.add(leftNewField);
                 newNonStaticFields.add(rightNewField);
                 leftNewField = "this." + leftNewField;
                 rightNewField = "this." + rightNewField;
-                Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName, leftNewField);
-                Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName, rightNewField);
+                Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName,
+                        leftNewField);
+                Utils.recordNonStaticPptVar(pptVars, currentClassFullName, currentMethodName,
+                        rightNewField);
             }
 
             String leftAssignExpr = String.format("%s = (%s);", leftNewField, leftExpr.toString());
-            String rightAssignExpr = String.format("%s = (%s);", rightNewField, rightExpr.toString());
+            String rightAssignExpr = String.format("%s = (%s);", rightNewField,
+                    rightExpr.toString());
 
             String leftAssignExceptionExpr = String.format("%s = 0L;", leftNewField);
             String rightAssignExceptionExpr = String.format("%s = 0L;", rightNewField);
 
-
             // wrap it with try-catch
             String tryCatchWrappedString = org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(
-                    leftAssignExpr + rightAssignExpr, leftAssignExceptionExpr + rightAssignExceptionExpr);
+                    leftAssignExpr + rightAssignExpr,
+                    leftAssignExceptionExpr + rightAssignExceptionExpr);
             Statement tryCatchWrappedStmt = StaticJavaParser.parseStatement(tryCatchWrappedString);
 
             newStatements.add(newStatements.indexOf(stmt), tryCatchWrappedStmt);
@@ -86,7 +94,8 @@ public class InstField extends RewriteAST {
         }
     }
 
-    public void recurProcess(Statement stmt, NodeList<Statement> newStatements, Set<Integer> lineSet) {
+    public void recurProcess(Statement stmt, NodeList<Statement> newStatements,
+            Set<Integer> lineSet) {
         if (stmt instanceof IfStmt) {
             // decide whether this is the target if branch
             // line id
@@ -100,7 +109,9 @@ public class InstField extends RewriteAST {
                     if (expr instanceof BinaryExpr) {
                         recurProcessBinaryExpr(stmt, (BinaryExpr) expr, newStatements);
                     }
-                    // Statement newStmt = StaticJavaParser.parseStatement("System.out.println(\"This statement was added before an if branch\");");
+                    // Statement newStmt =
+                    // StaticJavaParser.parseStatement("System.out.println(\"This statement was
+                    // added before an if branch\");");
                 }
             }
         }

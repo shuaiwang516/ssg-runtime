@@ -9,11 +9,9 @@ public class ModifiedConfigInfo {
     public Set<String> changedDefaultConfig;
     public Set<String> boundaryRelatedConfig;
 
-    public ModifiedConfigInfo(Set<String> addedConfig,
-                              Set<String> deletedConfig,
-                              Set<String> changedTypeConfig,
-                              Set<String> changedDefaultConfig,
-                              Set<String> boundaryRelatedConfig) {
+    public ModifiedConfigInfo(Set<String> addedConfig, Set<String> deletedConfig,
+            Set<String> changedTypeConfig, Set<String> changedDefaultConfig,
+            Set<String> boundaryRelatedConfig) {
 
         this.addedConfig = addedConfig;
         this.deletedConfig = deletedConfig;

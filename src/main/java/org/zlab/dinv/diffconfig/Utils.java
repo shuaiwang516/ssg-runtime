@@ -13,12 +13,15 @@ import java.util.Set;
 
 public class Utils {
 
-    public static Map<String, Map<String, Map<String, Set<Integer>>>> loadFields2Locations(Path filePath) {
+    public static Map<String, Map<String, Map<String, Set<Integer>>>> loadFields2Locations(
+            Path filePath) {
         // Read the map from the JSON file
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            Map<String, Map<String, Map<String, Set<Integer>>>> mapFromFile = objectMapper.readValue(filePath.toFile(),
-                    new TypeReference<Map<String, Map<String, Map<String, Set<Integer>>>>>() {});
+            Map<String, Map<String, Map<String, Set<Integer>>>> mapFromFile = objectMapper
+                    .readValue(filePath.toFile(),
+                            new TypeReference<Map<String, Map<String, Map<String, Set<Integer>>>>>() {
+                            });
             return mapFromFile;
         } catch (IOException e) {
             System.err.println("Exception happen when loading output from " + filePath);
@@ -26,10 +29,8 @@ public class Utils {
         }
     }
 
-    public static Set<String> mergeConfigHadoop(
-            Set<String> configs,
-            Map<String, Optional<Expression>> config2Init,
-            Map<String, String> config2Type,
+    public static Set<String> mergeConfigHadoop(Set<String> configs,
+            Map<String, Optional<Expression>> config2Init, Map<String, String> config2Type,
             Map<String, Optional<Expression>> merged_config2Init,
             Map<String, String> merged_config2type) {
         Set<String> mergedConfig = new HashSet<>();
@@ -46,7 +47,7 @@ public class Utils {
                 if (config2Init.containsKey(configInitKey)) {
                     // Merge
                     // String DFS_DOMAIN_SOCKET_DISABLE_INTERVAL_SECOND_KEY =
-                    //     "dfs.domain.socket.disable.interval.seconds";
+                    // "dfs.domain.socket.disable.interval.seconds";
                     // long DFS_DOMAIN_SOCKET_DISABLE_INTERVAL_SECOND_DEFAULT = 600;
                     Optional<Expression> configRealInit = config2Init.get(configInitKey);
                     String configReadType = config2Type.get(configInitKey);
@@ -57,7 +58,8 @@ public class Utils {
                     // Default is not given
                     // keep the original
                     // logger.error(
-                    // String.format("config key %s is given but default value is not given", config));
+                    // String.format("config key %s is given but default value is not given",
+                    // config));
                 }
             }
         }

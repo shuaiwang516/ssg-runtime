@@ -24,10 +24,11 @@ public abstract class ConfigRetriever {
         }
     }
 
-    public static Map<String, String> removeClassInfo(Map<String, Map<String, String>> classToFieldsWith_TYPE_OR_INIT) {
+    public static Map<String, String> removeClassInfo(
+            Map<String, Map<String, String>> classToFieldsWith_TYPE_OR_INIT) {
         Map<String, String> ret = new HashMap<>();
-        for (String className: classToFieldsWith_TYPE_OR_INIT.keySet()) {
-            for (String configName: classToFieldsWith_TYPE_OR_INIT.get(className).keySet()) {
+        for (String className : classToFieldsWith_TYPE_OR_INIT.keySet()) {
+            for (String configName : classToFieldsWith_TYPE_OR_INIT.get(className).keySet()) {
                 ret.put(configName, classToFieldsWith_TYPE_OR_INIT.get(className).get(configName));
             }
         }
@@ -52,9 +53,8 @@ public abstract class ConfigRetriever {
         }
     }
 
-
-    public static ConfigInfo extractConfigs(
-            Path projectRootDir, List<String> targetClasses) throws IOException {
+    public static ConfigInfo extractConfigs(Path projectRootDir, List<String> targetClasses)
+            throws IOException {
         // set up symbolSolver
         ReflectionTypeSolver typeSolver = new ReflectionTypeSolver();
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
@@ -63,17 +63,16 @@ public abstract class ConfigRetriever {
 
         // remove $
         List<String> targetClassesNoDollar = new LinkedList<>();
-        for (String classFullName: targetClasses) {
-            targetClassesNoDollar.add(org.zlab.dinv.runtimechecker.Utils.replaceDollarWithDot(classFullName));
+        for (String classFullName : targetClasses) {
+            targetClassesNoDollar
+                    .add(org.zlab.dinv.runtimechecker.Utils.replaceDollarWithDot(classFullName));
         }
 
         // Walk the project directory structure and find all the Java source files
         ConfigInfo configInfo = new ConfigInfo();
 
-        Files.walk(projectRootDir)
-                .filter(Files::isRegularFile)
-                .filter(p -> p.toString().endsWith(".java"))
-                .forEach(p -> {
+        Files.walk(projectRootDir).filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                     try {
                         // debug
                         // if (!p.toString().contains("/FSEditLogAsync.java")) return;
@@ -92,10 +91,13 @@ public abstract class ConfigRetriever {
                                 SingleClassConfigInfo singleClassConfigInfo = new SingleClassConfigInfo();
                                 classDecl.accept(new ConfigVisitor(), singleClassConfigInfo);
 
-                                configInfo.classToFieldsWithType.put(classFullName, singleClassConfigInfo.typeCollector);
-                                configInfo.classToFieldsWithInit.put(classFullName, singleClassConfigInfo.initCollector);
+                                configInfo.classToFieldsWithType.put(classFullName,
+                                        singleClassConfigInfo.typeCollector);
+                                configInfo.classToFieldsWithInit.put(classFullName,
+                                        singleClassConfigInfo.initCollector);
                             } else {
-                                System.out.println("class " +  classDecl.getName() + " full name is null");
+                                System.out.println(
+                                        "class " + classDecl.getName() + " full name is null");
                             }
                         });
                         // Files.write(p, cu.toString().getBytes());
@@ -104,10 +106,11 @@ public abstract class ConfigRetriever {
                     }
                 });
         // for (String clazz: classToFields.keySet()) {
-        //     System.out.println("class: " + clazz);
-        //     for (String field: classToFields.get(clazz).keySet()) {
-        //         System.out.printf("\t\tfield = %s, type = %s\n", field, classToFields.get(clazz).get(field));
-        //     }
+        // System.out.println("class: " + clazz);
+        // for (String field: classToFields.get(clazz).keySet()) {
+        // System.out.printf("\t\tfield = %s, type = %s\n", field,
+        // classToFields.get(clazz).get(field));
+        // }
         // }
         return configInfo;
     }

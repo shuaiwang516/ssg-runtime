@@ -13,14 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@CommandLine.Command(name = "EmbedInvariant", mixinStandardHelpOptions = true, version = "1.0",
-        description = "EmbedInvariant does amazing things.")
+@CommandLine.Command(name = "EmbedInvariant", mixinStandardHelpOptions = true, version = "1.0", description = "EmbedInvariant does amazing things.")
 public class EmbedInvariant implements Runnable {
 
-    @CommandLine.Option(names = { "-infoPath" }, description = "path to files generated from vasco")
+    @CommandLine.Option(names = {"-infoPath"}, description = "path to files generated from vasco")
     private Path infoPath;
 
-    @CommandLine.Option(names = { "-targetSystemPath" }, description = "path to system being rewritten")
+    @CommandLine.Option(names = {
+            "-targetSystemPath"}, description = "path to system being rewritten")
     private List<Path> targetSystemPath;
 
     @Override
@@ -31,9 +31,9 @@ public class EmbedInvariant implements Runnable {
         Path targetInvPath = infoPath.resolve("inv.txt");
         Path targetIsSerializeInvPath = infoPath.resolve("isSerializeInvs.txt");
 
-        Map<String, Set<String>> invs =  LoadInvariant.load(targetInvPath);
+        Map<String, Set<String>> invs = LoadInvariant.load(targetInvPath);
         if (targetIsSerializeInvPath.toFile().exists()) {
-            Map<String, Set<String>> isSerializeInvs =  LoadInvariant.load(targetIsSerializeInvPath);
+            Map<String, Set<String>> isSerializeInvs = LoadInvariant.load(targetIsSerializeInvPath);
             Utils.mergeInv(invs, isSerializeInvs);
         } else {
             System.out.println("[Warning] isSerialized inv is not provided");
@@ -42,11 +42,9 @@ public class EmbedInvariant implements Runnable {
         // Walk the project directory structure and find all the Java source files
 
         try {
-            for (Path systemPath: targetSystemPath) {
-                Files.walk(systemPath)
-                        .filter(Files::isRegularFile)
-                        .filter(p -> p.toString().endsWith(".java"))
-                        .forEach(p -> {
+            for (Path systemPath : targetSystemPath) {
+                Files.walk(systemPath).filter(Files::isRegularFile)
+                        .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                             try {
                                 // debug
                                 // if (!p.toString().contains("RangeTombstoneList")) return;

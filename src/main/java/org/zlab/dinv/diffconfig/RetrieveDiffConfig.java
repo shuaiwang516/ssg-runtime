@@ -20,16 +20,20 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
     /**
      * Iterate the target config class, return configuration + default value
      */
-    @CommandLine.Option(names = { "-infoPath" }, required = true, description = "path to files generated from vasco")
+    @CommandLine.Option(names = {
+            "-infoPath"}, required = true, description = "path to files generated from vasco")
     private Path infoPath;
 
-    @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
+    @CommandLine.Option(names = {
+            "-targetOldSystemPath"}, required = true, description = "path to old system")
     private Path targetOldSystemPath;
 
-    @CommandLine.Option(names = { "-targetNewSystemPath" }, required = true, description = "path to new system")
+    @CommandLine.Option(names = {
+            "-targetNewSystemPath"}, required = true, description = "path to new system")
     private Path targetNewSystemPath;
 
-    @CommandLine.Option(names = { "-tc" }, split = ",", required = true, description = "target config classes")
+    @CommandLine.Option(names = {
+            "-tc"}, split = ",", required = true, description = "target config classes")
     private List<String> targetClasses;
 
     @Override
@@ -45,7 +49,8 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
             }
 
             // compute ModifiedConfigInfo
-            ModifiedConfigInfo modifiedConfigInfo = computeModifiedConfigInfo(oldConfigInfo, newConfigInfo);
+            ModifiedConfigInfo modifiedConfigInfo = computeModifiedConfigInfo(oldConfigInfo,
+                    newConfigInfo);
             // save modifiedConfigInfo
             createDirIfNotExist(infoPath);
             saveDiffConfigInfo(oldConfigInfo, newConfigInfo, modifiedConfigInfo, infoPath);
@@ -54,8 +59,8 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         }
     }
 
-
-    public static ModifiedConfigInfo computeModifiedConfigInfo(ConfigInfo oldConfigInfo, ConfigInfo newConfigInfo) {
+    public static ModifiedConfigInfo computeModifiedConfigInfo(ConfigInfo oldConfigInfo,
+            ConfigInfo newConfigInfo) {
         Set<String> addedConfig = new HashSet<>();
         Set<String> deletedConfig = new HashSet<>();
         Set<String> changedTypeConfig = new HashSet<>();
@@ -63,31 +68,28 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         Set<String> boundaryRelatedConfig = new HashSet<>();
 
         // added config
-        diffConfig(newConfigInfo.classToFieldsWithType, oldConfigInfo.classToFieldsWithType, addedConfig);
+        diffConfig(newConfigInfo.classToFieldsWithType, oldConfigInfo.classToFieldsWithType,
+                addedConfig);
         // deleted config
-        diffConfig(oldConfigInfo.classToFieldsWithType, newConfigInfo.classToFieldsWithType, deletedConfig);
+        diffConfig(oldConfigInfo.classToFieldsWithType, newConfigInfo.classToFieldsWithType,
+                deletedConfig);
 
-        computeDefaultValueChangedConfig(oldConfigInfo, newConfigInfo, changedTypeConfig, changedDefaultConfig);
+        computeDefaultValueChangedConfig(oldConfigInfo, newConfigInfo, changedTypeConfig,
+                changedDefaultConfig);
         computeBoundaryRelatedConfig(oldConfigInfo, newConfigInfo, boundaryRelatedConfig);
-        return new ModifiedConfigInfo(
-                addedConfig,
-                deletedConfig,
-                changedTypeConfig,
-                changedDefaultConfig,
-                boundaryRelatedConfig
-        );
+        return new ModifiedConfigInfo(addedConfig, deletedConfig, changedTypeConfig,
+                changedDefaultConfig, boundaryRelatedConfig);
     }
 
     // only exists in classToFieldsWithType1
     public static void diffConfig(Map<String, Map<String, String>> classToFieldsWithType1,
-                           Map<String, Map<String, String>> classToFieldsWithType2,
-                           Set<String> output) {
-        for (String className: classToFieldsWithType1.keySet()) {
+            Map<String, Map<String, String>> classToFieldsWithType2, Set<String> output) {
+        for (String className : classToFieldsWithType1.keySet()) {
             if (!classToFieldsWithType2.containsKey(className)) {
                 // add all
                 output.addAll(classToFieldsWithType1.get(className).keySet());
             } else {
-                for (String oldConfigName: classToFieldsWithType1.get(className).keySet()) {
+                for (String oldConfigName : classToFieldsWithType1.get(className).keySet()) {
                     if (!classToFieldsWithType2.get(className).containsKey(oldConfigName)) {
                         output.add(oldConfigName);
                     }
@@ -97,17 +99,18 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
     }
 
     public static void computeDefaultValueChangedConfig(ConfigInfo oldConfigInfo,
-                                                        ConfigInfo newConfigInfo,
-                                                        Set<String> changedTypeConfig,
-                                                        Set<String> changedDefaultConfig) {
-        for (String className: oldConfigInfo.classToFieldsWithType.keySet()) {
+            ConfigInfo newConfigInfo, Set<String> changedTypeConfig,
+            Set<String> changedDefaultConfig) {
+        for (String className : oldConfigInfo.classToFieldsWithType.keySet()) {
             if (newConfigInfo.classToFieldsWithType.containsKey(className)) {
                 // check whether type is changed
-                for (String configName: oldConfigInfo.classToFieldsWithType.get(className).keySet()) {
+                for (String configName : oldConfigInfo.classToFieldsWithType.get(className)
+                        .keySet()) {
                     if (newConfigInfo.classToFieldsWithType.containsKey(configName)) {
                         // check type changed
                         if (oldConfigInfo.classToFieldsWithType.get(className).get(configName)
-                                .equals(newConfigInfo.classToFieldsWithType.get(className).get(configName))) {
+                                .equals(newConfigInfo.classToFieldsWithType.get(className)
+                                        .get(configName))) {
                             // type changed
                             changedTypeConfig.add(configName);
                             continue;
@@ -115,11 +118,15 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
                         // default value changed?
                         String oldInit = null;
                         String newInit = null;
-                        if (oldConfigInfo.classToFieldsWithInit.get(className).containsKey(configName)) {
-                            oldInit = oldConfigInfo.classToFieldsWithInit.get(className).get(configName);
+                        if (oldConfigInfo.classToFieldsWithInit.get(className)
+                                .containsKey(configName)) {
+                            oldInit = oldConfigInfo.classToFieldsWithInit.get(className)
+                                    .get(configName);
                         }
-                        if (newConfigInfo.classToFieldsWithInit.get(className).containsKey(configName)) {
-                            newInit = newConfigInfo.classToFieldsWithInit.get(className).get(configName);
+                        if (newConfigInfo.classToFieldsWithInit.get(className)
+                                .containsKey(configName)) {
+                            newInit = newConfigInfo.classToFieldsWithInit.get(className)
+                                    .get(configName);
                         }
                         if ((oldInit == null && newInit != null)
                                 || (oldInit != null && !oldInit.equals(newInit))) {
@@ -131,11 +138,15 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         }
     }
 
-    public static void computeBoundaryRelatedConfig(ConfigInfo oldConfigInfo, ConfigInfo newConfigInfo,Set<String> boundaryRelatedConfig) {
-        for (String className: oldConfigInfo.classToFieldsWithType.keySet()) {
+    public static void computeBoundaryRelatedConfig(ConfigInfo oldConfigInfo,
+            ConfigInfo newConfigInfo, Set<String> boundaryRelatedConfig) {
+        for (String className : oldConfigInfo.classToFieldsWithType.keySet()) {
             if (newConfigInfo.classToFieldsWithType.containsKey(className)) {
-                for (String configName: oldConfigInfo.classToFieldsWithType.get(className).keySet()) {
-                    if (configName.toLowerCase().contains("size") && newConfigInfo.classToFieldsWithType.get(className).containsKey(configName)) {
+                for (String configName : oldConfigInfo.classToFieldsWithType.get(className)
+                        .keySet()) {
+                    if (configName.toLowerCase().contains("size")
+                            && newConfigInfo.classToFieldsWithType.get(className)
+                                    .containsKey(configName)) {
                         boundaryRelatedConfig.add(configName);
                     }
                 }
@@ -144,22 +155,30 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         }
     }
 
-    public static void saveDiffConfigInfo(
-            ConfigInfo oldConfigInfo, ConfigInfo newConfigInfo,
+    public static void saveDiffConfigInfo(ConfigInfo oldConfigInfo, ConfigInfo newConfigInfo,
             ModifiedConfigInfo modifiedConfigInfo, Path outputPath) {
 
-        saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithType), outputPath.resolve("oriConfig2Type.json"));
-        saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithInit), outputPath.resolve("oriConfig2Init.json"));
-        saveEnumInfo(oldConfigInfo.enumClass2Constants, outputPath.resolve("oriEnum2Constant.json"));
-        saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithType), outputPath.resolve("upConfig2Type.json"));
-        saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithInit), outputPath.resolve("upConfig2Init.json"));
+        saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithType),
+                outputPath.resolve("oriConfig2Type.json"));
+        saveConfigInfo(removeClassInfo(oldConfigInfo.classToFieldsWithInit),
+                outputPath.resolve("oriConfig2Init.json"));
+        saveEnumInfo(oldConfigInfo.enumClass2Constants,
+                outputPath.resolve("oriEnum2Constant.json"));
+        saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithType),
+                outputPath.resolve("upConfig2Type.json"));
+        saveConfigInfo(removeClassInfo(newConfigInfo.classToFieldsWithInit),
+                outputPath.resolve("upConfig2Init.json"));
         saveEnumInfo(newConfigInfo.enumClass2Constants, outputPath.resolve("upEnum2Constant.json"));
 
         saveConfigs(modifiedConfigInfo.addedConfig, outputPath.resolve("addedClassConfig.json"));
-        saveConfigs(modifiedConfigInfo.deletedConfig, outputPath.resolve("deletedClassConfig.json"));
-        saveConfigs(modifiedConfigInfo.changedTypeConfig, outputPath.resolve("changedTypeConfig.json"));
-        saveConfigs(modifiedConfigInfo.changedDefaultConfig, outputPath.resolve("changedDefaultConfig.json"));
-        saveConfigs(modifiedConfigInfo.boundaryRelatedConfig, outputPath.resolve("boundaryRelatedConfig.json"));
+        saveConfigs(modifiedConfigInfo.deletedConfig,
+                outputPath.resolve("deletedClassConfig.json"));
+        saveConfigs(modifiedConfigInfo.changedTypeConfig,
+                outputPath.resolve("changedTypeConfig.json"));
+        saveConfigs(modifiedConfigInfo.changedDefaultConfig,
+                outputPath.resolve("changedDefaultConfig.json"));
+        saveConfigs(modifiedConfigInfo.boundaryRelatedConfig,
+                outputPath.resolve("boundaryRelatedConfig.json"));
         // Save the last three as common configs
         Set<String> commonConfigs = new HashSet<>();
         commonConfigs.addAll(modifiedConfigInfo.changedTypeConfig);
@@ -170,8 +189,8 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
 
     public static ConfigInfo hdfs_post_process(ConfigInfo configInfo) {
         ConfigInfo mergedConfigInfo = new ConfigInfo();
-        for (String clazz: configInfo.classToFieldsWithType.keySet()) {
-            for (String config1: configInfo.classToFieldsWithType.get(clazz).keySet()) {
+        for (String clazz : configInfo.classToFieldsWithType.keySet()) {
+            for (String config1 : configInfo.classToFieldsWithType.get(clazz).keySet()) {
 
                 // skip default
                 if (config1.endsWith("_DEFAULT"))
@@ -199,8 +218,10 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
                     // look for default value (this is init)
                     if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config2)) {
                         // Merge
-                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz).get(config2);
-                        String configRealType = configInfo.classToFieldsWithType.get(clazz).get(config2);
+                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz)
+                                .get(config2);
+                        String configRealType = configInfo.classToFieldsWithType.get(clazz)
+                                .get(config2);
 
                         configName = configRealName;
                         configType = configRealType;

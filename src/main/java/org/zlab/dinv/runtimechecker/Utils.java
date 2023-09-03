@@ -62,7 +62,7 @@ public class Utils {
         if (pos1 == -1) {
             throw new RuntimeException("method Sig " + methodSig + " does not contain (");
         }
-        String typeStr = methodSig.substring(pos1 + 1, methodSig.length()-1);
+        String typeStr = methodSig.substring(pos1 + 1, methodSig.length() - 1);
 
         typeStr = typeStr.replaceAll("\\s", "");
 
@@ -85,9 +85,10 @@ public class Utils {
             // replace this with ()
             stmt = stmt.replaceAll("\\$", ".");
         }
-        //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
+        // return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
 
-        String condCheck = "if (!(" + stmt + "))" + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
+        String condCheck = "if (!(" + stmt + "))"
+                + String.format("{org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", invId);
         return wrapWithTryCatch(condCheck);
     }
 
@@ -98,7 +99,6 @@ public class Utils {
     public static String wrapWithTryCatch(String tryStmt, String exceptionStmt) {
         return String.format("try {%s} catch (Exception e) {%s}", tryStmt, exceptionStmt);
     }
-
 
     public static String constructExitIfCondition(String stmt, String exitPoint) {
         int invId = InstrumentInvariant.curInvId++;
@@ -112,15 +112,20 @@ public class Utils {
             // replace this with ()
             stmt = stmt.replaceAll("\\$", ".");
         }
-        //        return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
+        // return "if (!(" + stmt + "))" + "{System.out.println(\"broken inv!\"); }";
 
-        String condCheck = String.format("if ( %s && !(" + stmt + ")) {org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }", exitPoint, invId);
+        String condCheck = String.format(
+                "if ( %s && !(" + stmt
+                        + ")) {org.zlab.dinv.runtimechecker.Runtime.addViolation(%s); }",
+                exitPoint, invId);
         return String.format("try {%s} catch (Exception e) {}", condCheck);
 
     }
 
     public static boolean isCollectionComparison(String inv) {
-        // org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns) == org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
+        // org.zlab.dinv.runtimechecker.Runtime.getFirstItem(this.partitionKeyColumns)
+        // ==
+        // org.zlab.dinv.runtimechecker.Runtime.getFirstItem(\old(this.partitionKeyColumns))
 
         if (!inv.contains("=="))
             return false;
@@ -140,12 +145,13 @@ public class Utils {
 
         if (vars[0].startsWith(getFirstItemPrefix) && vars[1].startsWith(getFirstItemOldPrefix)) {
             // get the target string
-            String left = vars[0].substring(getFirstItemPrefix.length(), vars[0].length()-1);
-            String right = vars[1].substring(getFirstItemOldPrefix.length(), vars[1].length()-2);
+            String left = vars[0].substring(getFirstItemPrefix.length(), vars[0].length() - 1);
+            String right = vars[1].substring(getFirstItemOldPrefix.length(), vars[1].length() - 2);
             return left.equals(right);
-        } else if (vars[0].startsWith(getLastItemPrefix) && vars[1].startsWith(getLastItemOldPrefix)) {
-            String left = vars[0].substring(getLastItemPrefix.length(), vars[0].length()-1);
-            String right = vars[1].substring(getLastItemOldPrefix.length(), vars[1].length()-2);
+        } else if (vars[0].startsWith(getLastItemPrefix)
+                && vars[1].startsWith(getLastItemOldPrefix)) {
+            String left = vars[0].substring(getLastItemPrefix.length(), vars[0].length() - 1);
+            String right = vars[1].substring(getLastItemOldPrefix.length(), vars[1].length() - 2);
             return left.equals(right);
         }
         return false;
@@ -156,12 +162,13 @@ public class Utils {
         String[] vars = inv.split("==");
         assert vars.length == 2;
         if (vars[0].startsWith("org.zlab.dinv.runtimechecker.Runtime.getFirstItem(")) {
-            return new AbstractMap.SimpleEntry<>(vars[0].substring(50, vars[0].length()-1), CollectionCompareType.first);
+            return new AbstractMap.SimpleEntry<>(vars[0].substring(50, vars[0].length() - 1),
+                    CollectionCompareType.first);
         } else {
-            return new AbstractMap.SimpleEntry<>(vars[0].substring(49, vars[0].length()-1), CollectionCompareType.last);
+            return new AbstractMap.SimpleEntry<>(vars[0].substring(49, vars[0].length() - 1),
+                    CollectionCompareType.last);
         }
     }
-
 
     public static boolean excludeInv(String inv) {
         // filter out some invariants that cannot be embedded now
@@ -209,8 +216,8 @@ public class Utils {
     }
 
     /**
-     * Make sure we are comparing correct pair of variables
-     * this.left_25 with this.right_25
+     * Make sure we are comparing correct pair of variables this.left_25 with
+     * this.right_25
      */
     public static boolean compareCorrectVar(String inv) {
         if (inv.contains(leftMatcher) || inv.contains(rightMatcher)) {
@@ -233,13 +240,13 @@ public class Utils {
             }
         }
         // if (!(numberSet.size() <= 1))
-        //     System.out.println("excluded inv: " + inv);
+        // System.out.println("excluded inv: " + inv);
         return numberSet.size() <= 1;
     }
 
     public static List<String> constructInvStmt(List<String> invs) {
         List<String> ret = new LinkedList<>();
-        for (String inv: invs) {
+        for (String inv : invs) {
             // special handle pre_post inv
             if (excludeInv(inv))
                 continue;
@@ -251,7 +258,7 @@ public class Utils {
 
     public static List<String> constructExitInvStmt(List<String> invs, String exitPoint) {
         List<String> ret = new LinkedList<>();
-        for (String inv: invs) {
+        for (String inv : invs) {
             // special handle pre_post inv
             if (excludeInv(inv))
                 continue;
@@ -268,9 +275,10 @@ public class Utils {
     /**
      * Special handle firstitem(coll) == firstitem(\old(coll))
      */
-    public static Map<String, Set<CollectionCompareType>> constructCondCompareInvStmt(List<String> invs, String exitPoint) {
+    public static Map<String, Set<CollectionCompareType>> constructCondCompareInvStmt(
+            List<String> invs, String exitPoint) {
         Map<String, Set<CollectionCompareType>> ret = new HashMap<>();
-        for (String inv: invs) {
+        for (String inv : invs) {
             // special handle pre_post inv
             if (!isCollectionComparison(inv))
                 continue;
@@ -309,7 +317,8 @@ public class Utils {
         return true;
     }
 
-    public static boolean isMatchPpt(ClassOrInterfaceDeclaration classDecl, MethodDeclaration methodDecl, String pptMethodSig) {
+    public static boolean isMatchPpt(ClassOrInterfaceDeclaration classDecl,
+            MethodDeclaration methodDecl, String pptMethodSig) {
 
         StringBuilder signatureBuilder = new StringBuilder();
 
@@ -325,7 +334,8 @@ public class Utils {
         // ppt parse
         // parse class full name without parameter
         String pptMethodSigWithoutParam = Utils.getMethodSigWithoutParam(pptMethodSig);
-        // javaparser represents inner class with . while ppt represents inner class with $
+        // javaparser represents inner class with . while ppt represents inner class
+        // with $
         // switch it!
         pptMethodSigWithoutParam = pptMethodSigWithoutParam.replace("$", ".");
 
@@ -368,7 +378,7 @@ public class Utils {
 
     public static List<String> readFile(Path path) {
         List<String> lines = new LinkedList<>();
-        try(BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path.toString()))) {
             String line = br.readLine();
             while (line != null) {
                 lines.add(line);
@@ -385,7 +395,7 @@ public class Utils {
     }
 
     public static void mergeInv(Map<String, Set<String>> dest, Map<String, Set<String>> src) {
-        for (String ppt: src.keySet()) {
+        for (String ppt : src.keySet()) {
             if (!dest.containsKey(ppt)) {
                 dest.put(ppt, src.get(ppt));
             } else {
@@ -394,19 +404,24 @@ public class Utils {
         }
     }
 
-    public static void injectTmpVariable(String paramName, int collTmpCount, BlockStmt body, boolean first, String exitPoint) {
-        String type = first? "first": "last";
-        String funcName = first? "getFirstItem": "getLastItem";
+    public static void injectTmpVariable(String paramName, int collTmpCount, BlockStmt body,
+            boolean first, String exitPoint) {
+        String type = first ? "first" : "last";
+        String funcName = first ? "getFirstItem" : "getLastItem";
 
         String tmpVarName_pre = String.format("tmp_pre_%s_%d", type, collTmpCount);
         String initStmt_pre = String.format("int %s = Integer.MIN_VALUE;", tmpVarName_pre);
-        String try_stmt_pre = String.format("try {%s = org.zlab.dinv.runtimechecker.Runtime.%s(%s);} catch (Exception e) {}", tmpVarName_pre, funcName, paramName);
+        String try_stmt_pre = String.format(
+                "try {%s = org.zlab.dinv.runtimechecker.Runtime.%s(%s);} catch (Exception e) {}",
+                tmpVarName_pre, funcName, paramName);
         body.addStatement(collTmpCount, StaticJavaParser.parseStatement(try_stmt_pre));
         body.addStatement(collTmpCount, StaticJavaParser.parseStatement(initStmt_pre));
 
         String tmpVarName_post = String.format("tmp_post_%s_%d", type, collTmpCount);
         String initStmt_post = String.format("int %s = Integer.MIN_VALUE;", tmpVarName_post);
-        String try_stmt_post = String.format("try {%s = org.zlab.dinv.runtimechecker.Runtime.%s(%s);} catch (Exception e) {}", tmpVarName_post, funcName, paramName);
+        String try_stmt_post = String.format(
+                "try {%s = org.zlab.dinv.runtimechecker.Runtime.%s(%s);} catch (Exception e) {}",
+                tmpVarName_post, funcName, paramName);
         body.addStatement(StaticJavaParser.parseStatement(initStmt_post));
         body.addStatement(StaticJavaParser.parseStatement(try_stmt_post));
 
@@ -415,8 +430,9 @@ public class Utils {
         body.addStatement(Utils.constructExitIfCondition(collCompInv, exitPoint));
     }
 
-    public static void injectExitPointMonitorVariables(ClassOrInterfaceDeclaration classDecl, Set<String > exitPointMonitorVariables, boolean isStatic) {
-        for (String fieldName: exitPointMonitorVariables) {
+    public static void injectExitPointMonitorVariables(ClassOrInterfaceDeclaration classDecl,
+            Set<String> exitPointMonitorVariables, boolean isStatic) {
+        for (String fieldName : exitPointMonitorVariables) {
             FieldDeclaration field = new FieldDeclaration();
             field.addModifier(Modifier.Keyword.PRIVATE); // Add the 'private' modifier
             field.setStatic(isStatic);
@@ -426,7 +442,8 @@ public class Utils {
             VariableDeclarator variable = new VariableDeclarator();
             variable.setType(PrimitiveType.booleanType());
             variable.setName(fieldName);
-            variable.setInitializer(new BooleanLiteralExpr(false)); // setting the default value to false
+            variable.setInitializer(new BooleanLiteralExpr(false)); // setting the default value to
+                                                                    // false
 
             vars.add(variable);
             field.setVariables(vars); // Set the type to int and the variable name to 'a'
@@ -438,7 +455,7 @@ public class Utils {
 
     public static Set<Integer> extractExitPointLineSet(Set<String> exitPoints) {
         Set<Integer> lineSet = new HashSet<>();
-        for (String exitPoint: exitPoints) {
+        for (String exitPoint : exitPoints) {
             if (exitPoint.equals("EXIT")) {
                 lineSet.add(-1);
             } else {

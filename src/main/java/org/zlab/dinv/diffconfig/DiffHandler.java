@@ -12,49 +12,57 @@ import java.util.*;
 
 public class DiffHandler implements Runnable {
 
-    // public static Path oldProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
-    // public static Path newProjectRootDir = Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    // public static Path oldProjectRootDir =
+    // Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
+    // public static Path newProjectRootDir =
+    // Paths.get("/Users/hanke/Project/cassandra/cassandra1/src/java/org/apache/cassandra");
 
-    @CommandLine.Option(names = { "-oldInfoPath" }, required = true, description = "path to files generated from vasco")
+    @CommandLine.Option(names = {
+            "-oldInfoPath"}, required = true, description = "path to files generated from vasco")
     private Path oldInfoPath;
 
-    @CommandLine.Option(names = { "-newInfoPath" }, required = true, description = "path to files generated from vasco")
+    @CommandLine.Option(names = {
+            "-newInfoPath"}, required = true, description = "path to files generated from vasco")
     private Path newInfoPath;
 
-    @CommandLine.Option(names = { "-targetOldSystemPath" }, required = true, description = "path to old system")
+    @CommandLine.Option(names = {
+            "-targetOldSystemPath"}, required = true, description = "path to old system")
     private Path targetOldSystemPath;
 
-    @CommandLine.Option(names = { "-targetNewSystemPath" }, required = true, description = "path to new system")
+    @CommandLine.Option(names = {
+            "-targetNewSystemPath"}, required = true, description = "path to new system")
     private Path targetNewSystemPath;
 
     @Override
     public void run() {
         // Input: program locations + source code
-        Map<String, Map<String, Map<String, Set<Integer>>>> oldConfig2branchProgramLocations = Utils.loadFields2Locations(oldInfoPath.resolve("config2programLocations.json"));
-        Map<String, Map<String, Map<String, Set<Integer>>>> newConfig2branchProgramLocations = Utils.loadFields2Locations(newInfoPath.resolve("config2programLocations.json"));
+        Map<String, Map<String, Map<String, Set<Integer>>>> oldConfig2branchProgramLocations = Utils
+                .loadFields2Locations(oldInfoPath.resolve("config2programLocations.json"));
+        Map<String, Map<String, Map<String, Set<Integer>>>> newConfig2branchProgramLocations = Utils
+                .loadFields2Locations(newInfoPath.resolve("config2programLocations.json"));
 
         // Merge program locations
-        Map<String, Set<Integer>> oldProgramLocations = mergeProgramLocations(oldConfig2branchProgramLocations);
-        Map<String, Set<Integer>> newProgramLocations = mergeProgramLocations(newConfig2branchProgramLocations);
+        Map<String, Set<Integer>> oldProgramLocations = mergeProgramLocations(
+                oldConfig2branchProgramLocations);
+        Map<String, Set<Integer>> newProgramLocations = mergeProgramLocations(
+                newConfig2branchProgramLocations);
 
         // Given the program locations, return:
         Map<String, Map<Integer, String>> oldProgramLocation2block;
         Map<String, Map<Integer, String>> newProgramLocation2block;
         try {
-            oldProgramLocation2block =  retrieveHandlerBlock(targetOldSystemPath, oldProgramLocations);
-            newProgramLocation2block =  retrieveHandlerBlock(targetNewSystemPath, newProgramLocations);
+            oldProgramLocation2block = retrieveHandlerBlock(targetOldSystemPath,
+                    oldProgramLocations);
+            newProgramLocation2block = retrieveHandlerBlock(targetNewSystemPath,
+                    newProgramLocations);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         Map<String, Map<String, Set<String>>> oldConfig2handlers = constructConfig2Handlers(
-                oldConfig2branchProgramLocations,
-                oldProgramLocation2block
-        );
+                oldConfig2branchProgramLocations, oldProgramLocation2block);
         Map<String, Map<String, Set<String>>> newConfig2handlers = constructConfig2Handlers(
-                newConfig2branchProgramLocations,
-                newProgramLocation2block
-        );
+                newConfig2branchProgramLocations, newProgramLocation2block);
 
         Map<String, Set<String>> modifiedHandlerConfig = new HashMap<>();
 
@@ -62,14 +70,16 @@ public class DiffHandler implements Runnable {
         // Calculate the edit distance between two blocks (if the number is different
         // For each config do the comparison
         // Output: config names: edit distance
-        for (String configClassName: oldConfig2handlers.keySet()) {
+        for (String configClassName : oldConfig2handlers.keySet()) {
             if (!newConfig2handlers.containsKey(configClassName))
                 continue;
-            for (String configName: oldConfig2handlers.get(configClassName).keySet()) {
+            for (String configName : oldConfig2handlers.get(configClassName).keySet()) {
                 if (!newConfig2handlers.get(configClassName).containsKey(configName))
                     continue;
-                Set<String> oldHandlerStrings = oldConfig2handlers.get(configClassName).get(configName);
-                Set<String> newHandlerStrings = newConfig2handlers.get(configClassName).get(configName);
+                Set<String> oldHandlerStrings = oldConfig2handlers.get(configClassName)
+                        .get(configName);
+                Set<String> newHandlerStrings = newConfig2handlers.get(configClassName)
+                        .get(configName);
 
                 boolean changedHandler = false;
 
@@ -80,10 +90,11 @@ public class DiffHandler implements Runnable {
                     changedHandler = true;
 
                 if (!changedHandler) {
-                    for (String oldHandlerString: oldHandlerStrings) {
+                    for (String oldHandlerString : oldHandlerStrings) {
                         int minEditDistance = Integer.MAX_VALUE;
-                        // if non of the comparison has edit distance smaller than xxx, we pick the configuration!
-                        for (String newHandlerString: newHandlerStrings) {
+                        // if non of the comparison has edit distance smaller than xxx, we pick the
+                        // configuration!
+                        for (String newHandlerString : newHandlerStrings) {
                             int editDistance = calEditDistance(oldHandlerString, newHandlerString);
                             minEditDistance = Math.min(editDistance, minEditDistance);
                         }
@@ -91,7 +102,6 @@ public class DiffHandler implements Runnable {
                             changedHandler = true;
                     }
                 }
-
 
                 if (changedHandler) {
                     // include this config
@@ -103,29 +113,34 @@ public class DiffHandler implements Runnable {
             }
         }
 
-        // org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig, oldInfoPath.resolve("modifiedHandlerConfigs.json"));
-        RetrieveDiffConfig.saveConfigs(getConfigurationNames(modifiedHandlerConfig), oldInfoPath.resolve("changedHandlerConfig.json"));
+        // org.zlab.dinv.modifiedfields.Utils.saveModifiedFields(modifiedHandlerConfig,
+        // oldInfoPath.resolve("modifiedHandlerConfigs.json"));
+        RetrieveDiffConfig.saveConfigs(getConfigurationNames(modifiedHandlerConfig),
+                oldInfoPath.resolve("changedHandlerConfig.json"));
     }
 
     public static Map<String, Map<String, Set<String>>> constructConfig2Handlers(
             Map<String, Map<String, Map<String, Set<Integer>>>> config2programLocations,
             Map<String, Map<Integer, String>> programLocation2block) {
         Map<String, Map<String, Set<String>>> config2handlers = new HashMap<>();
-        for (String configClassName: config2programLocations.keySet()) {
-            for (String configName: config2programLocations.get(configClassName).keySet()) {
-                Map<String, Set<Integer>> programLocations = config2programLocations.get(configClassName).get(configName);
-                for (String className: programLocations.keySet()) {
-                    for (Integer lineNumber: programLocations.get(className)) {
+        for (String configClassName : config2programLocations.keySet()) {
+            for (String configName : config2programLocations.get(configClassName).keySet()) {
+                Map<String, Set<Integer>> programLocations = config2programLocations
+                        .get(configClassName).get(configName);
+                for (String className : programLocations.keySet()) {
+                    for (Integer lineNumber : programLocations.get(className)) {
                         // retrieve the block!
                         if (programLocation2block.containsKey(className)
                                 && programLocation2block.get(className).containsKey(lineNumber)) {
-                            String handlerString = programLocation2block.get(className).get(lineNumber);
+                            String handlerString = programLocation2block.get(className)
+                                    .get(lineNumber);
                             // add it to output
                             if (!config2handlers.containsKey(configClassName)) {
                                 config2handlers.put(configClassName, new HashMap<>());
                             }
                             if (!config2handlers.get(configClassName).containsKey(configName)) {
-                                config2handlers.get(configClassName).put(configName, new HashSet<>());
+                                config2handlers.get(configClassName).put(configName,
+                                        new HashSet<>());
                             }
                             config2handlers.get(configClassName).get(configName).add(handlerString);
                         }
@@ -136,24 +151,25 @@ public class DiffHandler implements Runnable {
         return config2handlers;
     }
 
-    public static Map<String, Set<Integer>> mergeProgramLocations(Map<String, Map<String, Map<String, Set<Integer>>>> config2branchProgramLocations) {
+    public static Map<String, Set<Integer>> mergeProgramLocations(
+            Map<String, Map<String, Map<String, Set<Integer>>>> config2branchProgramLocations) {
         Map<String, Set<Integer>> programLocations = new HashMap<>();
         for (Map<String, Map<String, Set<Integer>>> v1 : config2branchProgramLocations.values()) {
-            for (Map<String, Set<Integer>> tmpProgramLocations: v1.values()) {
-                org.zlab.dinv.visibility.Utils.mergeProgramLocations(programLocations, tmpProgramLocations);
+            for (Map<String, Set<Integer>> tmpProgramLocations : v1.values()) {
+                org.zlab.dinv.visibility.Utils.mergeProgramLocations(programLocations,
+                        tmpProgramLocations);
             }
         }
         return programLocations;
     }
 
-    public static Map<String, Map<Integer, String>> retrieveHandlerBlock(Path projectRootDir, Map<String, Set<Integer>> programLocations) throws IOException {
+    public static Map<String, Map<Integer, String>> retrieveHandlerBlock(Path projectRootDir,
+            Map<String, Set<Integer>> programLocations) throws IOException {
         RetrieveHandlerBlock retrieveHandlerBlock = new RetrieveHandlerBlock(programLocations);
 
         // Walk the project directory structure and find all the Java source files
-        Files.walk(projectRootDir)
-                .filter(Files::isRegularFile)
-                .filter(p -> p.toString().endsWith(".java"))
-                .forEach(p -> {
+        Files.walk(projectRootDir).filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                     try {
                         // debug
                         // if (!p.toString().contains("/ReadCommand.java")) return;
@@ -188,10 +204,8 @@ public class DiffHandler implements Runnable {
             for (int j = 1; j <= len2; j++) {
                 int cost = (string1.charAt(i - 1) == string2.charAt(j - 1)) ? 0 : 1;
 
-                dp[i][j] = Math.min(
-                        Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1),
-                        dp[i - 1][j - 1] + cost
-                );
+                dp[i][j] = Math.min(Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1),
+                        dp[i - 1][j - 1] + cost);
             }
         }
 
@@ -200,7 +214,7 @@ public class DiffHandler implements Runnable {
 
     public Set<String> getConfigurationNames(Map<String, Set<String>> modifiedHandlerConfig) {
         Set<String> configs = new HashSet<>();
-        for (Set<String> configNames: modifiedHandlerConfig.values()) {
+        for (Set<String> configNames : modifiedHandlerConfig.values()) {
             configs.addAll(configNames);
         }
         return configs;
