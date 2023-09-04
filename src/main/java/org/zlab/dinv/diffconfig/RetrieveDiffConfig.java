@@ -242,12 +242,13 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
     }
 
     public static ConfigInfo hbase_post_process(ConfigInfo configInfo) {
+        // FIXME: Now it only merge config within the same class, we want to expand it
+        // to all classes
         ConfigInfo mergedConfigInfo = new ConfigInfo();
         for (String clazz : configInfo.classToFieldsWithType.keySet()) {
             for (String config1 : configInfo.classToFieldsWithType.get(clazz).keySet()) {
-
                 // skip default
-                if (config1.startsWith("DEFAULT_"))
+                if (config1.startsWith("DEFAULT_") || config1.endsWith("_DEFAULT"))
                     continue;
 
                 String type1 = configInfo.classToFieldsWithType.get(clazz).get(config1);
@@ -264,6 +265,8 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
                     String configRealName = init1.replace("\"", "");
 
                     String config2;
+
+                    // Pattern1: XXX_KEY => DEFAULT_XXX
                     if (config1.endsWith("_KEY")) {
                         config2 = "DEFAULT_" + config1.substring(0, config1.length() - 4);
                     } else {
@@ -272,27 +275,35 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
                     // look for default value (this is init)
                     if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config2)) {
                         // Merge
-                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz)
-                                .get(config2);
                         String configRealType = configInfo.classToFieldsWithType.get(clazz)
                                 .get(config2);
-
-                        configName = configRealName;
-                        configType = configRealType;
-                        configInit = configRealInit;
+                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz)
+                                .get(config2);
+                        includeConfig(mergedConfigInfo, clazz, configRealName, configRealType,
+                                configRealInit);
+                        continue;
                     }
-                }
 
-                // include this config
-                if (!mergedConfigInfo.classToFieldsWithType.containsKey(clazz)) {
-                    mergedConfigInfo.classToFieldsWithType.put(clazz, new HashMap<>());
-                }
-                mergedConfigInfo.classToFieldsWithType.get(clazz).put(configName, configType);
-                if (configInit != null) {
-                    if (!mergedConfigInfo.classToFieldsWithInit.containsKey(clazz)) {
-                        mergedConfigInfo.classToFieldsWithInit.put(clazz, new HashMap<>());
+                    // Pattern2: XXX_KEY => DEFAULT_XXX
+                    if (config1.endsWith("_KEY")) {
+                        config2 = config1.substring(0, config1.length() - 4) + "_DEFAULT";
+                    } else {
+                        config2 = config1 + "_DEFAULT";
                     }
-                    mergedConfigInfo.classToFieldsWithInit.get(clazz).put(configName, configInit);
+                    // look for default value (this is init)
+                    if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config2)) {
+                        // Merge
+                        String configRealType = configInfo.classToFieldsWithType.get(clazz)
+                                .get(config2);
+                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz)
+                                .get(config2);
+                        includeConfig(mergedConfigInfo, clazz, configRealName, configRealType,
+                                configRealInit);
+                        continue;
+                    }
+
+                    // No matching, add this config itself
+                    includeConfig(mergedConfigInfo, clazz, configName, configType, configInit);
                 }
             }
         }
@@ -300,4 +311,18 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
         return mergedConfigInfo;
     }
 
+    public static void includeConfig(ConfigInfo configInfo, String clazz, String configName,
+            String configType, String configInit) {
+        // include this config
+        if (!configInfo.classToFieldsWithType.containsKey(clazz)) {
+            configInfo.classToFieldsWithType.put(clazz, new HashMap<>());
+        }
+        configInfo.classToFieldsWithType.get(clazz).put(configName, configType);
+        if (configInit != null) {
+            if (!configInfo.classToFieldsWithInit.containsKey(clazz)) {
+                configInfo.classToFieldsWithInit.put(clazz, new HashMap<>());
+            }
+            configInfo.classToFieldsWithInit.get(clazz).put(configName, configInit);
+        }
+    }
 }
