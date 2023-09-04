@@ -75,7 +75,8 @@ public abstract class ConfigRetriever {
                 .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                     try {
                         // debug
-                        // if (!p.toString().contains("/FSEditLogAsync.java")) return;
+                        if (!p.toString().contains("/HConstants.java"))
+                            return;
                         CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
                             if (classDecl.getFullyQualifiedName().isPresent()) {

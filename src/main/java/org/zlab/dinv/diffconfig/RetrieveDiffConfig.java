@@ -1,16 +1,8 @@
 package org.zlab.dinv.diffconfig;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import picocli.CommandLine;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -46,6 +38,9 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
             if (targetOldSystemPath.toString().contains("hadoop-hdfs-project")) {
                 oldConfigInfo = hdfs_post_process(oldConfigInfo);
                 newConfigInfo = hdfs_post_process(newConfigInfo);
+            } else if (targetOldSystemPath.toString().contains("hbase")) {
+                oldConfigInfo = hbase_post_process(oldConfigInfo);
+                newConfigInfo = hbase_post_process(newConfigInfo);
             }
 
             // compute ModifiedConfigInfo
@@ -214,6 +209,65 @@ public class RetrieveDiffConfig extends ConfigRetriever implements Runnable {
                         config2 = config1.substring(0, config1.length() - 4) + "_DEFAULT";
                     } else {
                         config2 = config1 + "_DEFAULT";
+                    }
+                    // look for default value (this is init)
+                    if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config2)) {
+                        // Merge
+                        String configRealInit = configInfo.classToFieldsWithInit.get(clazz)
+                                .get(config2);
+                        String configRealType = configInfo.classToFieldsWithType.get(clazz)
+                                .get(config2);
+
+                        configName = configRealName;
+                        configType = configRealType;
+                        configInit = configRealInit;
+                    }
+                }
+
+                // include this config
+                if (!mergedConfigInfo.classToFieldsWithType.containsKey(clazz)) {
+                    mergedConfigInfo.classToFieldsWithType.put(clazz, new HashMap<>());
+                }
+                mergedConfigInfo.classToFieldsWithType.get(clazz).put(configName, configType);
+                if (configInit != null) {
+                    if (!mergedConfigInfo.classToFieldsWithInit.containsKey(clazz)) {
+                        mergedConfigInfo.classToFieldsWithInit.put(clazz, new HashMap<>());
+                    }
+                    mergedConfigInfo.classToFieldsWithInit.get(clazz).put(configName, configInit);
+                }
+            }
+        }
+
+        return mergedConfigInfo;
+    }
+
+    public static ConfigInfo hbase_post_process(ConfigInfo configInfo) {
+        ConfigInfo mergedConfigInfo = new ConfigInfo();
+        for (String clazz : configInfo.classToFieldsWithType.keySet()) {
+            for (String config1 : configInfo.classToFieldsWithType.get(clazz).keySet()) {
+
+                // skip default
+                if (config1.startsWith("DEFAULT_"))
+                    continue;
+
+                String type1 = configInfo.classToFieldsWithType.get(clazz).get(config1);
+                String init1 = null;
+                if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config1)) {
+                    init1 = configInfo.classToFieldsWithInit.get(clazz).get(config1);
+                }
+
+                String configName = config1;
+                String configType = type1;
+                String configInit = init1;
+
+                if (init1 != null) {
+                    String configRealName = init1.replace("\"", "");
+
+                    String config2;
+                    if (config1.endsWith("_KEY")) {
+                        config2 = "DEFAULT_" + config1.substring(0, config1.length() - 4);
+                    } else {
+                        config2 = "DEFAULT_" + config1;
                     }
                     // look for default value (this is init)
                     if (configInfo.classToFieldsWithInit.get(clazz).containsKey(config2)) {
