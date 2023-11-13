@@ -48,6 +48,11 @@ application {
     mainClassName = 'org.zlab.dinv.visibility.Main'
 }
 
+task instSerializePoints(type: JavaExec) {
+    mainClass.set('org.zlab.dinv.serializepoint.Main')
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 task embedInv(type: JavaExec) {
     mainClass.set('org.zlab.dinv.runtimechecker.Main')
     classpath = sourceSets.main.runtimeClasspath
