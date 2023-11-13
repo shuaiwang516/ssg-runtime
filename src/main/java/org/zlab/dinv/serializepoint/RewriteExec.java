@@ -83,8 +83,8 @@ public class RewriteExec implements Runnable {
                             // debug
                             // if (!p.toString().contains("/TestCollection2.java"))
                             // return;
-                            // if (!p.toString().contains("/TestArray3.java"))
-                            //     return;
+                            if (!p.toString().contains("/TestArray2.java"))
+                                return;
                             if (org.zlab.dinv.Utils.exclude(p))
                                 return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());

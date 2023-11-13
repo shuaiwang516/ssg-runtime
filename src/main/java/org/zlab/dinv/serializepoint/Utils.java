@@ -36,8 +36,8 @@ public class Utils {
     }
 
     public static String logSerializePointStmt(String pName, String cName,
-            SerializePoint.PrintableType type) {
-        return wrapWithLogger(logSerializePointFieldRef(pName, cName, type));
+            SerializePoint.PrintableType type, boolean isStatic) {
+        return wrapWithLogger(logSerializePointFieldRef(pName, cName, type, isStatic));
     }
 
     public static String wrapWithLogger(String input) {
@@ -45,8 +45,8 @@ public class Utils {
     }
 
     public static String logSerializePointFieldRef(String pName, String cName,
-            SerializePoint.PrintableType type) {
-
+            SerializePoint.PrintableType type, boolean isStatic) {
+        // If it's static, do not output class Hash and getClass
         // according to whether it's printable, we need to use different format
         String format = null;
         if (type != null) {
@@ -70,19 +70,37 @@ public class Utils {
                     format = "%s";
                     break;
             }
-            return String.format(
-                    "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
-                            + "                Thread.currentThread().getId(),\n"
-                            + "                System.identityHashCode(%s), %s.getClass(),\n"
-                            + "                %s)",
-                    pName, format, cName, type, pName, pName, cName, cName);
+            if (isStatic) {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                \"%s\",\n" + "                %s)",
+                        pName, format, cName, type, pName, cName);
+            } else {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                System.identityHashCode(%s), %s.getClass(),\n"
+                                + "                %s)",
+                        pName, format, cName, type, pName, pName, cName);
+            }
+
         } else {
-            return String.format(
-                    "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cHash = %%d, cName = %s, cClass = %%s\",\n"
-                            + "                Thread.currentThread().getId(),\n"
-                            + "                System.identityHashCode(%s), %s.getClass(),\n"
-                            + "                System.identityHashCode(%s), %s.getClass())",
-                    pName, cName, pName, pName, cName, cName);
+            if (isStatic) {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cHash = %%d, cName = %s, cClass = %%s\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                \"%s\",\n"
+                                + "                System.identityHashCode(%s), %s.getClass())",
+                        pName, cName, pName, cName, cName);
+            } else {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cHash = %%d, cName = %s, cClass = %%s\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                System.identityHashCode(%s), %s.getClass(),\n"
+                                + "                System.identityHashCode(%s), %s.getClass())",
+                        pName, cName, pName, pName, cName, cName);
+            }
         }
     }
 

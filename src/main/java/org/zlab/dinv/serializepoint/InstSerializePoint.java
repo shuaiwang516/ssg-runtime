@@ -66,7 +66,7 @@ public class InstSerializePoint extends IterateAST {
                         Statement isSerializeStmt = StaticJavaParser.parseStatement(
                                 Utils.logSerializePointStmt(serializePoint.parentName,
                                         serializePoint.parentName + "." + serializePoint.fieldName,
-                                        serializePoint.printableType));
+                                        serializePoint.printableType, serializePoint.isStatic));
 
                         // log before it
                         newStatements.add(newStatements.indexOf(stmt), isSerializeStmt);
@@ -84,9 +84,9 @@ public class InstSerializePoint extends IterateAST {
 
                             // can we get the type here? Specially for String
 
-                            Statement isSerializeStmt = StaticJavaParser
-                                    .parseStatement(Utils.logSerializePointStmt(iterableName,
-                                            varName, serializePoint.printableType));
+                            Statement isSerializeStmt = StaticJavaParser.parseStatement(
+                                    Utils.logSerializePointStmt(iterableName, varName,
+                                            serializePoint.printableType, serializePoint.isStatic));
 
                             // if there's a loop, we need to inject the log into the block
                             ForEachStmt forEachStmt = (ForEachStmt) stmt;
