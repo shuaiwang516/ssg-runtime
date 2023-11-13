@@ -35,4 +35,8 @@ public class Utils {
         }
     }
 
+    public static String logStatement() {
+        return "System.out.println(\"[Dinv] \" + Thread.currentThread().getName() + \" \" + System.currentTimeMillis());";
+    }
+
 }

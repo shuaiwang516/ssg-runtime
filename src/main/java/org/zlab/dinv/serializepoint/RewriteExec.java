@@ -39,6 +39,20 @@ public class RewriteExec implements Runnable {
         for (SerializePoint serializePoint : serializePoints) {
             System.out.println(serializePoint);
         }
+        // Maintain a more efficient data structure for serialization points
+        Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = new HashMap<>();
+        for (SerializePoint serializePoint : serializePoints) {
+            if (!serializePointsMap.containsKey(serializePoint.className)) {
+                serializePointsMap.put(serializePoint.className, new HashMap<>());
+            }
+            Map<Integer, Set<SerializePoint>> lineMap = serializePointsMap
+                    .get(serializePoint.className);
+            if (!lineMap.containsKey(serializePoint.lineNumber)) {
+                lineMap.put(serializePoint.lineNumber, new HashSet<>());
+            }
+            Set<SerializePoint> serializePointSet = lineMap.get(serializePoint.lineNumber);
+            serializePointSet.add(serializePoint);
+        }
 
         // ----------Instrument Logs---------
 
@@ -49,16 +63,17 @@ public class RewriteExec implements Runnable {
         }
 
         try {
-            instSerializePointLog(targetSystemPath, serializePoints, infoPath);
+            instSerializePointLog(targetSystemPath, serializePointsMap, infoPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void instSerializePointLog(List<Path> targetSystemPath,
-            Set<SerializePoint> serializePoints, Path infoPath) throws IOException {
+            Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap, Path infoPath)
+            throws IOException {
 
-        InstSerializePoint instSerializePoint = new InstSerializePoint(serializePoints);
+        InstSerializePoint instSerializePoint = new InstSerializePoint(serializePointsMap);
 
         // Walk the project directory structure and find all the Java source files
         for (Path systemPath : targetSystemPath) {
@@ -66,8 +81,8 @@ public class RewriteExec implements Runnable {
                     .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                         try {
                             // debug
-                            // if (!p.toString().contains("/RewindableDataInputStreamPlus.java"))
-                            // return;
+                            if (!p.toString().contains("/TestCollection2.java"))
+                                return;
                             if (org.zlab.dinv.Utils.exclude(p))
                                 return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
