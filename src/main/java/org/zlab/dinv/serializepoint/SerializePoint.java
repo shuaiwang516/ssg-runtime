@@ -8,12 +8,46 @@ public class SerializePoint {
         fieldRef, iterator, collectionGet, arrayRef
     }
 
+    public enum PrintableType {
+        byte_, int_, float_, double_, char_, boolean_, string_, enum_;
+
+        public static PrintableType fromType(String s) {
+            switch (s) {
+                case "byte" :
+                case "java.lang.Byte" :
+                    return byte_;
+                case "int" :
+                case "java.lang.Integer" :
+                    return int_;
+                case "float" :
+                case "java.lang.Float" :
+                    return float_;
+                case "double" :
+                case "java.lang.Double" :
+                    return double_;
+                case "char" :
+                    return char_;
+                case "boolean" :
+                case "java.lang.Boolean" :
+                    return boolean_;
+                case "java.lang.String" :
+                    return string_;
+                case "enum" :
+                    return enum_;
+                default :
+                    return null;
+            }
+        }
+    }
+
     // Location
     public String className;
     public String methodName;
     public int lineNumber;
 
     public boolean isStatic;
+    public boolean isPrintableType; // field
+    public PrintableType printableType;
 
     public Type type;
 
@@ -24,11 +58,14 @@ public class SerializePoint {
     }
 
     public SerializePoint(String className, String methodName, int lineNumber, boolean isStatic,
-            Type type, String parentName, String fieldName) {
+            boolean isPrintableType, PrintableType printableType, Type type, String parentName,
+            String fieldName) {
         this.className = className;
         this.methodName = methodName;
         this.lineNumber = lineNumber;
         this.isStatic = isStatic;
+        this.isPrintableType = isPrintableType;
+        this.printableType = printableType;
         this.type = type;
         this.parentName = parentName;
         this.fieldName = fieldName;
@@ -49,7 +86,9 @@ public class SerializePoint {
                 && (methodName.equals(serializePoint.methodName))
                 && (lineNumber == serializePoint.lineNumber);
 
-        if (!isPosEqual || isStatic != serializePoint.isStatic || type != serializePoint.type)
+        if (!isPosEqual || isStatic != serializePoint.isStatic
+                || isPrintableType != serializePoint.isPrintableType
+                || printableType != serializePoint.printableType || type != serializePoint.type)
             return false;
 
         if (type != Type.fieldRef) {
@@ -63,16 +102,18 @@ public class SerializePoint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(className, methodName, lineNumber, isStatic, type, parentName,
-                fieldName);
+        return Objects.hash(className, methodName, lineNumber, isStatic, isPrintableType,
+                printableType, type, parentName, fieldName);
     }
 
     // toString method
     @Override
     public String toString() {
         return "SerializePoint{" + "className='" + className + '\'' + ", methodName='" + methodName
-                + '\'' + ", lineNumber=" + lineNumber + ", isStatic=" + isStatic + ", type=" + type
-                + ", parentName='" + parentName + '\'' + ", fieldName='" + fieldName + '\'' + '}';
+                + '\'' + ", lineNumber=" + lineNumber + ", isStatic=" + isStatic
+                + ", isPrintableType=" + isPrintableType + ", printableType=" + printableType
+                + ", type=" + type + ", parentName='" + parentName + '\'' + ", fieldName='"
+                + fieldName + '\'' + '}';
     }
 
 }

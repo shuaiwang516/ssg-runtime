@@ -5,10 +5,12 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,18 +56,38 @@ public class InstSerializePoint extends IterateAST {
             if (line2SerializePoints.containsKey(begin)) {
                 // inject a log statement before or after it
                 // Check the type
-
-                Statement isSerializeStmt = StaticJavaParser.parseStatement(Utils.logStatement());
                 // if it's a ForEachStmt, inject after it need to be injected into the blocks
                 Set<SerializePoint> serializePoints = line2SerializePoints.get(begin);
                 for (SerializePoint serializePoint : serializePoints) {
+                    // TODO: reconstruct the correct log statement
                     // inject logs according to types and the current statement
                     if (serializePoint.type == SerializePoint.Type.fieldRef) {
+                        // for field ref, the parent name and child name are provided
+                        Statement isSerializeStmt = StaticJavaParser.parseStatement(
+                                Utils.logSerializePointStmt(serializePoint.parentName,
+                                        serializePoint.parentName + "." + serializePoint.fieldName,
+                                        serializePoint.printableType));
+
                         // log before it
                         newStatements.add(newStatements.indexOf(stmt), isSerializeStmt);
                     } else {
-                        // log after it (if it's a loop, it might inject to a wrong place): FIXME
+                        // Array Ref, Collection get, iterator...
+                        // Check the exact variable, and log it
+
                         if (stmt instanceof ForEachStmt) {
+                            // usually there's only one, so we pick the first one
+                            // Caution! this could cause side effects
+                            String iterableName = ((ForEachStmt) stmt).getIterable().toString();
+                            List<VariableDeclarator> vars = ((ForEachStmt) stmt).getVariable()
+                                    .getVariables();
+                            String varName = vars.get(0).getNameAsString();
+
+                            // can we get the type here? Specially for String
+
+                            Statement isSerializeStmt = StaticJavaParser
+                                    .parseStatement(Utils.logSerializePointStmt(iterableName,
+                                            varName, serializePoint.printableType));
+
                             // if there's a loop, we need to inject the log into the block
                             ForEachStmt forEachStmt = (ForEachStmt) stmt;
                             Statement forEachStmtBody = forEachStmt.getBody();
@@ -80,6 +102,8 @@ public class InstSerializePoint extends IterateAST {
                                 forEachStmt.setBody(forEachStmtBodyBlock);
                             }
                         } else {
+                            Statement isSerializeStmt = StaticJavaParser
+                                    .parseStatement(Utils.logSerializePointStmt());
                             newStatements.add(newStatements.indexOf(stmt) + 1, isSerializeStmt);
                         }
                     }

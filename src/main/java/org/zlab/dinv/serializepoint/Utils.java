@@ -35,7 +35,58 @@ public class Utils {
         }
     }
 
-    public static String logStatement() {
+    public static String logSerializePointStmt(String pName, String cName,
+            SerializePoint.PrintableType type) {
+        return wrapWithLogger(logSerializePointFieldRef(pName, cName, type));
+    }
+
+    public static String wrapWithLogger(String input) {
+        return String.format("System.out.println(%s);", input);
+    }
+
+    public static String logSerializePointFieldRef(String pName, String cName,
+            SerializePoint.PrintableType type) {
+
+        // according to whether it's printable, we need to use different format
+        String format = null;
+        if (type != null) {
+            switch (type) {
+                case int_ :
+                case byte_ :
+                    format = "%d";
+                    break;
+                case float_ :
+                case double_ :
+                    format = "%f";
+                    break;
+                case char_ :
+                    format = "%c";
+                    break;
+                case boolean_ :
+                    format = "%b";
+                    break;
+                case string_ :
+                case enum_ :
+                    format = "%s";
+                    break;
+            }
+            return String.format(
+                    "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
+                            + "                Thread.currentThread().getId(),\n"
+                            + "                System.identityHashCode(%s), %s.getClass(),\n"
+                            + "                %s)",
+                    pName, format, cName, type, pName, pName, cName, cName);
+        } else {
+            return String.format(
+                    "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cHash = %%d, cName = %s, cClass = %%s\",\n"
+                            + "                Thread.currentThread().getId(),\n"
+                            + "                System.identityHashCode(%s), %s.getClass(),\n"
+                            + "                System.identityHashCode(%s), %s.getClass())",
+                    pName, cName, pName, pName, cName, cName);
+        }
+    }
+
+    public static String logSerializePointStmt() {
         return "System.out.println(\"[Dinv] \" + Thread.currentThread().getName() + \" \" + System.currentTimeMillis());";
     }
 
