@@ -30,10 +30,9 @@ public class InstSerializePoint extends IterateAST {
         this.serializePointsMap = serializePointsMap;
     }
 
-    public void process(CompilationUnit cu) {
+    public boolean process(CompilationUnit cu) {
+        injected = false;
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
-            injected = false;
-
             if (!classDecl.getFullyQualifiedName().isPresent()) {
                 return;
             }
@@ -49,17 +48,18 @@ public class InstSerializePoint extends IterateAST {
             classDecl.getMethods().forEach(methodDecl -> {
                 methodDecl.getBody()
                         .ifPresent(body -> processBlockStmt(body, line2SerializePoints));
-
-                // if injected is true, add the logger declaration
             });
-
-            if (injected) {
+        });
+        if (injected) {
+            cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
+                if (!classDecl.getFullyQualifiedName().isPresent()) {
+                    return;
+                }
                 // check whether this class is an inner class since we only need to inject
                 // logger at the top level
                 if (classDecl.isNestedType()) {
                     return;
                 }
-
                 // add logger declaration
                 // String loggerDecl = "private static final org.slf4j.Logger serialize_logger =
                 // org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
@@ -71,8 +71,9 @@ public class InstSerializePoint extends IterateAST {
                         .parseStatement(loggerInitExpr);
                 classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
                         Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
-            }
-        });
+            });
+        }
+        return injected;
     }
 
     @Override

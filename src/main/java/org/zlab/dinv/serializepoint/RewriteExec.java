@@ -35,11 +35,22 @@ public class RewriteExec implements Runnable {
 
         // ----------Load serialize points----------
         Set<SerializePoint> serializePoints = Utils.loadSerializePoints(serializePointsPath);
-
         for (SerializePoint serializePoint : serializePoints) {
             serializePoint.className = serializePoint.className.replace("$", ".");
-            System.out.println(serializePoint);
+            // System.out.println(serializePoint);
         }
+
+        Set<SerializePoint> filteredSerializePoints = new HashSet<>();
+        for (SerializePoint serializePoint : serializePoints) {
+            if (serializePoint.type == SerializePoint.Type.fieldRef
+                    && !serializePoint.parentName.contains("$")
+                    && !serializePoint.fieldName.contains("$")
+                    && !serializePoint.parentName.contains("#")
+                    && !serializePoint.fieldName.contains("#")) {
+                filteredSerializePoints.add(serializePoint);
+            }
+        }
+        serializePoints = filteredSerializePoints;
 
         // Maintain a more efficient data structure for serialization points
         Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = new HashMap<>();
@@ -76,17 +87,17 @@ public class RewriteExec implements Runnable {
                     .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                         try {
                             // debug
-                            if (!p.toString().contains("/TestCollection1.java"))
+                            if (!p.toString().contains("org/apache/cassandra/db/"))
                                 return;
-                            // if (!p.toString().contains("/TestArray2.java"))
+                            // if (!p.toString().contains("/SliceByNamesReadCommand.java"))
                             // return;
                             if (org.zlab.dinv.Utils.exclude(p))
                                 return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                             // Traverse the AST and perform the desired processing
-                            instSerializePoint.process(cu);
-
-                            Files.write(p, cu.toString().getBytes());
+                            boolean injected = instSerializePoint.process(cu);
+                            if (injected)
+                                Files.write(p, cu.toString().getBytes());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
