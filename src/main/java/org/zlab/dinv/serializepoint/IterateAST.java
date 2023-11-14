@@ -21,7 +21,7 @@ public abstract class IterateAST {
         blockStmt.setStatements(newStatements);
     }
 
-    public BlockStmt processNonBlockStmt(Statement blockStmt,
+    public BlockStmt processNonBlockStmt(Statement stmt,
             Map<Integer, Set<SerializePoint>> line2SerializePoints) {
         return null;
     }
@@ -81,6 +81,16 @@ public abstract class IterateAST {
             processBlockStmt(blockStmt, line2SerializePoints);
             ((TryStmt) stmt).getFinallyBlock()
                     .ifPresent(b -> processBlockStmt(b, line2SerializePoints));
+        } else if (stmt instanceof ForStmt) {
+            Statement body = ((ForStmt) stmt).getBody();
+            if (body instanceof BlockStmt) {
+                processBlockStmt((BlockStmt) body, line2SerializePoints);
+            } else {
+                BlockStmt blockStmt = processNonBlockStmt(body, line2SerializePoints);
+                if (blockStmt != null) {
+                    ((ForStmt) stmt).setBody(blockStmt);
+                }
+            }
         }
         // TODO: add more types
     }

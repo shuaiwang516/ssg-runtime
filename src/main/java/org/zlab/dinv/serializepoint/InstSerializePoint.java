@@ -3,10 +3,14 @@ package org.zlab.dinv.serializepoint;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.ArrayAccessExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
@@ -59,7 +63,6 @@ public class InstSerializePoint extends IterateAST {
                 // if it's a ForEachStmt, inject after it need to be injected into the blocks
                 Set<SerializePoint> serializePoints = line2SerializePoints.get(begin);
                 for (SerializePoint serializePoint : serializePoints) {
-                    // TODO: reconstruct the correct log statement
                     // inject logs according to types and the current statement
                     if (serializePoint.type == SerializePoint.Type.fieldRef) {
                         // for field ref, the parent name and child name are provided
@@ -102,8 +105,46 @@ public class InstSerializePoint extends IterateAST {
                                 forEachStmt.setBody(forEachStmtBodyBlock);
                             }
                         } else {
-                            Statement isSerializeStmt = StaticJavaParser
-                                    .parseStatement(Utils.logSerializePointStmt());
+                            Statement isSerializeStmt = null;
+                            // TODO: construct log if it's not inside a loop
+                            if (serializePoint.type == SerializePoint.Type.arrayRef) {
+                                // get the reference from the AST
+                                ArrayAccessExpr arrayAccessExpr = null;
+                                if (stmt instanceof ExpressionStmt) {
+                                    ExpressionStmt expressionStmt = (ExpressionStmt) stmt;
+                                    Expression expression = expressionStmt.getExpression();
+                                    // find array access expr
+
+                                    if (expression instanceof ArrayAccessExpr) {
+                                        arrayAccessExpr = (ArrayAccessExpr) expression;
+                                    } else {
+                                        // find from the child
+                                        for (Node child : expression.getChildNodes()) {
+                                            if (child instanceof ArrayAccessExpr) {
+                                                arrayAccessExpr = (ArrayAccessExpr) child;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (arrayAccessExpr != null) {
+                                        String arrayName = arrayAccessExpr.getName().toString();
+                                        String indexName = arrayAccessExpr.getIndex().toString();
+                                        isSerializeStmt = StaticJavaParser.parseStatement(
+                                                Utils.logSerializePointStmt(arrayName,
+                                                        String.format("%s[%s]", arrayName,
+                                                                indexName),
+                                                        serializePoint.printableType,
+                                                        serializePoint.isStatic));
+                                    }
+                                }
+                            } else if (serializePoint.type == SerializePoint.Type.collectionGet) {
+
+                            } else if (serializePoint.type == SerializePoint.Type.iterator) {
+
+                            }
+                            if (isSerializeStmt == null)
+                                isSerializeStmt = StaticJavaParser
+                                        .parseStatement(Utils.logSerializePointStmt());
                             newStatements.add(newStatements.indexOf(stmt) + 1, isSerializeStmt);
                         }
                     }
@@ -117,5 +158,26 @@ public class InstSerializePoint extends IterateAST {
             }
         }
         iterateStmt(stmt, line2SerializePoints);
+    }
+
+    @Override
+    public BlockStmt processNonBlockStmt(Statement stmt,
+            Map<Integer, Set<SerializePoint>> line2SerializePoints) {
+        BlockStmt blockStmt = null;
+
+        if (stmt.getRange().isPresent()) {
+            Range range = stmt.getRange().get();
+            int begin = range.begin.line;
+            if (line2SerializePoints.containsKey(begin)) {
+                blockStmt = new BlockStmt();
+                // inject our log statement
+                NodeList<Statement> statements = new NodeList<>();
+                statements.add(stmt);
+                NodeList<Statement> newStatements = new NodeList<>(statements);
+                recurProcess(stmt, newStatements, line2SerializePoints);
+                blockStmt.setStatements(newStatements);
+            }
+        }
+        return blockStmt;
     }
 }
