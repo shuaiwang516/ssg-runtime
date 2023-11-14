@@ -82,7 +82,7 @@ public class RewriteExec implements Runnable {
                         try {
                             // debug
                             if (!p.toString().contains("/TestCollection1.java"))
-                            return;
+                                return;
                             // if (!p.toString().contains("/TestArray2.java"))
                             // return;
                             if (org.zlab.dinv.Utils.exclude(p))

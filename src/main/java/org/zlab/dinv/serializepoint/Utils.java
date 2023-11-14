@@ -37,11 +37,20 @@ public class Utils {
 
     public static String logSerializePointStmt(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
-        return wrapWithLogger(logSerializePointFieldRef(pName, cName, type, isStatic));
+        if (InstSerializePoint.DEBUG)
+            return wrapWithSysPrintln(logSerializePointFieldRef(pName, cName, type, isStatic));
+        else
+            return wrapWithLogger(logSerializePointFieldRef(pName, cName, type, isStatic));
+    }
+
+    public static String wrapWithSysPrintln(String input) {
+        // for test
+        return String.format("System.out.println(%s);", input);
     }
 
     public static String wrapWithLogger(String input) {
-        return String.format("System.out.println(%s);", input);
+        // for real system
+        return String.format("seriailze_logger(%s);", input);
     }
 
     public static String logSerializePointFieldRef(String pName, String cName,

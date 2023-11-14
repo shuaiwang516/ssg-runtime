@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class InstSerializePoint extends IterateAST {
+    public static final boolean DEBUG = true;
     public Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap;
 
     public InstSerializePoint(Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap) {
@@ -142,14 +143,19 @@ public class InstSerializePoint extends IterateAST {
                                 MethodCallExpr methodCallExpr = null;
                                 if (stmt instanceof ExpressionStmt) {
                                     Expression expression = ((ExpressionStmt) stmt).getExpression();
-                                    if (expression instanceof MethodCallExpr && ((MethodCallExpr) expression).getNameAsString().equals("get")) {
+                                    if (expression instanceof MethodCallExpr
+                                            && ((MethodCallExpr) expression).getNameAsString()
+                                                    .equals("get")) {
                                         methodCallExpr = (MethodCallExpr) expression;
                                     } else {
                                         // find from the child
                                         for (Node child : expression.getChildNodes()) {
-                                            if (child instanceof MethodCallExpr && ((MethodCallExpr) child).getNameAsString().equals("get")) {
+                                            if (child instanceof MethodCallExpr
+                                                    && ((MethodCallExpr) child).getNameAsString()
+                                                            .equals("get")) {
                                                 // check whether it's a collection get
-                                                if (((MethodCallExpr) child).getNameAsString().equals("get")) {
+                                                if (((MethodCallExpr) child).getNameAsString()
+                                                        .equals("get")) {
                                                     methodCallExpr = (MethodCallExpr) child;
                                                     break;
                                                 }
@@ -158,7 +164,8 @@ public class InstSerializePoint extends IterateAST {
                                     }
                                 }
                                 if (methodCallExpr != null) {
-                                    String collectionName = methodCallExpr.getScope().get().toString();
+                                    String collectionName = methodCallExpr.getScope().get()
+                                            .toString();
                                     String indexName = methodCallExpr.getArgument(0).toString();
                                     isSerializeStmt = StaticJavaParser.parseStatement(
                                             Utils.logSerializePointStmt(collectionName,
