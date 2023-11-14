@@ -81,8 +81,8 @@ public class RewriteExec implements Runnable {
                     .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                         try {
                             // debug
-                            // if (!p.toString().contains("/TestCollection3.java"))
-                            // return;
+                            if (!p.toString().contains("/TestCollection1.java"))
+                            return;
                             // if (!p.toString().contains("/TestArray2.java"))
                             // return;
                             if (org.zlab.dinv.Utils.exclude(p))

@@ -9,6 +9,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ArrayAccessExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
@@ -114,7 +115,6 @@ public class InstSerializePoint extends IterateAST {
                                     ExpressionStmt expressionStmt = (ExpressionStmt) stmt;
                                     Expression expression = expressionStmt.getExpression();
                                     // find array access expr
-
                                     if (expression instanceof ArrayAccessExpr) {
                                         arrayAccessExpr = (ArrayAccessExpr) expression;
                                     } else {
@@ -139,6 +139,34 @@ public class InstSerializePoint extends IterateAST {
                                 }
                             } else if (serializePoint.type == SerializePoint.Type.collectionGet) {
 
+                                MethodCallExpr methodCallExpr = null;
+                                if (stmt instanceof ExpressionStmt) {
+                                    Expression expression = ((ExpressionStmt) stmt).getExpression();
+                                    if (expression instanceof MethodCallExpr && ((MethodCallExpr) expression).getNameAsString().equals("get")) {
+                                        methodCallExpr = (MethodCallExpr) expression;
+                                    } else {
+                                        // find from the child
+                                        for (Node child : expression.getChildNodes()) {
+                                            if (child instanceof MethodCallExpr && ((MethodCallExpr) child).getNameAsString().equals("get")) {
+                                                // check whether it's a collection get
+                                                if (((MethodCallExpr) child).getNameAsString().equals("get")) {
+                                                    methodCallExpr = (MethodCallExpr) child;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (methodCallExpr != null) {
+                                    String collectionName = methodCallExpr.getScope().get().toString();
+                                    String indexName = methodCallExpr.getArgument(0).toString();
+                                    isSerializeStmt = StaticJavaParser.parseStatement(
+                                            Utils.logSerializePointStmt(collectionName,
+                                                    String.format("%s.get(%s)", collectionName,
+                                                            indexName),
+                                                    serializePoint.printableType,
+                                                    serializePoint.isStatic));
+                                }
                             } else if (serializePoint.type == SerializePoint.Type.iterator) {
 
                             }
