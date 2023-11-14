@@ -37,8 +37,10 @@ public class RewriteExec implements Runnable {
         Set<SerializePoint> serializePoints = Utils.loadSerializePoints(serializePointsPath);
 
         for (SerializePoint serializePoint : serializePoints) {
+            serializePoint.className = serializePoint.className.replace("$", ".");
             System.out.println(serializePoint);
         }
+
         // Maintain a more efficient data structure for serialization points
         Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = new HashMap<>();
         for (SerializePoint serializePoint : serializePoints) {
@@ -55,13 +57,6 @@ public class RewriteExec implements Runnable {
         }
 
         // ----------Instrument Logs---------
-
-        // isSerialize inst
-        // relace dollar with dot for all the serialization points
-        for (SerializePoint serializePoint : serializePoints) {
-            serializePoint.className = serializePoint.className.replace("$", ".");
-        }
-
         try {
             instSerializePointLog(targetSystemPath, serializePointsMap, infoPath);
         } catch (IOException e) {

@@ -3,6 +3,7 @@ package org.zlab.dinv.serializepoint;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -20,8 +21,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class InstSerializePoint extends IterateAST {
-    public static final boolean DEBUG = true;
+    public static final boolean USE_PRINT = false;
     public Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap;
+
+    public boolean injected = false;
 
     public InstSerializePoint(Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap) {
         this.serializePointsMap = serializePointsMap;
@@ -29,6 +32,8 @@ public class InstSerializePoint extends IterateAST {
 
     public void process(CompilationUnit cu) {
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
+            injected = false;
+
             if (!classDecl.getFullyQualifiedName().isPresent()) {
                 return;
             }
@@ -44,7 +49,29 @@ public class InstSerializePoint extends IterateAST {
             classDecl.getMethods().forEach(methodDecl -> {
                 methodDecl.getBody()
                         .ifPresent(body -> processBlockStmt(body, line2SerializePoints));
+
+                // if injected is true, add the logger declaration
             });
+
+            if (injected) {
+                // check whether this class is an inner class since we only need to inject
+                // logger at the top level
+                if (classDecl.isNestedType()) {
+                    return;
+                }
+
+                // add logger declaration
+                // String loggerDecl = "private static final org.slf4j.Logger serialize_logger =
+                // org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
+                String type = "org.slf4j.Logger";
+                String loggerName = "serialize_logger";
+                String loggerInitExpr = "org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
+                // Transform loggerAssignExpr to Expression
+                ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser
+                        .parseStatement(loggerInitExpr);
+                classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
+                        Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+            }
         });
     }
 
@@ -60,6 +87,8 @@ public class InstSerializePoint extends IterateAST {
             Range range = stmt.getRange().get();
             int begin = range.begin.line;
             if (line2SerializePoints.containsKey(begin)) {
+                if (!injected)
+                    injected = true;
                 // inject a log statement before or after it
                 // Check the type
                 // if it's a ForEachStmt, inject after it need to be injected into the blocks
@@ -204,6 +233,8 @@ public class InstSerializePoint extends IterateAST {
             Range range = stmt.getRange().get();
             int begin = range.begin.line;
             if (line2SerializePoints.containsKey(begin)) {
+                if (!injected)
+                    injected = true;
                 blockStmt = new BlockStmt();
                 // inject our log statement
                 NodeList<Statement> statements = new NodeList<>();

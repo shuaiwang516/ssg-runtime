@@ -37,7 +37,7 @@ public class Utils {
 
     public static String logSerializePointStmt(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
-        if (InstSerializePoint.DEBUG)
+        if (InstSerializePoint.USE_PRINT)
             return wrapWithSysPrintln(logSerializePointFieldRef(pName, cName, type, isStatic));
         else
             return wrapWithLogger(logSerializePointFieldRef(pName, cName, type, isStatic));
@@ -50,7 +50,7 @@ public class Utils {
 
     public static String wrapWithLogger(String input) {
         // for real system
-        return String.format("seriailze_logger(%s);", input);
+        return String.format("serialize_logger.info(%s);", input);
     }
 
     public static String logSerializePointFieldRef(String pName, String cName,
