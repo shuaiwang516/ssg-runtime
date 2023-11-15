@@ -98,6 +98,8 @@ public class InstSerializePoint extends IterateAST {
                     // inject logs according to types and the current statement
                     if (serializePoint.type == SerializePoint.Type.fieldRef) {
                         // for field ref, the parent name and child name are provided
+                        // Java compiler might not preserve the local variable name
+                        // get all used variables in current statement?
                         Statement isSerializeStmt = StaticJavaParser.parseStatement(
                                 Utils.logSerializePointStmt(serializePoint.parentName,
                                         serializePoint.parentName + "." + serializePoint.fieldName,

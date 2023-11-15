@@ -35,12 +35,61 @@ public class Utils {
         }
     }
 
+    public static boolean isPrimitive(SerializePoint.PrintableType type) {
+        return type == SerializePoint.PrintableType.byte_
+                || type == SerializePoint.PrintableType.int_
+                || type == SerializePoint.PrintableType.float_
+                || type == SerializePoint.PrintableType.double_
+                || type == SerializePoint.PrintableType.char_
+                || type == SerializePoint.PrintableType.boolean_;
+    }
+
     public static String logSerializePointStmt(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
-        if (InstSerializePoint.USE_PRINT)
-            return wrapWithSysPrintln(logSerializePointFieldRef(pName, cName, type, isStatic));
-        else
-            return wrapWithLogger(logSerializePointFieldRef(pName, cName, type, isStatic));
+        // wrap with try/catch:
+        // org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(java.lang.String,
+        // java.lang.String)
+
+        // wrap with null check for pName and cName
+        String inputFieldNotNull, inputFieldNull;
+        if (InstSerializePoint.USE_PRINT) {
+            inputFieldNotNull = wrapWithSysPrintln(
+                    logSerializePointFieldRef(pName, cName, type, isStatic));
+            inputFieldNull = wrapWithSysPrintln(
+                    logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        } else {
+            inputFieldNotNull = wrapWithLogger(
+                    logSerializePointFieldRef(pName, cName, type, isStatic));
+            inputFieldNull = wrapWithLogger(
+                    logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        }
+        return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull, inputFieldNull);
+    }
+
+    public static String wrapWithNullCheck(String pName, String cName,
+            SerializePoint.PrintableType type, boolean isStatic, String inputFieldNotNull,
+            String inputFieldNull) {
+        if (isStatic) {
+            // do not need to check parent, only check child is fine
+            if (!isPrimitive(type))
+                return String.format(
+                        "        if (%s == null) {\n" + "            %s\n" + "        } else {\n"
+                                + "            %s\n" + "        }",
+                        cName, inputFieldNull, inputFieldNotNull);
+            else
+                return inputFieldNotNull;
+        } else {
+            if (!isPrimitive(type))
+                return String.format(
+                        "        if (%s != null) {\n" + "            if (%s == null) {\n"
+                                + "                %s\n" + "            } else {\n"
+                                + "                %s\n" + "            }\n" + "        }",
+                        pName, cName, inputFieldNull, inputFieldNotNull);
+            else
+                return String.format(
+                        "        if (%s != null) {\n" + "            %s\n" + "        }", pName,
+                        inputFieldNotNull);
+        }
     }
 
     public static String wrapWithSysPrintln(String input) {
@@ -109,6 +158,64 @@ public class Utils {
                                 + "                System.identityHashCode(%s), %s.getClass(),\n"
                                 + "                System.identityHashCode(%s), %s.getClass())",
                         pName, cName, pName, pName, cName, cName);
+            }
+        }
+    }
+
+    public static String logSerializePointFieldRefNullfield(String pName, String cName,
+            SerializePoint.PrintableType type, boolean isStatic) {
+        // If it's static, do not output class Hash and getClass
+        // according to whether it's printable, we need to use different format
+        String format = null;
+        if (type != null) {
+            switch (type) {
+                case int_ :
+                case byte_ :
+                    format = "%d";
+                    break;
+                case float_ :
+                case double_ :
+                    format = "%f";
+                    break;
+                case char_ :
+                    format = "%c";
+                    break;
+                case boolean_ :
+                    format = "%b";
+                    break;
+                case string_ :
+                case enum_ :
+                    format = "%s";
+                    break;
+            }
+            if (isStatic) {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cVal = null, cName = %s, cClass = %s\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                \"%s\",\n" + "                %s)",
+                        pName, cName, type, pName, cName);
+            } else {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cVal = null, cName = %s, cClass = %s\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                System.identityHashCode(%s), %s.getClass(),\n"
+                                + "                %s)",
+                        pName, cName, type, pName, pName, cName);
+            }
+        } else {
+            if (isStatic) {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cHash = null, cName = %s, cClass = null\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                \"%s\"\n" + "                )",
+                        pName, cName, pName);
+            } else {
+                return String.format(
+                        "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cHash = null, cName = %s, cClass = null\",\n"
+                                + "                Thread.currentThread().getId(),\n"
+                                + "                System.identityHashCode(%s), %s.getClass()\n"
+                                + "                )",
+                        pName, cName, pName, pName);
             }
         }
     }

@@ -86,11 +86,24 @@ public class RewriteExec implements Runnable {
             Files.walk(systemPath).filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java")).forEach(p -> {
                         try {
-                            // debug
-                            if (!p.toString().contains("org/apache/cassandra/db/"))
-                                return;
-                            // if (!p.toString().contains("/SliceByNamesReadCommand.java"))
+                            // // ==hotspot==
+                            // if (p.toString().contains("/DecoratedKey.java"))
                             // return;
+                            // if (p.toString().contains("/BufferDecoratedKey.java"))
+                            // return;
+                            // if (p.toString().contains("composites"))
+                            // return;
+                            //
+                            // // ==bug==
+                            // if (p.toString().contains("/RangeTombstone.java"))
+                            // return;
+                            //
+                            // // debug
+                            // if (!p.toString().contains("org/apache/cassandra/db/"))
+                            // return;
+                            // // if (!p.toString().contains("/TestArray2.java"))
+                            // // return;
+
                             if (org.zlab.dinv.Utils.exclude(p))
                                 return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
