@@ -2,6 +2,7 @@ package org.zlab.dinv.serializepoint;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javaparser.ast.stmt.Statement;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -222,6 +223,15 @@ public class Utils {
 
     public static String logSerializePointStmt() {
         return "System.out.println(\"[Dinv] \" + Thread.currentThread().getName() + \" \" + System.currentTimeMillis());";
+    }
+
+    public static boolean checkIfParentNameExists(Statement stmt, String parentName,
+            boolean isStatic) {
+        // iterate all child nodes, find FieldAccessExpr, check if the name is the same
+        // as parentName
+        if (isStatic || parentName.equals("this"))
+            return true;
+        return stmt.toString().contains(parentName + ".");
     }
 
 }

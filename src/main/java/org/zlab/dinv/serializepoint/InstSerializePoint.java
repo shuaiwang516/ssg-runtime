@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.zlab.dinv.serializepoint.Utils.checkIfParentNameExists;
+
 public class InstSerializePoint extends IterateAST {
     public static final boolean USE_PRINT = false;
     public Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap;
@@ -69,8 +71,14 @@ public class InstSerializePoint extends IterateAST {
                 // Transform loggerAssignExpr to Expression
                 ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser
                         .parseStatement(loggerInitExpr);
-                classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
-                        Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+
+                if (classDecl.isInterface())
+                    classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
+                            Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+                else
+                    classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
+                            Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
+                            Modifier.Keyword.FINAL);
             });
         }
         return injected;
@@ -98,8 +106,17 @@ public class InstSerializePoint extends IterateAST {
                     // inject logs according to types and the current statement
                     if (serializePoint.type == SerializePoint.Type.fieldRef) {
                         // for field ref, the parent name and child name are provided
-                        // Java compiler might not preserve the local variable name
-                        // get all used variables in current statement?
+                        // the local var name might not match
+
+                        // check whether the parent name exists in current statement
+                        // (parentName.xxx)
+
+                        // iterate all child nodes until a FieldAccessExpr is found, check whether
+                        // the object name is parent name
+                        // check
+                        if (!checkIfParentNameExists(stmt, serializePoint.parentName,
+                                serializePoint.isStatic))
+                            continue;
                         Statement isSerializeStmt = StaticJavaParser.parseStatement(
                                 Utils.logSerializePointStmt(serializePoint.parentName,
                                         serializePoint.parentName + "." + serializePoint.fieldName,
@@ -109,8 +126,6 @@ public class InstSerializePoint extends IterateAST {
                         newStatements.add(newStatements.indexOf(stmt), isSerializeStmt);
                     } else {
                         // Array Ref, Collection get, iterator...
-                        // Check the exact variable, and log it
-
                         if (stmt instanceof ForEachStmt) {
                             // usually there's only one, so we pick the first one
                             // Caution! this could cause side effects
