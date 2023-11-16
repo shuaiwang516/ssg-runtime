@@ -227,10 +227,12 @@ public class InstSerializePoint extends IterateAST {
                             } else if (serializePoint.type == SerializePoint.Type.iterator) {
 
                             }
-                            if (isSerializeStmt == null)
-                                isSerializeStmt = StaticJavaParser
-                                        .parseStatement(Utils.logSerializePointStmt());
-                            newStatements.add(newStatements.indexOf(stmt) + 1, isSerializeStmt);
+                            if (isSerializeStmt != null)
+                                newStatements.add(newStatements.indexOf(stmt) + 1, isSerializeStmt);
+                            else {
+                                System.out.println(
+                                        "Cannot find the reference for: " + serializePoint);
+                            }
                         }
                     }
                 }

@@ -9,7 +9,7 @@ public class SerializePoint {
     }
 
     public enum PrintableType {
-        byte_, int_, float_, double_, char_, boolean_, string_, enum_;
+        byte_, int_, long_, float_, double_, char_, boolean_, string_, enum_;
 
         public static PrintableType fromType(String s) {
             switch (s) {
@@ -19,6 +19,9 @@ public class SerializePoint {
                 case "int" :
                 case "java.lang.Integer" :
                     return int_;
+                case "long" :
+                case "java.lang.Long" :
+                    return long_;
                 case "float" :
                 case "java.lang.Float" :
                     return float_;

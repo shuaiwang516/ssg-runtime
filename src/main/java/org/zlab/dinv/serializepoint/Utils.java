@@ -6,10 +6,7 @@ import com.github.javaparser.ast.stmt.Statement;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.zlab.dinv.modifiedfields.Utils.createOutputDirIfNotExist;
 
@@ -42,6 +39,7 @@ public class Utils {
     public static boolean isPrimitive(SerializePoint.PrintableType type) {
         return type == SerializePoint.PrintableType.byte_
                 || type == SerializePoint.PrintableType.int_
+                || type == SerializePoint.PrintableType.long_
                 || type == SerializePoint.PrintableType.float_
                 || type == SerializePoint.PrintableType.double_
                 || type == SerializePoint.PrintableType.char_
@@ -113,8 +111,9 @@ public class Utils {
         String format = null;
         if (type != null) {
             switch (type) {
-                case int_ :
                 case byte_ :
+                case int_ :
+                case long_ :
                     format = "%d";
                     break;
                 case float_ :
@@ -176,8 +175,9 @@ public class Utils {
         String format = null;
         if (type != null) {
             switch (type) {
-                case int_ :
                 case byte_ :
+                case int_ :
+                case long_ :
                     format = "%d";
                     break;
                 case float_ :
@@ -265,10 +265,12 @@ public class Utils {
 
     public static SerializePoint.PrintableType type2Printable(String type) {
         switch (type) {
-            case "int" :
-                return SerializePoint.PrintableType.int_;
             case "byte" :
                 return SerializePoint.PrintableType.byte_;
+            case "int" :
+                return SerializePoint.PrintableType.int_;
+            case "long" :
+                return SerializePoint.PrintableType.long_;
             case "float" :
                 return SerializePoint.PrintableType.float_;
             case "double" :
