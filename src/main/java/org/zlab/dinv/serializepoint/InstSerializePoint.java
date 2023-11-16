@@ -134,11 +134,14 @@ public class InstSerializePoint extends IterateAST {
                                     .getVariables();
                             String varName = vars.get(0).getNameAsString();
 
-                            // can we get the type here? Specially for String
+                            // get PrintableType
+                            SerializePoint.PrintableType printableType = Utils
+                                    .type2Printable(vars.get(0).getType().toString());
 
-                            Statement isSerializeStmt = StaticJavaParser.parseStatement(
-                                    Utils.logSerializePointStmt(iterableName, varName,
-                                            serializePoint.printableType, serializePoint.isStatic));
+                            // can we get the type here? Specially for String
+                            Statement isSerializeStmt = StaticJavaParser
+                                    .parseStatement(Utils.logSerializePointStmt(iterableName,
+                                            varName, printableType, serializePoint.isStatic));
 
                             // if there's a loop, we need to inject the log into the block
                             ForEachStmt forEachStmt = (ForEachStmt) stmt;

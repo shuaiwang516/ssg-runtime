@@ -6,6 +6,9 @@ import com.github.javaparser.ast.stmt.Statement;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.zlab.dinv.modifiedfields.Utils.createOutputDirIfNotExist;
@@ -134,14 +137,16 @@ public class Utils {
                         "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                \"%s\",\n" + "                %s)",
-                        pName, format, cName, type, pName, cName);
+                        replaceDoubleQuotesWithSingleQuote(pName), format, cName, type, pName,
+                        cName);
             } else {
                 return String.format(
                         "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                System.identityHashCode(%s), %s.getClass(),\n"
                                 + "                %s)",
-                        pName, format, cName, type, pName, pName, cName);
+                        replaceDoubleQuotesWithSingleQuote(pName), format, cName, type, pName,
+                        pName, cName);
             }
 
         } else {
@@ -151,14 +156,15 @@ public class Utils {
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                \"%s\",\n"
                                 + "                System.identityHashCode(%s), %s.getClass())",
-                        pName, cName, pName, cName, cName);
+                        replaceDoubleQuotesWithSingleQuote(pName), cName, pName, cName, cName);
             } else {
                 return String.format(
                         "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cHash = %%d, cName = %s, cClass = %%s\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                System.identityHashCode(%s), %s.getClass(),\n"
                                 + "                System.identityHashCode(%s), %s.getClass())",
-                        pName, cName, pName, pName, cName, cName);
+                        replaceDoubleQuotesWithSingleQuote(pName), cName, pName, pName, cName,
+                        cName);
             }
         }
     }
@@ -194,14 +200,15 @@ public class Utils {
                         "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cVal = null, cName = %s, cClass = %s\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                \"%s\",\n" + "                %s)",
-                        pName, cName, type, pName, cName);
+                        replaceDoubleQuotesWithSingleQuote(pName), cName, type, pName, cName);
             } else {
                 return String.format(
                         "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cVal = null, cName = %s, cClass = %s\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                System.identityHashCode(%s), %s.getClass(),\n"
                                 + "                %s)",
-                        pName, cName, type, pName, pName, cName);
+                        replaceDoubleQuotesWithSingleQuote(pName), cName, type, pName, pName,
+                        cName);
             }
         } else {
             if (isStatic) {
@@ -209,14 +216,14 @@ public class Utils {
                         "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cHash = null, cName = %s, cClass = null\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                \"%s\"\n" + "                )",
-                        pName, cName, pName);
+                        replaceDoubleQuotesWithSingleQuote(pName), cName, pName);
             } else {
                 return String.format(
                         "String.format(\"[hklog] thread ID = %%d, pHash = %%d, pName = %s, pClass = %%s, cHash = null, cName = %s, cClass = null\",\n"
                                 + "                Thread.currentThread().getId(),\n"
                                 + "                System.identityHashCode(%s), %s.getClass()\n"
                                 + "                )",
-                        pName, cName, pName, pName);
+                        replaceDoubleQuotesWithSingleQuote(pName), cName, pName, pName);
             }
         }
     }
@@ -234,4 +241,48 @@ public class Utils {
         return stmt.toString().contains(parentName + ".");
     }
 
+    public static Map<String, Map<Integer, Set<SerializePoint>>> getSerializePointsMap(
+            Set<SerializePoint> serializePoints) {
+        Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = new HashMap<>();
+        for (SerializePoint serializePoint : serializePoints) {
+            if (!serializePointsMap.containsKey(serializePoint.className)) {
+                serializePointsMap.put(serializePoint.className, new HashMap<>());
+            }
+            Map<Integer, Set<SerializePoint>> lineMap = serializePointsMap
+                    .get(serializePoint.className);
+            if (!lineMap.containsKey(serializePoint.lineNumber)) {
+                lineMap.put(serializePoint.lineNumber, new HashSet<>());
+            }
+            Set<SerializePoint> serializePointSet = lineMap.get(serializePoint.lineNumber);
+            serializePointSet.add(serializePoint);
+        }
+        return serializePointsMap;
+    }
+
+    public static String replaceDoubleQuotesWithSingleQuote(String input) {// replace \" with '
+        return input.replace("\"", "'");
+    }
+
+    public static SerializePoint.PrintableType type2Printable(String type) {
+        switch (type) {
+            case "int" :
+                return SerializePoint.PrintableType.int_;
+            case "byte" :
+                return SerializePoint.PrintableType.byte_;
+            case "float" :
+                return SerializePoint.PrintableType.float_;
+            case "double" :
+                return SerializePoint.PrintableType.double_;
+            case "char" :
+                return SerializePoint.PrintableType.char_;
+            case "boolean" :
+                return SerializePoint.PrintableType.boolean_;
+            case "String" :
+                return SerializePoint.PrintableType.string_;
+            case "enum" :
+                return SerializePoint.PrintableType.enum_;
+            default :
+                return null;
+        }
+    }
 }

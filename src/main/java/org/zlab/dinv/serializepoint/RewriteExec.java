@@ -37,35 +37,38 @@ public class RewriteExec implements Runnable {
         Set<SerializePoint> serializePoints = Utils.loadSerializePoints(serializePointsPath);
         for (SerializePoint serializePoint : serializePoints) {
             serializePoint.className = serializePoint.className.replace("$", ".");
+            if (serializePoint.isStatic) {
+                serializePoint.parentName = serializePoint.parentName.replace("$", ".");
+            }
             // System.out.println(serializePoint);
         }
 
         Set<SerializePoint> filteredSerializePoints = new HashSet<>();
         for (SerializePoint serializePoint : serializePoints) {
-            if (serializePoint.type == SerializePoint.Type.fieldRef
-                    && !serializePoint.parentName.contains("$")
-                    && !serializePoint.fieldName.contains("$")
-                    && !serializePoint.parentName.contains("#")
-                    && !serializePoint.fieldName.contains("#")) {
+            if (serializePoint.type == SerializePoint.Type.fieldRef) {
+                if (!serializePoint.parentName.contains("$")
+                        && !serializePoint.fieldName.contains("$")
+                        && !serializePoint.parentName.contains("#")
+                        && !serializePoint.fieldName.contains("#")) {
+                    filteredSerializePoints.add(serializePoint);
+                } else {
+                    // System.out.println("filtered out: " + serializePoint);
+                }
+            } else {
                 filteredSerializePoints.add(serializePoint);
             }
         }
         serializePoints = filteredSerializePoints;
 
         // Maintain a more efficient data structure for serialization points
-        Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = new HashMap<>();
-        for (SerializePoint serializePoint : serializePoints) {
-            if (!serializePointsMap.containsKey(serializePoint.className)) {
-                serializePointsMap.put(serializePoint.className, new HashMap<>());
-            }
-            Map<Integer, Set<SerializePoint>> lineMap = serializePointsMap
-                    .get(serializePoint.className);
-            if (!lineMap.containsKey(serializePoint.lineNumber)) {
-                lineMap.put(serializePoint.lineNumber, new HashSet<>());
-            }
-            Set<SerializePoint> serializePointSet = lineMap.get(serializePoint.lineNumber);
-            serializePointSet.add(serializePoint);
-        }
+        Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = Utils
+                .getSerializePointsMap(serializePoints);
+
+        // System.out.println("size = " + serializePointsMap.keySet().size());
+        // for (String clazz : serializePointsMap.keySet()) {
+        // System.out.println("clazz = " + clazz + " size = "
+        // + serializePointsMap.get(clazz).keySet().size());
+        // }
 
         // ----------Instrument Logs---------
         try {
@@ -78,6 +81,7 @@ public class RewriteExec implements Runnable {
     public void instSerializePointLog(List<Path> targetSystemPath,
             Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap, Path infoPath)
             throws IOException {
+        // You can set other configurations as needed
 
         InstSerializePoint instSerializePoint = new InstSerializePoint(serializePointsMap);
 
@@ -89,7 +93,7 @@ public class RewriteExec implements Runnable {
                             // ==hotspot==
                             // if (p.toString().contains("/DecoratedKey.java"))
                             // return;
-                            // if (p.toString().contains("/BufferDecoratedKey.java"))
+                            // if (!p.toString().contains("/CompactionMetadata.java"))
                             // return;
                             // if (p.toString().contains("composites"))
                             // return;
