@@ -16,6 +16,10 @@ public class RewriteExec implements Runnable {
             "-serializePointsPath"}, description = "path to files generated from vasco")
     private Path serializePointsPath;
 
+    @CommandLine.Option(names = {
+            "-writePointsPath"}, description = "path to files generated from vasco")
+    private Path writePointsPath;
+
     @CommandLine.Option(names = {"-infoPath"}, description = "path to files generated from vasco")
     private Path infoPath;
 
@@ -34,7 +38,21 @@ public class RewriteExec implements Runnable {
         System.out.println("[RewriteExec] upgrade version = " + upgradeVersion);
 
         // ----------Load serialize points----------
-        Set<SerializePoint> serializePoints = Utils.loadSerializePoints(serializePointsPath);
+        Set<SerializePoint> serializePoints;
+        Set<WritePoint> writePoints;
+        if (serializePointsPath == null) {
+            System.out.println("serializePointsPath is null");
+            serializePoints = new HashSet<>();
+        } else {
+            serializePoints = Utils.loadSerializePoints(serializePointsPath);
+        }
+        if (writePointsPath == null) {
+            System.out.println("writePointsPath is null");
+            writePoints = new HashSet<>();
+        } else {
+            writePoints = Utils.loadWritePoints(writePointsPath);
+        }
+
         for (SerializePoint serializePoint : serializePoints) {
             serializePoint.className = serializePoint.className.replace("$", ".");
             if (serializePoint.isStatic) {
@@ -63,6 +81,8 @@ public class RewriteExec implements Runnable {
         // Maintain a more efficient data structure for serialization points
         Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap = Utils
                 .getSerializePointsMap(serializePoints);
+        Map<String, Map<Integer, Set<WritePoint>>> writePointsMap = Utils
+                .getWritePointsMap(writePoints);
 
         // System.out.println("size = " + serializePointsMap.keySet().size());
         // for (String clazz : serializePointsMap.keySet()) {
@@ -72,18 +92,20 @@ public class RewriteExec implements Runnable {
 
         // ----------Instrument Logs---------
         try {
-            instSerializePointLog(targetSystemPath, serializePointsMap, infoPath);
+            instSerializePointLog(targetSystemPath, serializePointsMap, writePointsMap, infoPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void instSerializePointLog(List<Path> targetSystemPath,
-            Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap, Path infoPath)
+            Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap,
+            Map<String, Map<Integer, Set<WritePoint>>> writePointsMap, Path infoPath)
             throws IOException {
         // You can set other configurations as needed
 
         InstSerializePoint instSerializePoint = new InstSerializePoint(serializePointsMap);
+        InstWritePoint instWritePoint = new InstWritePoint(writePointsMap);
 
         // Walk the project directory structure and find all the Java source files
         for (Path systemPath : targetSystemPath) {
@@ -103,14 +125,18 @@ public class RewriteExec implements Runnable {
                             // return;
                             // if (!p.toString().contains("org/apache/cassandra/db/"))
                             // return;
-                            // if (!p.toString().contains("/TestArray2.java"))
+                            // if (!p.toString().contains("/TestStreamCapture.java"))
                             // return;
 
                             if (org.zlab.dinv.Utils.exclude(p))
                                 return;
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                             // Traverse the AST and perform the desired processing
-                            boolean injected = instSerializePoint.process(cu);
+                            boolean injected = false;
+                            // if (instSerializePoint.process(cu))
+                            // injected = true;
+                            if (instWritePoint.process(cu))
+                                injected = true;
                             if (injected)
                                 Files.write(p, cu.toString().getBytes());
                         } catch (IOException e) {

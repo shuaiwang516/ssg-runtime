@@ -2,6 +2,12 @@ package org.zlab.dinv.serializepoint;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
 import java.io.IOException;
@@ -68,6 +74,20 @@ public class Utils {
                 || type == SerializePoint.PrintableType.double_
                 || type == SerializePoint.PrintableType.char_
                 || type == SerializePoint.PrintableType.boolean_;
+    }
+
+    public static String logWritePointStmt(String varName, SerializePoint.PrintableType type) {
+        String format = PrintableType2Format(type);
+        String s;
+        if (type == null)
+            s = String.format("String.format(\"write point: type = null, value = %s\", %s)", format,
+                    varName);
+        else
+            s = String.format("String.format(\"write point: type = %s, value = %s\", %s)", type,
+                    format, varName);
+        // String tmp = wrapWithSysPrintln(s);
+        String tmp = org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(wrapWithLogger(s));
+        return tmp;
     }
 
     public static String logSerializePointStmt(String pName, String cName,
@@ -140,10 +160,7 @@ public class Utils {
         return String.format("serialize_logger.info(%s);", input);
     }
 
-    public static String logSerializePointFieldRef(String pName, String cName,
-            SerializePoint.PrintableType type, boolean isStatic) {
-        // If it's static, do not output class Hash and getClass
-        // according to whether it's printable, we need to use different format
+    public static String PrintableType2Format(SerializePoint.PrintableType type) {
         String format = null;
         if (type != null) {
             switch (type) {
@@ -167,6 +184,16 @@ public class Utils {
                     format = "%s";
                     break;
             }
+        }
+        return format;
+    }
+
+    public static String logSerializePointFieldRef(String pName, String cName,
+            SerializePoint.PrintableType type, boolean isStatic) {
+        // If it's static, do not output class Hash and getClass
+        // according to whether it's printable, we need to use different format
+        if (type != null) {
+            String format = PrintableType2Format(type);
             if (isStatic) {
                 return String.format(
                         "String.format(\"[hklog] thread ID = %%d, pHash = NA, pName = %s, pClass = %%s, cVal = %s, cName = %s, cClass = %s\",\n"
@@ -264,10 +291,6 @@ public class Utils {
         }
     }
 
-    public static String logSerializePointStmt() {
-        return "System.out.println(\"[Dinv] \" + Thread.currentThread().getName() + \" \" + System.currentTimeMillis());";
-    }
-
     public static boolean checkIfParentNameExists(Statement stmt, String parentName,
             boolean isStatic) {
         // iterate all child nodes, find FieldAccessExpr, check if the name is the same
@@ -293,6 +316,23 @@ public class Utils {
             serializePointSet.add(serializePoint);
         }
         return serializePointsMap;
+    }
+
+    public static Map<String, Map<Integer, Set<WritePoint>>> getWritePointsMap(
+            Set<WritePoint> serializePoints) {
+        Map<String, Map<Integer, Set<WritePoint>>> writePointsMap = new HashMap<>();
+        for (WritePoint writePoint : serializePoints) {
+            if (!writePointsMap.containsKey(writePoint.className)) {
+                writePointsMap.put(writePoint.className, new HashMap<>());
+            }
+            Map<Integer, Set<WritePoint>> lineMap = writePointsMap.get(writePoint.className);
+            if (!lineMap.containsKey(writePoint.lineNumber)) {
+                lineMap.put(writePoint.lineNumber, new HashSet<>());
+            }
+            Set<WritePoint> serializePointSet = lineMap.get(writePoint.lineNumber);
+            serializePointSet.add(writePoint);
+        }
+        return writePointsMap;
     }
 
     public static String replaceDoubleQuotesWithSingleQuote(String input) {// replace \" with '
@@ -322,5 +362,45 @@ public class Utils {
             default :
                 return null;
         }
+    }
+
+    public static void injectLogger(CompilationUnit cu) {
+        cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
+            if (!classDecl.getFullyQualifiedName().isPresent()) {
+                return;
+            }
+            // check whether this class is an inner class since we only need to inject
+            // logger at the top level
+            if (classDecl.isNestedType()) {
+                return;
+            }
+            // check whether this class has already injected logger
+            for (FieldDeclaration fieldDeclaration : classDecl.getFields()) {
+                if (fieldDeclaration.getVariables().get(0).getNameAsString()
+                        .equals("serialize_logger")) {
+                    return;
+                }
+            }
+            // add logger declaration
+            // String loggerDecl = "private static final org.slf4j.Logger serialize_logger =
+            // org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
+            String type = "org.slf4j.Logger";
+            String loggerName = "serialize_logger";
+            String loggerInitExpr = "org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
+            // Transform loggerAssignExpr to Expression
+            ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser.parseStatement(loggerInitExpr);
+
+            FieldDeclaration fieldDeclaration;
+            if (classDecl.isInterface())
+                fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
+                        stmt.getExpression(), Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+            else
+                fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
+                        stmt.getExpression(), Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
+                        Modifier.Keyword.FINAL);
+            // Move it to the front position
+            classDecl.getMembers().remove(fieldDeclaration);
+            classDecl.getMembers().addFirst(fieldDeclaration);
+        });
     }
 }

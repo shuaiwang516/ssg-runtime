@@ -53,39 +53,8 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                         .ifPresent(body -> processBlockStmt(body, line2SerializePoints));
             });
         });
-        if (injected) {
-            cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
-                if (!classDecl.getFullyQualifiedName().isPresent()) {
-                    return;
-                }
-                // check whether this class is an inner class since we only need to inject
-                // logger at the top level
-                if (classDecl.isNestedType()) {
-                    return;
-                }
-                // add logger declaration
-                // String loggerDecl = "private static final org.slf4j.Logger serialize_logger =
-                // org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
-                String type = "org.slf4j.Logger";
-                String loggerName = "serialize_logger";
-                String loggerInitExpr = "org.slf4j.LoggerFactory.getLogger(\"serialize.logger\");";
-                // Transform loggerAssignExpr to Expression
-                ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser
-                        .parseStatement(loggerInitExpr);
-
-                FieldDeclaration fieldDeclaration;
-                if (classDecl.isInterface())
-                    fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
-                            stmt.getExpression(), Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
-                else
-                    fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
-                            stmt.getExpression(), Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
-                            Modifier.Keyword.FINAL);
-                // Move it to the front position
-                classDecl.getMembers().remove(fieldDeclaration);
-                classDecl.getMembers().addFirst(fieldDeclaration);
-            });
-        }
+        if (injected)
+            Utils.injectLogger(cu);
         return injected;
     }
 
@@ -241,12 +210,6 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                         }
                     }
                 }
-                // String isSerializeNewField = String.format("isSerialize_%d", fieldId++);
-                // String isSerializeAssignExpr = String.format("%s = true;",
-                // isSerializeNewField);
-                // Statement isSerializeStmt =
-                // StaticJavaParser.parseStatement(isSerializeAssignExpr);
-                // newStatements.add(newStatements.indexOf(stmt), isSerializeStmt);
             }
         }
         iterateStmt(stmt, line2SerializePoints);
