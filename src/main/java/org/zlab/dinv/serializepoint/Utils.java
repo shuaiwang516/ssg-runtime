@@ -36,6 +36,30 @@ public class Utils {
         }
     }
 
+    public static void saveWritePoints(Set<WritePoint> writePoints, Path filePath) {
+        createOutputDirIfNotExist();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(filePath.toFile(), writePoints);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Set<WritePoint> loadWritePoints(Path filePath) {
+        // Read the map from the JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Set<WritePoint> mapFromFile = objectMapper.readValue(filePath.toFile(),
+                    new TypeReference<Set<WritePoint>>() {
+                    });
+            return mapFromFile;
+        } catch (IOException e) {
+            System.err.println("Exception happen when loading output from " + filePath);
+            throw new RuntimeException(e);
+        }
+    }
+
     public static boolean isPrimitive(SerializePoint.PrintableType type) {
         return type == SerializePoint.PrintableType.byte_
                 || type == SerializePoint.PrintableType.int_

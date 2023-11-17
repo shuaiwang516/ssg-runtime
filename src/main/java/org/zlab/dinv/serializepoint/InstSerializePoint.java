@@ -23,7 +23,7 @@ import java.util.Set;
 
 import static org.zlab.dinv.serializepoint.Utils.checkIfParentNameExists;
 
-public class InstSerializePoint extends IterateAST {
+public class InstSerializePoint extends IterateAST<SerializePoint> {
     public static final boolean USE_PRINT = false;
     public Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap;
 
