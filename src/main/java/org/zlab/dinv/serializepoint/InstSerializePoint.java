@@ -7,6 +7,7 @@ import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ArrayAccessExpr;
 import com.github.javaparser.ast.expr.Expression;
@@ -72,13 +73,17 @@ public class InstSerializePoint extends IterateAST {
                 ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser
                         .parseStatement(loggerInitExpr);
 
+                FieldDeclaration fieldDeclaration;
                 if (classDecl.isInterface())
-                    classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
-                            Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+                    fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
+                            stmt.getExpression(), Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
                 else
-                    classDecl.addFieldWithInitializer(type, loggerName, stmt.getExpression(),
-                            Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
+                    fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
+                            stmt.getExpression(), Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
                             Modifier.Keyword.FINAL);
+                // Move it to the front position
+                classDecl.getMembers().remove(fieldDeclaration);
+                classDecl.getMembers().addFirst(fieldDeclaration);
             });
         }
         return injected;
