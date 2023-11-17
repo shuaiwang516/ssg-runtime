@@ -99,6 +99,8 @@ public class RewriteExec implements Runnable {
                             // return;
 
                             // ==debug==
+                            // if (!p.toString().contains("org/apache/cassandra/db/composites/"))
+                            // return;
                             // if (!p.toString().contains("org/apache/cassandra/db/"))
                             // return;
                             // if (!p.toString().contains("/TestArray2.java"))

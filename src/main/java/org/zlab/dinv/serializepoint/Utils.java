@@ -48,6 +48,11 @@ public class Utils {
 
     public static String logSerializePointStmt(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
+        return wrapWithSerializationVariableCheck(createLogStatement(pName, cName, type, isStatic));
+    }
+
+    public static String createLogStatement(String pName, String cName,
+            SerializePoint.PrintableType type, boolean isStatic) {
         // wrap with try/catch:
         // org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(java.lang.String,
         // java.lang.String)
@@ -66,6 +71,13 @@ public class Utils {
                     logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
         }
         return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull, inputFieldNull);
+    }
+
+    public static String wrapWithSerializationVariableCheck(String input) {
+        // TODO: Add in configuration
+        String clazz = "org.apache.cassandra.service.CassandraDaemon";
+        return String.format("if (%s.isSerializationInProgress) {\n" + "    %s\n" + "}", clazz,
+                input);
     }
 
     public static String wrapWithNullCheck(String pName, String cName,
