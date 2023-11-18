@@ -72,6 +72,10 @@ public class LogEntry {
         public boolean isPrimitive() {
             return this != STRING && this != ENUM && this != UNKNOWN;
         }
+
+        public boolean isPrintable() {
+            return this != CLASS && this != UNKNOWN;
+        }
     }
 
     public static class VariableInfo {
@@ -96,7 +100,8 @@ public class LogEntry {
         varInfo.className = var.getClass().getName();
         if (!varInfo.type.isPrimitive())
             varInfo.identifyHash = System.identityHashCode(var);
-        varInfo.value = var.toString();
+        if (varInfo.type.isPrintable())
+            varInfo.value = var.toString();
         varInfo.name = name;
         return varInfo;
     }
