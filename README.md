@@ -8,7 +8,10 @@ Requirement: JDK8
 
 This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
 ```bash
+# Invariant Monitor
 ./gradlew shadowJar
+# Logger
+./gradlew loggerShadowJar
 ```
 
 ## Usage

@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id 'application'
@@ -42,6 +44,16 @@ shadowJar {
 
     include 'org/zlab/dinv/runtimechecker/Runtime*'
     include 'org/zlab/dinv/runtimechecker/Quant*'
+}
+
+// Defining a custom shadowJar task
+task loggerShadowJar(type: ShadowJar) {
+    archiveBaseName.set('logger-shadow')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+
+    from sourceSets.main.output // Adjust if using a different source set
+    include 'org/zlab/dinv/logger/*'
 }
 
 application {
