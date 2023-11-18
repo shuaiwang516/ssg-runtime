@@ -13,8 +13,19 @@ public class LogEntry {
 
     public LogEntry(int threadId, Object object, Object field, String name) {
         this.threadId = threadId;
-        this.object = createVariableInfo(object, null);
-        this.field = createVariableInfo(field, name);
+        if (object == null)
+            this.object = null;
+        else
+            this.object = createVariableInfo(object, null);
+        if (field == null)
+            this.field = null;
+        else
+            this.field = createVariableInfo(field, name);
+    }
+
+    public static LogEntry constructLogEntry(int threadId, Object object, Object field,
+            String name) {
+        return new LogEntry(threadId, object, field, name);
     }
 
     public enum VariableType {

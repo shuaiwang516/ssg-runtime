@@ -101,6 +101,13 @@ public class Utils {
         // org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(java.lang.String,
         // java.lang.String)
 
+        // serialize_logger.info(org.zlab.dinv.logger.LogEntry.constructLogEntry(
+        // Thread.currentThread().getId(),
+        // pName,
+        // cName,
+        // "cName"
+        // ).toJsonString());
+
         // wrap with null check for pName and cName
         String inputFieldNotNull, inputFieldNull;
         if (InstSerializePoint.USE_PRINT) {
@@ -119,6 +126,10 @@ public class Utils {
 
     public static String wrapWithSerializationVariableCheck(String input) {
         // TODO: Add in configuration
+        // String loggerMonitorClass = "org.zlab.dinv.logger.SerializeMonitor";
+        // return String.format("if (%s.isSerializing) {\n" + " %s\n" + "}",
+        // loggerMonitorClass,
+        // input);
         String clazz = "org.apache.cassandra.service.CassandraDaemon";
         return String.format("if (%s.isSerializationInProgress) {\n" + "    %s\n" + "}", clazz,
                 input);

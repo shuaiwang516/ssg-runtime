@@ -133,8 +133,8 @@ public class RewriteExec implements Runnable {
                             CompilationUnit cu = StaticJavaParser.parse(p.toFile());
                             // Traverse the AST and perform the desired processing
                             boolean injected = false;
-                            // if (instSerializePoint.process(cu))
-                            // injected = true;
+                            if (instSerializePoint.process(cu))
+                                injected = true;
                             if (instWritePoint.process(cu))
                                 injected = true;
                             if (injected)

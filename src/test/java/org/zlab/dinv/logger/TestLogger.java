@@ -44,7 +44,6 @@ public class TestLogger {
         String s3 = newLogEntry2.toString();
         System.out.println(s3);
         assert s1.equals(s3);
-
     }
 
     @Test
