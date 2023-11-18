@@ -8,6 +8,8 @@ public class LogEntry {
     public VariableInfo parent;
     public VariableInfo field;
 
+    public static final ObjectMapper mapper = new ObjectMapper();
+
     public LogEntry() {
     }
 
@@ -117,7 +119,8 @@ public class LogEntry {
 
     // transform to json string
     public String toJsonString() {
-        ObjectMapper mapper = new ObjectMapper();
+        // return "INFO [MemtableFlushWriter:1] 2023-11-18 15:16:59,582
+        // CompoundSparseCellName.java:63";
         String jsonString;
         try {
             jsonString = mapper.writeValueAsString(this);
