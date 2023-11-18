@@ -80,8 +80,8 @@ public class Utils {
         String format = PrintableType2Format(type);
         String s;
         if (type == null)
-            s = String.format("String.format(\"write point: type = null, value = %s\", %s)", format,
-                    varName);
+            s = String.format("String.format(\"write point: type = null, value = %%s\", %s)",
+                    varName + ".toString()");
         else
             s = String.format("String.format(\"write point: type = %s, value = %s\", %s)", type,
                     format, varName);
