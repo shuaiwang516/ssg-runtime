@@ -6,6 +6,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.zlab.dinv.serializepoint.Utils.readFirstLineFromFile;
 
 public class TestLogger {
     @Test
@@ -25,8 +29,8 @@ public class TestLogger {
         String json = logEntry.toJsonString();
 
         // open a file /tmp/log.json and write json to it
-        String filename = "/tmp/testLog";
-        try (FileWriter writer = new FileWriter(filename)) {
+        Path filePath = Paths.get("/tmp/testLog");
+        try (FileWriter writer = new FileWriter(filePath.toFile())) {
             writer.write(json);
         } catch (IOException e) {
             e.printStackTrace();
@@ -39,7 +43,7 @@ public class TestLogger {
 
         assert s1.equals(s2);
 
-        String json3 = readFirstLineFromFile(filename);
+        String json3 = readFirstLineFromFile(filePath);
         LogEntry newLogEntry2 = LogEntry.fromJsonString(json3);
         String s3 = newLogEntry2.toString();
         System.out.println(s3);
@@ -57,17 +61,6 @@ public class TestLogger {
     }
 
     public static void foo(Object a) {
-
     }
 
-    public static String readFirstLineFromFile(String filename) {
-        String line = null;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            line = reader.readLine(); // Reads the first line of the file
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return line;
-    }
 }

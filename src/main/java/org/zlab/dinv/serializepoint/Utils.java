@@ -10,7 +10,10 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -421,4 +424,24 @@ public class Utils {
             classDecl.getMembers().addFirst(fieldDeclaration);
         });
     }
+
+    public static String readFirstLineFromFile(Path filePath) {
+        String line = null;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath.toFile()))) {
+            line = reader.readLine(); // Reads the first line of the file
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return line;
+    }
+
+    public static List<String> readLinesFromFile(Path filePath) {
+        try {
+            return Files.readAllLines(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
