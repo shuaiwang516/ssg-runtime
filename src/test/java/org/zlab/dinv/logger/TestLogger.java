@@ -20,7 +20,7 @@ public class TestLogger {
         Tmp t = new Tmp();
         int a = t.a;
         String name = "a";
-        LogEntry logEntry = new LogEntry(0, t, a, name);
+        LogEntry logEntry = new LogEntry(t, a, name);
         String s1 = logEntry.toString();
         String json = logEntry.toJsonString();
 
@@ -48,6 +48,8 @@ public class TestLogger {
 
     @Test
     public void testReadLog() {
+        LogEntry a = LogEntry.constructLogEntry(org.zlab.dinv.logger.TestLogger.class, null, "a");
+        System.out.println(a);
     }
 
     public static class Tmp {

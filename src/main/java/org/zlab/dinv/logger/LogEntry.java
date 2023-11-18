@@ -4,32 +4,44 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LogEntry {
-    public int threadId;
-    public VariableInfo object;
+    public long threadId;
+    public VariableInfo parent;
     public VariableInfo field;
 
     public LogEntry() {
     }
 
-    public LogEntry(int threadId, Object object, Object field, String name) {
-        this.threadId = threadId;
-        if (object == null)
-            this.object = null;
+    public LogEntry(Object parent, Object field, String name) {
+        this.threadId = Thread.currentThread().getId();
+        if (parent == null)
+            this.parent = null;
         else
-            this.object = createVariableInfo(object, null);
+            this.parent = createVariableInfo(parent, null);
         if (field == null)
             this.field = null;
         else
             this.field = createVariableInfo(field, name);
     }
 
-    public static LogEntry constructLogEntry(int threadId, Object object, Object field,
-            String name) {
-        return new LogEntry(threadId, object, field, name);
+    public LogEntry(Class<?> clazz, Object field, String name) {
+        this.threadId = Thread.currentThread().getId();
+        this.parent = createVariableInfo(clazz, null);
+        if (field == null)
+            this.field = null;
+        else
+            this.field = createVariableInfo(field, name);
+    }
+
+    public static LogEntry constructLogEntry(Object object, Object field, String name) {
+        return new LogEntry(object, field, name);
+    }
+
+    public static LogEntry constructLogEntry(Class<?> clazz, Object field, String name) {
+        return new LogEntry(clazz, field, name);
     }
 
     public enum VariableType {
-        INTEGER, FLOAT, BOOLEAN, CHARACTER, BYTE, SHORT, LONG, DOUBLE, STRING, ENUM, UNKNOWN;
+        INTEGER, FLOAT, BOOLEAN, CHARACTER, BYTE, SHORT, LONG, DOUBLE, STRING, ENUM, CLASS, UNKNOWN;
 
         public static VariableType getVariableType(Object object) {
             if (object instanceof Integer) {
@@ -79,18 +91,21 @@ public class LogEntry {
     }
 
     public static VariableInfo createVariableInfo(Object var, String name) {
-        // Add a checker: if it's primitive, we don't use identified hashcode
         VariableInfo varInfo = new VariableInfo();
-        // type
         varInfo.type = VariableType.getVariableType(var);
-        // className
         varInfo.className = var.getClass().getName();
-        // identifyHash
         if (!varInfo.type.isPrimitive())
             varInfo.identifyHash = System.identityHashCode(var);
-        // value
         varInfo.value = var.toString();
-        // name
+        varInfo.name = name;
+        return varInfo;
+    }
+
+    public static VariableInfo createVariableInfo(Class<?> clazz, String name) {
+        VariableInfo varInfo = new VariableInfo();
+        varInfo.type = VariableType.CLASS;
+        varInfo.className = clazz.getName();
+        varInfo.value = null; // clazz type do not have value
         varInfo.name = name;
         return varInfo;
     }
@@ -120,7 +135,7 @@ public class LogEntry {
 
     @Override
     public String toString() {
-        return "LogEntry{" + "threadId=" + threadId + ", object=" + object + ", field=" + field
+        return "LogEntry{" + "threadId=" + threadId + ", object=" + parent + ", field=" + field
                 + '}';
     }
 

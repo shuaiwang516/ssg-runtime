@@ -53,7 +53,8 @@ task loggerShadowJar(type: ShadowJar) {
     archiveVersion.set('')
 
     from sourceSets.main.output // Adjust if using a different source set
-    include 'org/zlab/dinv/logger/*'
+
+    configurations = [project.configurations.runtimeClasspath]
 }
 
 application {

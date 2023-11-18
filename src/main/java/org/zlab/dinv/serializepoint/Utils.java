@@ -108,31 +108,42 @@ public class Utils {
         // "cName"
         // ).toJsonString());
 
-        // wrap with null check for pName and cName
-        String inputFieldNotNull, inputFieldNull;
-        if (InstSerializePoint.USE_PRINT) {
-            inputFieldNotNull = wrapWithSysPrintln(
-                    logSerializePointFieldRef(pName, cName, type, isStatic));
-            inputFieldNull = wrapWithSysPrintln(
-                    logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        if (isStatic) {
+            return String.format(
+                    "serialize_logger.info(\"[hklog]\" + org.zlab.dinv.logger.LogEntry.constructLogEntry(%s.class, %s, \"%s\").toJsonString());",
+                    pName, cName, cName);
         } else {
-            inputFieldNotNull = wrapWithLogger(
-                    logSerializePointFieldRef(pName, cName, type, isStatic));
-            inputFieldNull = wrapWithLogger(
-                    logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+            return String.format(
+                    "serialize_logger.info(\"[hklog]\" + org.zlab.dinv.logger.LogEntry.constructLogEntry(%s, %s, \"%s\").toJsonString());",
+                    pName, cName, cName);
         }
-        return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull, inputFieldNull);
+
+        // wrap with null check for pName and cName
+        // String inputFieldNotNull, inputFieldNull;
+        // if (InstSerializePoint.USE_PRINT) {
+        // inputFieldNotNull = wrapWithSysPrintln(
+        // logSerializePointFieldRef(pName, cName, type, isStatic));
+        // inputFieldNull = wrapWithSysPrintln(
+        // logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        // } else {
+        // inputFieldNotNull = wrapWithLogger(
+        // logSerializePointFieldRef(pName, cName, type, isStatic));
+        // inputFieldNull = wrapWithLogger(
+        // logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        // }
+        // return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull,
+        // inputFieldNull);
     }
 
     public static String wrapWithSerializationVariableCheck(String input) {
         // TODO: Add in configuration
-        // String loggerMonitorClass = "org.zlab.dinv.logger.SerializeMonitor";
-        // return String.format("if (%s.isSerializing) {\n" + " %s\n" + "}",
-        // loggerMonitorClass,
-        // input);
-        String clazz = "org.apache.cassandra.service.CassandraDaemon";
-        return String.format("if (%s.isSerializationInProgress) {\n" + "    %s\n" + "}", clazz,
+        String loggerMonitorClass = "org.zlab.dinv.logger.SerializeMonitor";
+        return String.format("if (%s.isSerializing) {\n" + " %s\n" + "}", loggerMonitorClass,
                 input);
+        // String clazz = "org.apache.cassandra.service.CassandraDaemon";
+        // return String.format("if (%s.isSerializationInProgress) {\n" + " %s\n" + "}",
+        // clazz,
+        // input);
     }
 
     public static String wrapWithNullCheck(String pName, String cName,
