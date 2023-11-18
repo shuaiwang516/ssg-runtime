@@ -12,6 +12,8 @@ import java.util.*;
 @CommandLine.Command(name = "RewriteExec", mixinStandardHelpOptions = true, version = "1.0", description = "RewriteExec does amazing things.")
 public class RewriteExec implements Runnable {
 
+    public static final boolean useJson = true;
+
     @CommandLine.Option(names = {
             "-serializePointsPath"}, description = "path to files generated from vasco")
     private Path serializePointsPath;

@@ -92,10 +92,15 @@ public class Utils {
 
     public static String logSerializePointStmt(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
-        return wrapWithSerializationVariableCheck(createLogStatement(pName, cName, type, isStatic));
+        if (RewriteExec.useJson)
+            return wrapWithSerializationVariableCheck(
+                    createJSONLogStatement(pName, cName, type, isStatic));
+        else
+            return wrapWithSerializationVariableCheck(
+                    createLogStatement(pName, cName, type, isStatic));
     }
 
-    public static String createLogStatement(String pName, String cName,
+    public static String createJSONLogStatement(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
         // wrap with try/catch:
         // org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(java.lang.String,
@@ -133,6 +138,24 @@ public class Utils {
         // }
         // return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull,
         // inputFieldNull);
+    }
+
+    public static String createLogStatement(String pName, String cName,
+            SerializePoint.PrintableType type, boolean isStatic) {
+        // wrap with null check for pName and cName
+        String inputFieldNotNull, inputFieldNull;
+        if (InstSerializePoint.USE_PRINT) {
+            inputFieldNotNull = wrapWithSysPrintln(
+                    logSerializePointFieldRef(pName, cName, type, isStatic));
+            inputFieldNull = wrapWithSysPrintln(
+                    logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        } else {
+            inputFieldNotNull = wrapWithLogger(
+                    logSerializePointFieldRef(pName, cName, type, isStatic));
+            inputFieldNull = wrapWithLogger(
+                    logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
+        }
+        return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull, inputFieldNull);
     }
 
     public static String wrapWithSerializationVariableCheck(String input) {
