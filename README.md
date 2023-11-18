@@ -6,15 +6,16 @@ hook
 
 Requirement: JDK8
 
-This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
-```bash
-# Invariant Monitor
-./gradlew shadowJar
-# Logger
-./gradlew loggerShadowJar
-```
-
 ## Usage
+
+### Logger
+```bash
+./gradlew loggerShadowJar
+
+# Cassandra
+cp build/libs/logger-shadow.jar PATH_TO_CASSANDSRA/lib/
+ant artifacts
+````
 
 ### Scripts
 ```bash
@@ -34,6 +35,12 @@ dinv-scripts/cass_vis_rewrite.sh
 ### Invariant Monitor
 Execute `org.zlab.dinv.runtimechecker.Main` to embed the invariants, recompile
 system with our runtime jar.
+
+This will generate a shadow jar in `./build/libs/dinv-monitor-shadow.jar`
+```bash
+# Invariant Monitor
+./gradlew shadowJar
+```
 
 #### Cassandra
 The following env variable will add our runtime jar to the Cassandra's classpath.

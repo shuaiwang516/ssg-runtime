@@ -102,42 +102,15 @@ public class Utils {
 
     public static String createJSONLogStatement(String pName, String cName,
             SerializePoint.PrintableType type, boolean isStatic) {
-        // wrap with try/catch:
-        // org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(java.lang.String,
-        // java.lang.String)
-
-        // serialize_logger.info(org.zlab.dinv.logger.LogEntry.constructLogEntry(
-        // Thread.currentThread().getId(),
-        // pName,
-        // cName,
-        // "cName"
-        // ).toJsonString());
-
         if (isStatic) {
             return String.format(
-                    "serialize_logger.info(\"[hklog]\" + org.zlab.dinv.logger.LogEntry.constructLogEntry(%s.class, %s, \"%s\").toJsonString());",
+                    "serialize_logger.info(org.zlab.dinv.logger.LogEntry.constructLogEntry(%s.class, %s, \"%s\").toJsonString());",
                     pName, cName, cName);
         } else {
             return String.format(
-                    "serialize_logger.info(\"[hklog]\" + org.zlab.dinv.logger.LogEntry.constructLogEntry(%s, %s, \"%s\").toJsonString());",
+                    "serialize_logger.info(org.zlab.dinv.logger.LogEntry.constructLogEntry(%s, %s, \"%s\").toJsonString());",
                     pName, cName, cName);
         }
-
-        // wrap with null check for pName and cName
-        // String inputFieldNotNull, inputFieldNull;
-        // if (InstSerializePoint.USE_PRINT) {
-        // inputFieldNotNull = wrapWithSysPrintln(
-        // logSerializePointFieldRef(pName, cName, type, isStatic));
-        // inputFieldNull = wrapWithSysPrintln(
-        // logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
-        // } else {
-        // inputFieldNotNull = wrapWithLogger(
-        // logSerializePointFieldRef(pName, cName, type, isStatic));
-        // inputFieldNull = wrapWithLogger(
-        // logSerializePointFieldRefNullfield(pName, cName, type, isStatic));
-        // }
-        // return wrapWithNullCheck(pName, cName, type, isStatic, inputFieldNotNull,
-        // inputFieldNull);
     }
 
     public static String createLogStatement(String pName, String cName,
