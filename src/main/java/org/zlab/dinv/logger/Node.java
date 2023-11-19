@@ -44,4 +44,31 @@ public class Node implements Serializable {
         children.add(node);
     }
 
+    public static void printAllChildren(Node node, int indentLevel) {
+        if (node == null) {
+            return;
+        }
+
+        // Process the current node (e.g., print its information)
+        printWithIndent(node.variableInfo, indentLevel);
+
+        // Recursively call this method for each child
+        for (Node child : node.children) {
+            printAllChildren(child, indentLevel + 1);
+        }
+    }
+
+    private static void printWithIndent(LogEntry.VariableInfo info, int indentLevel) {
+        for (int i = 0; i < indentLevel; i++) {
+            System.out.print("  "); // Two spaces for each level of indentation
+        }
+        System.out.println(info); // Assuming VariableInfo has a meaningful toString()
+                                  // implementation
+    }
+
+    // Overload the method to start without indentation
+    public static void printAllChildren(Node node) {
+        printAllChildren(node, 0);
+    }
+
 }

@@ -112,11 +112,12 @@ public class LogEntry {
                 return false;
             if (!Objects.equals(value, that.value))
                 return false;
-            return Objects.equals(name, that.name);
+            // do not compare name
+            return true;
         }
         @Override
         public int hashCode() {
-            return Objects.hash(type, className, identifyHash, value, name);
+            return Objects.hash(type, className, identifyHash, value);
         }
     }
 
@@ -126,8 +127,11 @@ public class LogEntry {
         varInfo.className = var.getClass().getName();
         if (!varInfo.type.isPrimitive())
             varInfo.identifyHash = System.identityHashCode(var);
+        // Hashcode for object, value for primitive
         if (varInfo.type.isPrintable())
             varInfo.value = var.toString();
+        // else
+        // varInfo.value = String.valueOf(var.hashCode());
         varInfo.name = name;
         return varInfo;
     }
