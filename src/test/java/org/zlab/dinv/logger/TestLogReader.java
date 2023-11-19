@@ -14,9 +14,11 @@ public class TestLogReader {
                 .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
         List<LogEntry> logEntries = LogReader.read(filePath);
 
-        for (LogEntry logEntry : logEntries) {
-            System.out.println(logEntry);
-        }
+        // for (LogEntry logEntry : logEntries) {
+        // System.out.println(logEntry);
+        // }
+
+        System.out.println(logEntries.size());
     }
 
 }

@@ -3,6 +3,9 @@ package org.zlab.dinv.logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 public class LogEntry {
     public long threadId;
     public VariableInfo parent;
@@ -80,7 +83,7 @@ public class LogEntry {
         }
     }
 
-    public static class VariableInfo {
+    public static class VariableInfo implements Serializable {
         public VariableType type; // This will hold either the primitive type name or "String"
         public String className;
         public int identifyHash = 0;
@@ -93,6 +96,27 @@ public class LogEntry {
             return "VariableInfo{" + "type=" + type + ", className='" + className + '\''
                     + ", identifyHash=" + identifyHash + ", value='" + value + '\'' + ", name='"
                     + name + '\'' + '}';
+        }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (!(o instanceof VariableInfo))
+                return false;
+            VariableInfo that = (VariableInfo) o;
+            if (identifyHash != that.identifyHash)
+                return false;
+            if (type != that.type)
+                return false;
+            if (!Objects.equals(className, that.className))
+                return false;
+            if (!Objects.equals(value, that.value))
+                return false;
+            return Objects.equals(name, that.name);
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, className, identifyHash, value, name);
         }
     }
 
