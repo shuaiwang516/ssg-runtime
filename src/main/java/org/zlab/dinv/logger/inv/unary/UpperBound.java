@@ -2,7 +2,7 @@ package org.zlab.dinv.logger.inv.unary;
 
 import org.zlab.dinv.logger.LogEntry;
 
-public class UpperBound extends UnaryTemplate {
+public class UpperBound extends UnaryInvariant {
     // var < x
     LogEntry.VariableInfo var;
     public Integer x;
@@ -13,14 +13,7 @@ public class UpperBound extends UnaryTemplate {
     }
 
     @Override
-    public boolean validate(Object val) {
-        assert val instanceof Integer;
-        Integer v = (Integer) val;
-        return v < x;
-    }
-
-    @Override
-    public void update(Object val) {
+    public void add(Object val, int count) {
         assert val instanceof Integer;
         Integer v = (Integer) val;
         if (v > x) {
@@ -29,7 +22,9 @@ public class UpperBound extends UnaryTemplate {
     }
 
     @Override
-    public boolean isValid() {
-        return x != Integer.MAX_VALUE;
+    public boolean check(Object val, int count) {
+        assert val instanceof Integer;
+        Integer v = (Integer) val;
+        return v < x;
     }
 }

@@ -8,6 +8,4 @@ public abstract class Invariant implements Serializable {
 
     static final long serialVersionUID = 20040921L;
 
-    public abstract void process(Node node);
-
 }
