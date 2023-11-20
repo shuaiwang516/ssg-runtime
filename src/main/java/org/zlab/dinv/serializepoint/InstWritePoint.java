@@ -39,8 +39,8 @@ public class InstWritePoint extends IterateAST<WritePoint> {
             Map<Integer, Set<WritePoint>> line2SerializePoints = writePointsMap.get(clazzFullName);
 
             classDecl.getMethods().forEach(methodDecl -> {
-                methodDecl.getBody()
-                        .ifPresent(body -> processBlockStmt(body, line2SerializePoints));
+                methodDecl.getBody().ifPresent(body -> processBlockStmt(body, line2SerializePoints,
+                        methodDecl.isStatic()));
             });
         });
 
@@ -52,7 +52,7 @@ public class InstWritePoint extends IterateAST<WritePoint> {
 
     @Override
     public void recurProcess(Statement stmt, NodeList<Statement> newStatements,
-            Map<Integer, Set<WritePoint>> line2SerializePoints) {
+            Map<Integer, Set<WritePoint>> line2SerializePoints, boolean isMethodStatic) {
         /**
          * Check whether the current statement belongs to the line set, if so, inject
          * the serialization point
@@ -98,12 +98,12 @@ public class InstWritePoint extends IterateAST<WritePoint> {
                 }
             }
         }
-        iterateStmt(stmt, line2SerializePoints);
+        iterateStmt(stmt, line2SerializePoints, isMethodStatic);
     }
 
     @Override
     public BlockStmt processNonBlockStmt(Statement stmt,
-            Map<Integer, Set<WritePoint>> line2SerializePoints) {
+            Map<Integer, Set<WritePoint>> line2SerializePoints, boolean isMethodStatic) {
         BlockStmt blockStmt = null;
 
         if (stmt.getRange().isPresent()) {
@@ -117,7 +117,7 @@ public class InstWritePoint extends IterateAST<WritePoint> {
                 NodeList<Statement> statements = new NodeList<>();
                 statements.add(stmt);
                 NodeList<Statement> newStatements = new NodeList<>(statements);
-                recurProcess(stmt, newStatements, line2SerializePoints);
+                recurProcess(stmt, newStatements, line2SerializePoints, isMethodStatic);
                 blockStmt.setStatements(newStatements);
             }
         }

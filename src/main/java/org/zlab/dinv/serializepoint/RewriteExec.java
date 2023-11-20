@@ -13,6 +13,7 @@ import java.util.*;
 public class RewriteExec implements Runnable {
 
     public static final boolean useJson = true;
+    public static final boolean useThreadLocal = true;
 
     @CommandLine.Option(names = {
             "-serializePointsPath"}, description = "path to files generated from vasco")

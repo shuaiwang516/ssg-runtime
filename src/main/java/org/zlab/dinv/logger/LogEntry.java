@@ -130,8 +130,12 @@ public class LogEntry {
         // Hashcode for object, value for primitive
         if (varInfo.type.isPrintable())
             varInfo.value = var.toString();
-        // else
-        // varInfo.value = String.valueOf(var.hashCode());
+        else {
+            try {
+                varInfo.value = String.valueOf(var.hashCode());
+            } catch (Exception e) {
+            }
+        }
         varInfo.name = name;
         return varInfo;
     }

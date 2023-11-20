@@ -27,13 +27,18 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
 
     public boolean injected = false;
 
+    public boolean injectedSingleClass = false;
+    public boolean injectedSingleClassStatic = false;
+
     public InstSerializePoint(Map<String, Map<Integer, Set<SerializePoint>>> serializePointsMap) {
         this.serializePointsMap = serializePointsMap;
     }
 
     public boolean process(CompilationUnit cu) {
         injected = false;
+        injectedSingleClassStatic = false;
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
+            injectedSingleClass = false;
             if (!classDecl.getFullyQualifiedName().isPresent()) {
                 return;
             }
@@ -47,18 +52,27 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                     .get(clazzFullName);
 
             classDecl.getMethods().forEach(methodDecl -> {
-                methodDecl.getBody()
-                        .ifPresent(body -> processBlockStmt(body, line2SerializePoints));
+                methodDecl.getBody().ifPresent(body -> processBlockStmt(body, line2SerializePoints,
+                        methodDecl.isStatic()));
             });
+            if (injectedSingleClass) {
+                // inject thread local for each class
+                Utils.injectLoggingActive(classDecl);
+            }
+
         });
         if (injected)
             Utils.injectLogger(cu);
+        if (injectedSingleClassStatic) {
+            // inject thread local for each class
+            Utils.injectLoggingActiveStatic(cu);
+        }
         return injected;
     }
 
     @Override
     public void recurProcess(Statement stmt, NodeList<Statement> newStatements,
-            Map<Integer, Set<SerializePoint>> line2SerializePoints) {
+            Map<Integer, Set<SerializePoint>> line2SerializePoints, boolean isMethodStatic) {
         // TODO: mimic how we inject isSerialize field
         /**
          * Check whether the current statement belongs to the line set, if so, inject
@@ -70,6 +84,10 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
             if (line2SerializePoints.containsKey(begin)) {
                 if (!injected)
                     injected = true;
+                if (isMethodStatic)
+                    injectedSingleClassStatic = true;
+                else
+                    injectedSingleClass = true;
                 // inject a log statement before or after it
                 // Check the type
                 // if it's a ForEachStmt, inject after it need to be injected into the blocks
@@ -92,7 +110,8 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                         Statement isSerializeStmt = StaticJavaParser.parseStatement(
                                 Utils.logSerializePointStmt(serializePoint.parentName,
                                         serializePoint.parentName + "." + serializePoint.fieldName,
-                                        serializePoint.printableType, serializePoint.isStatic));
+                                        serializePoint.printableType, serializePoint.isStatic,
+                                        isMethodStatic));
 
                         // log before it
                         newStatements.add(newStatements.indexOf(stmt), isSerializeStmt);
@@ -111,9 +130,9 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                                     .type2Printable(vars.get(0).getType().toString());
 
                             // can we get the type here? Specially for String
-                            Statement isSerializeStmt = StaticJavaParser
-                                    .parseStatement(Utils.logSerializePointStmt(iterableName,
-                                            varName, printableType, serializePoint.isStatic));
+                            Statement isSerializeStmt = StaticJavaParser.parseStatement(Utils
+                                    .logSerializePointStmt(iterableName, varName, printableType,
+                                            serializePoint.isStatic, isMethodStatic));
 
                             // if there's a loop, we need to inject the log into the block
                             ForEachStmt forEachStmt = (ForEachStmt) stmt;
@@ -157,7 +176,7 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                                                         String.format("%s[%s]", arrayName,
                                                                 indexName),
                                                         serializePoint.printableType,
-                                                        serializePoint.isStatic));
+                                                        serializePoint.isStatic, isMethodStatic));
                                     }
                                 }
                             } else if (serializePoint.type == SerializePoint.Type.collectionGet) {
@@ -194,7 +213,7 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                                                     String.format("%s.get(%s)", collectionName,
                                                             indexName),
                                                     serializePoint.printableType,
-                                                    serializePoint.isStatic));
+                                                    serializePoint.isStatic, isMethodStatic));
                                 }
                             } else if (serializePoint.type == SerializePoint.Type.iterator) {
 
@@ -210,12 +229,12 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
                 }
             }
         }
-        iterateStmt(stmt, line2SerializePoints);
+        iterateStmt(stmt, line2SerializePoints, isMethodStatic);
     }
 
     @Override
     public BlockStmt processNonBlockStmt(Statement stmt,
-            Map<Integer, Set<SerializePoint>> line2SerializePoints) {
+            Map<Integer, Set<SerializePoint>> line2SerializePoints, boolean isMethodStatic) {
         BlockStmt blockStmt = null;
 
         if (stmt.getRange().isPresent()) {
@@ -224,12 +243,16 @@ public class InstSerializePoint extends IterateAST<SerializePoint> {
             if (line2SerializePoints.containsKey(begin)) {
                 if (!injected)
                     injected = true;
+                if (isMethodStatic)
+                    injectedSingleClassStatic = true;
+                else
+                    injectedSingleClass = true;
                 blockStmt = new BlockStmt();
                 // inject our log statement
                 NodeList<Statement> statements = new NodeList<>();
                 statements.add(stmt);
                 NodeList<Statement> newStatements = new NodeList<>(statements);
-                recurProcess(stmt, newStatements, line2SerializePoints);
+                recurProcess(stmt, newStatements, line2SerializePoints, isMethodStatic);
                 blockStmt.setStatements(newStatements);
             }
         }

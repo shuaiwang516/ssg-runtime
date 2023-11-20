@@ -94,13 +94,30 @@ public class Utils {
     }
 
     public static String logSerializePointStmt(String pName, String cName,
-            SerializePoint.PrintableType type, boolean isStatic) {
-        if (RewriteExec.useJson)
-            return wrapWithSerializationVariableCheck(
-                    createJSONLogStatement(pName, cName, type, isStatic));
-        else
-            return wrapWithSerializationVariableCheck(
-                    createLogStatement(pName, cName, type, isStatic));
+            SerializePoint.PrintableType type, boolean isStatic, boolean isMethodStatic) {
+        if (RewriteExec.useJson) {
+            if (RewriteExec.useThreadLocal) {
+                if (isMethodStatic) {
+                    return wrapWithSerializationVariableCheck(wrapWithLoggingActiveStaticCheck(
+                            createJSONLogStatement(pName, cName, type, isStatic)));
+                } else {
+                    return wrapWithSerializationVariableCheck(wrapWithLoggingActiveCheck(
+                            createJSONLogStatement(pName, cName, type, isStatic)));
+                }
+            } else {
+                if (isMethodStatic) {
+                    return wrapWithSerializationVariableCheck(wrapWithLoggingActiveStaticCheck(
+                            org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(
+                                    createJSONLogStatement(pName, cName, type, isStatic))));
+                } else {
+                    return wrapWithSerializationVariableCheck(wrapWithLoggingActiveCheck(
+                            org.zlab.dinv.runtimechecker.Utils.wrapWithTryCatch(
+                                    createJSONLogStatement(pName, cName, type, isStatic))));
+                }
+            }
+        } else
+            return wrapWithSerializationVariableCheck(wrapWithSerializationVariableCheck(
+                    createLogStatement(pName, cName, type, isStatic)));
     }
 
     public static String createJSONLogStatement(String pName, String cName,
@@ -143,6 +160,26 @@ public class Utils {
         // return String.format("if (%s.isSerializationInProgress) {\n" + " %s\n" + "}",
         // clazz,
         // input);
+    }
+
+    public static String wrapWithLoggingActiveCheck(String input) {
+        /**
+         * if (!isSerializeLoggingActive.get()) { isSerializeLoggingActive.set(true);
+         * input isSerializeLoggingActive.set(false); }
+         */
+        return String.format("if (!isSerializeLoggingActive.get()) {\n"
+                + "    isSerializeLoggingActive.set(true);\n" + "    %s\n"
+                + "    isSerializeLoggingActive.set(false);\n" + "}", input);
+    }
+
+    public static String wrapWithLoggingActiveStaticCheck(String input) {
+        /**
+         * if (!isSerializeLoggingActive.get()) { isSerializeLoggingActive.set(true);
+         * input isSerializeLoggingActive.set(false); }
+         */
+        return String.format("if (!isSerializeLoggingActiveStatic.get()) {\n"
+                + "    isSerializeLoggingActiveStatic.set(true);\n" + "    %s\n"
+                + "    isSerializeLoggingActiveStatic.set(false);\n" + "}", input);
     }
 
     public static String wrapWithNullCheck(String pName, String cName,
@@ -419,6 +456,58 @@ public class Utils {
                 fieldDeclaration = classDecl.addFieldWithInitializer(type, loggerName,
                         stmt.getExpression(), Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC,
                         Modifier.Keyword.FINAL);
+            // Move it to the front position
+            classDecl.getMembers().remove(fieldDeclaration);
+            classDecl.getMembers().addFirst(fieldDeclaration);
+        });
+    }
+
+    public static void injectLoggingActive(ClassOrInterfaceDeclaration classDecl) {
+        // private ThreadLocal<Boolean> isSerializeLoggingActive = new
+        // ThreadLocal<Boolean>() {
+        // @Override
+        // protected Boolean initialValue() {
+        // return false;
+        // }
+        // };
+        String type = "java.lang.ThreadLocal<Boolean>";
+        String name = "isSerializeLoggingActive";
+        String initExpr = "new ThreadLocal<Boolean>() {\n" + "    @Override\n"
+                + "    protected Boolean initialValue() {\n" + "        return false;\n" + "    }\n"
+                + "};";
+        ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser.parseStatement(initExpr);
+        FieldDeclaration fieldDeclaration = classDecl.addFieldWithInitializer(type, name,
+                stmt.getExpression(), Modifier.Keyword.PRIVATE);
+        // Move it to the front position
+        classDecl.getMembers().remove(fieldDeclaration);
+        classDecl.getMembers().addFirst(fieldDeclaration);
+    }
+
+    public static void injectLoggingActiveStatic(CompilationUnit cu) {
+        cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
+            if (!classDecl.getFullyQualifiedName().isPresent()) {
+                return;
+            }
+            // check whether this class is an inner class since we only need to inject
+            // logger at the top level
+            if (classDecl.isNestedType()) {
+                return;
+            }
+            // check whether this class has already injected logger
+            for (FieldDeclaration fieldDeclaration : classDecl.getFields()) {
+                if (fieldDeclaration.getVariables().get(0).getNameAsString()
+                        .equals("isSerializeLoggingActiveStatic")) {
+                    return;
+                }
+            }
+            String type = "java.lang.ThreadLocal<Boolean>";
+            String name = "isSerializeLoggingActiveStatic";
+            String initExpr = "new ThreadLocal<Boolean>() {\n" + "    @Override\n"
+                    + "    protected Boolean initialValue() {\n" + "        return false;\n"
+                    + "    }\n" + "};";
+            ExpressionStmt stmt = (ExpressionStmt) StaticJavaParser.parseStatement(initExpr);
+            FieldDeclaration fieldDeclaration = classDecl.addFieldWithInitializer(type, name,
+                    stmt.getExpression(), Modifier.Keyword.PRIVATE, Modifier.Keyword.STATIC);
             // Move it to the front position
             classDecl.getMembers().remove(fieldDeclaration);
             classDecl.getMembers().addFirst(fieldDeclaration);
