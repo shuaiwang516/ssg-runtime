@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Node implements Serializable {
+    private static final long serialVersionUID = -7603362767491437099L;
+
     public LogEntry.VariableInfo variableInfo;
 
     public List<Node> parents = new LinkedList<>();
@@ -69,6 +71,21 @@ public class Node implements Serializable {
     // Overload the method to start without indentation
     public static void printAllChildren(Node node) {
         printAllChildren(node, 0);
+    }
+
+    public static List<Node> findNodeSatisfyClassname(Node startNode) {
+        List<Node> result = new LinkedList<>();
+        if (startNode == null) {
+            return result;
+        }
+        if (startNode.variableInfo.className.toLowerCase().contains("list")
+                || startNode.variableInfo.className.toLowerCase().contains("array")) {
+            result.add(startNode);
+        }
+        for (Node child : startNode.children) {
+            result.addAll(findNodeSatisfyClassname(child));
+        }
+        return result;
     }
 
 }
