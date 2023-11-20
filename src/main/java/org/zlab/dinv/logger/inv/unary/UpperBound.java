@@ -1,13 +1,13 @@
-package org.zlab.dinv.logger.inference.template;
+package org.zlab.dinv.logger.inv.unary;
 
 import org.zlab.dinv.logger.LogEntry;
 
-public class IntegerLessThan extends UnaryTemplate {
+public class UpperBound extends UnaryTemplate {
     // var < x
     LogEntry.VariableInfo var;
     public Integer x;
 
-    public IntegerLessThan(LogEntry.VariableInfo var) {
+    public UpperBound(LogEntry.VariableInfo var) {
         this.var = var;
         this.x = Integer.MAX_VALUE;
     }

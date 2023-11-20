@@ -1,4 +1,4 @@
-package org.zlab.dinv.logger.inference.template;
+package org.zlab.dinv.logger.inv.unary;
 
 public abstract class UnaryTemplate {
     public abstract boolean validate(Object val);

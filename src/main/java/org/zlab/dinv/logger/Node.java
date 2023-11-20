@@ -73,19 +73,23 @@ public class Node implements Serializable {
         printAllChildren(node, 0);
     }
 
-    public static List<Node> findNodeSatisfyClassname(Node startNode) {
+    public static List<Node> findNodeSatisfyClassname(Node node) {
         List<Node> result = new LinkedList<>();
-        if (startNode == null) {
+        if (node == null) {
             return result;
         }
-        if (startNode.variableInfo.className.toLowerCase().contains("list")
-                || startNode.variableInfo.className.toLowerCase().contains("array")) {
-            result.add(startNode);
+        if (isCollectionOrArray(node)) {
+            result.add(node);
         }
-        for (Node child : startNode.children) {
+        for (Node child : node.children) {
             result.addAll(findNodeSatisfyClassname(child));
         }
         return result;
+    }
+
+    public static boolean isCollectionOrArray(Node node) {
+        return node.variableInfo.className.toLowerCase().contains("list")
+                || node.variableInfo.className.toLowerCase().contains("array");
     }
 
 }
