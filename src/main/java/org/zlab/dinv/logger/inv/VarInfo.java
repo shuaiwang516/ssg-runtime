@@ -31,24 +31,10 @@ public class VarInfo implements Serializable {
         this.rootClassName = rootClassName;
     }
 
-    public static List<VarInfo> fromNode(Node node) {
-        List<VarInfo> vars = new LinkedList<>();
-
-        String name = node.variableInfo.name.split("\\.")[1];
-
-        LogEntry.VariableType type = node.variableInfo.type;
-        String className = node.variableInfo.className;
-
-        Set<String> visitedParents = new HashSet<>();
-        for (Node parent : node.parents) {
-            if (visitedParents.contains(parent.variableInfo.className)) {
-                continue;
-            }
-            vars.add(new VarInfo(name, type, className, parent.variableInfo.className,
-                    parent.variableInfo.className));
-            visitedParents.add(parent.variableInfo.className);
-        }
-        return vars;
+    public boolean isCollection() {
+        String lowerCaseClassName = className.toLowerCase();
+        return lowerCaseClassName.contains("collection") || lowerCaseClassName.contains("list")
+                || lowerCaseClassName.contains("set") || lowerCaseClassName.contains("array");
     }
 
     @Override
@@ -73,6 +59,26 @@ public class VarInfo implements Serializable {
     public int hashCode() {
         return this.name.hashCode() + this.type.hashCode() + this.className.hashCode()
                 + this.rootClassName.hashCode();
+    }
+
+    public static List<VarInfo> fromNode(Node node) {
+        List<VarInfo> vars = new LinkedList<>();
+
+        String name = node.variableInfo.name.split("\\.")[1];
+
+        LogEntry.VariableType type = node.variableInfo.type;
+        String className = node.variableInfo.className;
+
+        Set<String> visitedParents = new HashSet<>();
+        for (Node parent : node.parents) {
+            if (visitedParents.contains(parent.variableInfo.className)) {
+                continue;
+            }
+            vars.add(new VarInfo(name, type, className, parent.variableInfo.className,
+                    parent.variableInfo.className));
+            visitedParents.add(parent.variableInfo.className);
+        }
+        return vars;
     }
 
 }

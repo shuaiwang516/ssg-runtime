@@ -6,4 +6,9 @@ public class BinaryInvariant extends Invariant {
 
     static final long serialVersionUID = 20020120L;
 
+    @Override
+    public Invariant instantiate() {
+        return null;
+    }
+
 }

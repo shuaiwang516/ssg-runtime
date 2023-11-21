@@ -1,5 +1,7 @@
 package org.zlab.dinv.logger.inv.unary;
 
+import org.zlab.dinv.logger.inv.Invariant;
+
 public class UpperBound extends UnaryInvariant {
     // var < x
     public Integer x = Integer.MAX_VALUE;
@@ -23,4 +25,8 @@ public class UpperBound extends UnaryInvariant {
         return v < x;
     }
 
+    @Override
+    public Invariant instantiate() {
+        return new UpperBound();
+    }
 }

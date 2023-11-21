@@ -1,6 +1,10 @@
 package org.zlab.dinv.logger.inv;
 
 import org.zlab.dinv.logger.SSGPointSlice;
+import org.zlab.dinv.logger.inv.unary.UnaryInvariant;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class SSGPointSlice1 extends SSGPointSlice {
     static final long serialVersionUID = 20231120L;
@@ -11,14 +15,44 @@ public class SSGPointSlice1 extends SSGPointSlice {
 
     @Override
     public void instantiate_invariants() {
+        for (Invariant protoInv : InferenceEngine.proto_invs) {
+            Invariant inv = protoInv.instantiate();
+            invs.add(inv);
+        }
     }
 
     @Override
-    public void instantiate_collection_invariants() {
+    public void instantiate_collection_size_invariants() {
+        if (varInfo.isCollection()) {
+            for (Invariant protoInv : InferenceEngine.proto_invs) {
+                Invariant inv = protoInv.instantiate();
+                addCollectionSizeInvariant(inv);
+            }
+        }
     }
 
     @Override
     public void addInvariant(Invariant inv) {
+        invs.add(inv);
+    }
+
+    @Override
+    public void addCollectionSizeInvariant(Invariant inv) {
+        collection_size_invs.add(inv);
+    }
+
+    @Override
+    public List<Invariant> add(Object value, int count) {
+        // Update the invariant that's valid
+        List<Invariant> valid_invs = new LinkedList<>();
+
+        for (Invariant inv : invs) {
+            UnaryInvariant uinv = (UnaryInvariant) inv;
+            uinv.add(value, count);
+            if (!uinv.is_false())
+                valid_invs.add(inv);
+        }
+        return valid_invs;
     }
 
 }

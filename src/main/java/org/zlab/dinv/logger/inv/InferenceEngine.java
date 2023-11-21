@@ -2,7 +2,7 @@ package org.zlab.dinv.logger.inv;
 
 import org.zlab.dinv.logger.Node;
 import org.zlab.dinv.logger.SSG;
-import org.zlab.dinv.logger.SSGPointSlice;
+import org.zlab.dinv.logger.inv.unary.UnaryInvariant;
 import org.zlab.dinv.logger.inv.unary.UpperBound;
 
 import java.io.File;
@@ -12,14 +12,14 @@ import java.util.*;
 
 public class InferenceEngine {
     // List of prototype invariants
-    public static ArrayList<Invariant> proto_invs = new ArrayList<>();
+    public static final ArrayList<Invariant> proto_invs = new ArrayList<>();
     static {
         // TODO: add all proto invariants to proto_invs
         proto_invs.add(new UpperBound());
     }
 
-    public List<SSGPointSlice> unaryInvariants = new LinkedList<>();
-    public Map<VarInfo, SSGPointSlice> unaryInvariantMap = new HashMap<>();
+    public List<SSGPointSlice1> unaryInvariants = new LinkedList<>();
+    public Map<VarInfo, SSGPointSlice1> unaryInvariantMap = new HashMap<>();
 
     /**
      * Input: a folder, which contains a list of ssg.ser file Output: a list of
@@ -40,7 +40,9 @@ public class InferenceEngine {
             SSG ssg = SSG.deserializeSSG(ssgFile.toPath());
             process(ssg);
         }
+
         // Output invariants: unaryInvariants
+
     }
 
     public void process(SSG ssg) {
@@ -51,25 +53,24 @@ public class InferenceEngine {
         // Primitive, String, Enum, Collection, Array
         // Collection size (As the very first example throughout the design)
 
-        // (1) Find all collection node
+        // Derived Variables
         List<Node> collectionOrArrayNodes = findCollectionOrArray(ssg);
         for (Node node : collectionOrArrayNodes) {
             if (!node.variableInfo.name.contains("."))
                 return;
-            // There might be multiple parents
             List<VarInfo> varInfos = VarInfo.fromNode(node);
-
             for (VarInfo varInfo : varInfos) {
                 if (!unaryInvariantMap.containsKey(varInfo)) {
                     SSGPointSlice1 ssgPointSlice1 = new SSGPointSlice1(varInfo);
                     ssgPointSlice1.instantiate_invariants();
+                    ssgPointSlice1.instantiate_collection_size_invariants();
                     unaryInvariantMap.put(varInfo, ssgPointSlice1);
                 }
-                SSGPointSlice ssgPointSlice = unaryInvariantMap.get(varInfo);
+                SSGPointSlice1 ssgPointSlice1 = unaryInvariantMap.get(varInfo);
+                Integer collectionSize = node.children.size();
+                ssgPointSlice1.add(collectionSize, 1);
             }
         }
-        // (2) Init SSGPointSlices for them
-        // (3) For each invariant, update using the given value
     }
 
     public void handleBinaryInvariant(SSG ssg) {
