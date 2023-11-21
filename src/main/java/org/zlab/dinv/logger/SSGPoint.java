@@ -11,8 +11,13 @@ import java.io.Serializable;
  * Might need modification when binary invariants are added.
  */
 public abstract class SSGPoint implements Serializable {
-    static final long serialVersionUID = 20040914L;
+    static final long serialVersionUID = 20231120L;
 
     // public LogEntry.VariableInfo[] variableInfos;
     public VarInfo varInfo;
+
+    public SSGPoint(VarInfo varInfo) {
+        this.varInfo = varInfo;
+    }
+
 }
