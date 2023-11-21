@@ -22,4 +22,6 @@ public abstract class SSGPointSlice extends SSGPoint {
     public abstract void addCollectionSizeInvariant(Invariant inv);
 
     public abstract List<Invariant> add(Object value, int count);
+    public abstract List<Invariant> addCollectionSize(Object value, int count);
+
 }

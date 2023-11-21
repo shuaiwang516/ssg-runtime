@@ -1,12 +1,19 @@
 package org.zlab.dinv.logger.inv.unary;
 
+import org.zlab.dinv.logger.SSGPointSlice;
 import org.zlab.dinv.logger.inv.Invariant;
+import org.zlab.dinv.logger.inv.VarInfo;
 
 public class UpperBound extends UnaryInvariant {
     // var < x
-    public Integer x = Integer.MAX_VALUE;
+    public Integer x = Integer.MIN_VALUE;
 
     public UpperBound() {
+        super(null);
+    }
+
+    public UpperBound(SSGPointSlice ssgPointSlice) {
+        super(ssgPointSlice);
     }
 
     @Override
@@ -26,7 +33,14 @@ public class UpperBound extends UnaryInvariant {
     }
 
     @Override
-    public Invariant instantiate() {
-        return new UpperBound();
+    public Invariant instantiate(SSGPointSlice ssgPointSlice) {
+        return new UpperBound(ssgPointSlice);
+    }
+
+    @Override
+    public String formatString() {
+        VarInfo var = var();
+        String name = var.parentClassName + "." + var().name;
+        return name + " < " + x;
     }
 }

@@ -2,7 +2,6 @@ package org.zlab.dinv.logger.inv;
 
 import org.zlab.dinv.logger.Node;
 import org.zlab.dinv.logger.SSG;
-import org.zlab.dinv.logger.inv.unary.UnaryInvariant;
 import org.zlab.dinv.logger.inv.unary.UpperBound;
 
 import java.io.File;
@@ -40,9 +39,12 @@ public class InferenceEngine {
             SSG ssg = SSG.deserializeSSG(ssgFile.toPath());
             process(ssg);
         }
-
         // Output invariants: unaryInvariants
-
+        for (SSGPointSlice1 ssgPointSlice1 : unaryInvariantMap.values()) {
+            for (Invariant inv : ssgPointSlice1.collection_size_invs) {
+                System.out.println("collection size: " + inv.formatString());
+            }
+        }
     }
 
     public void process(SSG ssg) {
@@ -50,10 +52,11 @@ public class InferenceEngine {
     }
 
     public void handleUnaryInvariant(SSG ssg) {
-        // Primitive, String, Enum, Collection, Array
-        // Collection size (As the very first example throughout the design)
+        handleCollectionSizeInvariant(ssg);
+        handlePrimitiveInvariant(ssg);
+    }
 
-        // Derived Variables
+    public void handleCollectionSizeInvariant(SSG ssg) {
         List<Node> collectionOrArrayNodes = findCollectionOrArray(ssg);
         for (Node node : collectionOrArrayNodes) {
             if (!node.variableInfo.name.contains("."))
@@ -68,9 +71,13 @@ public class InferenceEngine {
                 }
                 SSGPointSlice1 ssgPointSlice1 = unaryInvariantMap.get(varInfo);
                 Integer collectionSize = node.children.size();
-                ssgPointSlice1.add(collectionSize, 1);
+                ssgPointSlice1.addCollectionSize(collectionSize, 1);
             }
         }
+    }
+
+    public void handlePrimitiveInvariant(SSG ssg) {
+        // TODO
     }
 
     public void handleBinaryInvariant(SSG ssg) {
