@@ -86,6 +86,11 @@ task diffHandler(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task createSSG(type: JavaExec) {
+    mainClass.set('org.zlab.dinv.logger.SSG')
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 test {
     testLogging {
         showStandardStreams = true
