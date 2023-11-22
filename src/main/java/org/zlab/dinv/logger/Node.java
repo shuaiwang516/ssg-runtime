@@ -88,6 +88,27 @@ public class Node implements Serializable {
                 || className.toLowerCase().contains("array");
     }
 
+    // Method to count edges in the graph
+    public static int countEdges(Node node, Set<Integer> visitedNodes) {
+        if (node == null || visitedNodes.contains(node.identifyHash)) {
+            return 0;
+        }
+
+        visitedNodes.add(node.identifyHash);
+
+        int edgeCount = node.children.size(); // Count edges from this node to its children
+        for (Node child : node.children) {
+            edgeCount += countEdges(child, visitedNodes); // Recursively count edges in child nodes
+        }
+
+        return edgeCount;
+    }
+
+    // Helper method to start counting from the root
+    public static int countEdgesFromRoot(Node root) {
+        return countEdges(root, new HashSet<>());
+    }
+
     @Override
     public String toString() {
         return "Node{" + "type=" + type + ", className='" + className + '\'' + ", identifyHash="

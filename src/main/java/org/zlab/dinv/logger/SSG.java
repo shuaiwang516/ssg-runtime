@@ -58,11 +58,11 @@ public class SSG implements Serializable {
         }
     }
 
-    public static void serializeSSG(SSG graph, String filename) {
-        try (FileOutputStream fileOut = new FileOutputStream(filename);
+    public static void serializeSSG(SSG graph, Path filePath) {
+        try (FileOutputStream fileOut = new FileOutputStream(filePath.toFile());
                 ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
             out.writeObject(graph);
-            System.out.println("Serialized data is saved in " + filename);
+            System.out.println("Serialized data is saved in " + filePath.toFile());
         } catch (IOException i) {
             i.printStackTrace();
         }
@@ -121,13 +121,34 @@ public class SSG implements Serializable {
         }
     }
 
+    public void countEdges() {
+        int numberOfEdges = 0;
+        for (Node node : rootNodeMap.values()) {
+            numberOfEdges += Node.countEdgesFromRoot(node);
+        }
+        System.out.println("Number of edges: " + numberOfEdges);
+        // count nodes
+        int nodeNum = nodeMap.size();
+        System.out.println("Number of nodes: " + nodeNum);
+
+        // compute graph density
+        double density = (double) numberOfEdges / (nodeNum * (nodeNum - 1));
+        System.out.println("Density: " + density);
+    }
+
     // Test usage
     public static void main(String[] args) {
         // Reconstruct the SSG from the log file
         // Path filePath = Paths.get("serialize.log");
         Path filePath = Paths
                 .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
-        SSG ssg = SSG.createSSG(filePath);
-        SSG.serializeSSG(ssg, "example_ssg_folder/ssg.ser");
+        Path ssgStorePath = Paths.get("example_ssg_folder/ssg.ser");
+
+        // SSG ssg = SSG.createSSG(filePath);
+        // SSG.serializeSSG(ssg, ssgStorePath);
+
+        SSG ssg = SSG.deserializeSSG(ssgStorePath);
+        ssg.countEdges();
+
     }
 }
