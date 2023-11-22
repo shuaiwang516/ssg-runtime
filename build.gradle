@@ -91,6 +91,11 @@ task createSSG(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task createSSGraph(type: JavaExec) {
+    mainClass.set('org.zlab.dinv.logger.ssg.SSGraph')
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 test {
     testLogging {
         showStandardStreams = true
