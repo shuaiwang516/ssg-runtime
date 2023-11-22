@@ -41,7 +41,13 @@ public class SSG implements Serializable {
             pNode = nodeMap.get(pNode.identifyHash);
             fNode = nodeMap.get(fNode.identifyHash);
 
-            pNode.addChild(fNode, field.name);
+            // split get [1]
+            String fieldName = field.name;
+            if (fieldName.contains(".")) {
+                fieldName = fieldName.split("\\.")[1];
+            }
+
+            pNode.addChild(fNode, fieldName);
             fNode.addParent(pNode);
 
             // Update the rootNodeMap
@@ -118,14 +124,9 @@ public class SSG implements Serializable {
     // Test usage
     public static void main(String[] args) {
         // Reconstruct the SSG from the log file
-
         // Path filePath = Paths.get("serialize.log");
-        Path filePath = Paths.get("serialize.log");
+        Path filePath = Paths.get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
         SSG ssg = SSG.createSSG(filePath);
         SSG.serializeSSG(ssg, "example_ssg_folder/ssg.ser");
-        // SSG ssg = SSG.deserializeSSG(Paths.get("ssg.ser"));
-        // System.out.println("traverse the SSG =====================");
-        // ssg.traverse();
-        // ssg.traverse1();
     }
 }
