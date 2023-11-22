@@ -17,7 +17,6 @@ public class InferenceEngine {
         proto_invs.add(new UpperBound());
     }
 
-    public List<SSGPointSlice1> unaryInvariants = new LinkedList<>();
     public Map<VarInfo, SSGPointSlice1> unaryInvariantMap = new HashMap<>();
 
     /**
@@ -80,6 +79,7 @@ public class InferenceEngine {
     }
 
     public void handleBinaryInvariant(SSG ssg) {
+        // TODO
     }
 
     public static List<Node> findCollectionOrArray(SSG ssg) {
@@ -95,31 +95,8 @@ public class InferenceEngine {
                 if (n.children.isEmpty() || n.parents.isEmpty())
                     continue;
                 collectionOrArrayNodes.add(n);
-                // for (Node p : n.parents) {
-                // System.out.println("Parent: " + p.variableInfo);
-                // }
-                // System.out.println("Current Node: " + n.variableInfo);
-                // for (Node c : n.children) {
-                // System.out.println("Children: " + c.variableInfo);
-                // }
-                // System.out.println();
             }
         }
-
-        // Know which field it belongs to
-        // List<String> fieldRelations = new LinkedList<>();
-        // for (Node node : collectionOrArrayNodes) {
-        // // System.out.println("Node: " + node.variableInfo);
-        // for (Node parent : node.parents) {
-        // fieldRelations.add(parent.variableInfo.className + " : " +
-        // node.variableInfo.name
-        // + " : " + "children size = " + node.children.size());
-        // }
-        // }
-        //
-        // for (String s : fieldRelations) {
-        // System.out.println(s);
-        // }
         return collectionOrArrayNodes;
     }
 

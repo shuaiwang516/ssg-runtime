@@ -125,7 +125,8 @@ public class SSG implements Serializable {
     public static void main(String[] args) {
         // Reconstruct the SSG from the log file
         // Path filePath = Paths.get("serialize.log");
-        Path filePath = Paths.get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
+        Path filePath = Paths
+                .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
         SSG ssg = SSG.createSSG(filePath);
         SSG.serializeSSG(ssg, "example_ssg_folder/ssg.ser");
     }
