@@ -58,9 +58,8 @@ public class InferenceEngine {
 
     public void handleCollectionSizeInvariant(SSG ssg) {
         List<Node> collectionOrArrayNodes = findCollectionOrArray(ssg);
+
         for (Node node : collectionOrArrayNodes) {
-            if (!node.variableInfo.name.contains("."))
-                return;
             List<VarInfo> varInfos = VarInfo.fromNode(node);
             for (VarInfo varInfo : varInfos) {
                 if (!unaryInvariantMap.containsKey(varInfo)) {

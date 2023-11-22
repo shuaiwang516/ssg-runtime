@@ -1,22 +1,34 @@
 package org.zlab.dinv.logger;
 
 import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Node implements Serializable {
     private static final long serialVersionUID = -7603362767491437099L;
 
-    public LogEntry.VariableInfo variableInfo;
+    public LogEntry.VariableType type; // This will hold either the primitive type name or "String"
+    public String className;
+
+    public final int identifyHash;
+    public String value; // hashcode for object, value for primitive
 
     public List<Node> parents = new LinkedList<>();
     public List<Node> children = new LinkedList<>();
-
-    public Node() {
-    }
+    public Map<Integer, String> childrenIdHash2Name = new HashMap<>();
 
     public Node(LogEntry.VariableInfo variableInfo) {
-        this.variableInfo = variableInfo;
+        this.type = variableInfo.type;
+        this.className = variableInfo.className;
+        if (variableInfo.identifyHash == 0 && variableInfo.className != null) {
+            // Static class
+            identifyHash = variableInfo.className.hashCode();
+        } else {
+            identifyHash = variableInfo.identifyHash;
+        }
+        this.value = variableInfo.value;
+        if (className == null && identifyHash == 0) {
+            System.out.println("className and identifyHash are both null" + variableInfo);
+        }
     }
 
     public void addParent(Node node) {
@@ -24,26 +36,24 @@ public class Node implements Serializable {
             return;
         }
         for (Node parent : parents) {
-            if (parent.variableInfo.equals(node.variableInfo)) {
+            if (parent.equals(node)) {
                 return;
             }
         }
         parents.add(node);
     }
 
-    public void addChild(Node node) {
+    public void addChild(Node node, String name) {
         if (node == null) {
             return;
         }
         for (Node child : children) {
-            if (child.variableInfo == null) {
-                System.out.println("child is null");
-            }
-            if (child.variableInfo.equals(node.variableInfo)) {
+            if (child.identifyHash == node.identifyHash) {
                 return;
             }
         }
         children.add(node);
+        childrenIdHash2Name.put(node.identifyHash, name);
     }
 
     public static void printAllChildren(Node node, int indentLevel) {
@@ -52,7 +62,7 @@ public class Node implements Serializable {
         }
 
         // Process the current node (e.g., print its information)
-        printWithIndent(node.variableInfo, indentLevel);
+        printWithIndent(node, indentLevel);
 
         // Recursively call this method for each child
         for (Node child : node.children) {
@@ -60,11 +70,11 @@ public class Node implements Serializable {
         }
     }
 
-    private static void printWithIndent(LogEntry.VariableInfo info, int indentLevel) {
+    private static void printWithIndent(Node node, int indentLevel) {
         for (int i = 0; i < indentLevel; i++) {
             System.out.print("  "); // Two spaces for each level of indentation
         }
-        System.out.println(info); // Assuming VariableInfo has a meaningful toString()
+        System.out.println(node); // Assuming VariableInfo has a meaningful toString()
                                   // implementation
     }
 
@@ -74,8 +84,14 @@ public class Node implements Serializable {
     }
 
     public boolean isCollectionOrArray() {
-        return variableInfo.className.toLowerCase().contains("list")
-                || variableInfo.className.toLowerCase().contains("array");
+        return className.toLowerCase().contains("list")
+                || className.toLowerCase().contains("array");
+    }
+
+    @Override
+    public String toString() {
+        return "Node{" + "type=" + type + ", className='" + className + '\'' + ", identifyHash="
+                + identifyHash + ", value='" + value + '\'' + '}';
     }
 
 }

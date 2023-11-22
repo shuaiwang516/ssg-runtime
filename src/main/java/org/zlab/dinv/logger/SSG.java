@@ -12,8 +12,8 @@ public class SSG implements Serializable {
     private static final long serialVersionUID = -3502268071773914071L;
 
     // Root Nodes
-    public Map<LogEntry.VariableInfo, Node> rootNodeMap = new HashMap<>();
-    public Map<LogEntry.VariableInfo, Node> nodeMap = new HashMap<>();
+    public Map<Integer, Node> rootNodeMap = new HashMap<>();
+    public Map<Integer, Node> nodeMap = new HashMap<>();
 
     public SSG(List<LogEntry> logEntries) {
         // construct the SSG, each logEntry is an edge consisting of parent and field
@@ -28,29 +28,27 @@ public class SSG implements Serializable {
                 continue;
             }
 
+            Node pNode = new Node(parent);
+            Node fNode = new Node(field);
+
             // construct the variableInfoNodeMap
-            if (!nodeMap.containsKey(parent)) {
-                nodeMap.put(parent, new Node(parent));
-            } else {
-                if (parent.name != null && nodeMap.get(parent).variableInfo.name == null)
-                    nodeMap.get(parent).variableInfo.name = parent.name;
+            if (!nodeMap.containsKey(pNode.identifyHash)) {
+                nodeMap.put(pNode.identifyHash, pNode);
             }
-            if (!nodeMap.containsKey(field)) {
-                nodeMap.put(field, new Node(field));
-            } else {
-                if (field.name != null && nodeMap.get(field).variableInfo.name == null)
-                    nodeMap.get(field).variableInfo.name = field.name;
+            if (!nodeMap.containsKey(fNode.identifyHash)) {
+                nodeMap.put(fNode.identifyHash, fNode);
             }
-            nodeMap.get(parent).addChild(nodeMap.get(field));
-            nodeMap.get(field).addParent(nodeMap.get(parent));
+            pNode = nodeMap.get(pNode.identifyHash);
+            fNode = nodeMap.get(fNode.identifyHash);
+
+            pNode.addChild(fNode, field.name);
+            fNode.addParent(pNode);
 
             // Update the rootNodeMap
-            if (nodeMap.get(parent).parents.isEmpty() && !rootNodeMap.containsKey(parent)) {
-                rootNodeMap.put(parent, nodeMap.get(parent));
+            if (pNode.parents.isEmpty() && !rootNodeMap.containsKey(pNode.identifyHash)) {
+                rootNodeMap.put(pNode.identifyHash, pNode);
             }
-            if (rootNodeMap.containsKey(field)) {
-                rootNodeMap.remove(field);
-            }
+            rootNodeMap.remove(fNode.identifyHash);
         }
     }
 
@@ -78,19 +76,26 @@ public class SSG implements Serializable {
         return ssg;
     }
 
-    public static void createSSG(Path filePath) {
+    public static SSG createSSG(Path filePath) {
         List<LogEntry> logEntries = LogReader.read(filePath);
         SSG ssg = new SSG(logEntries);
-        SSG.serializeSSG(ssg, "ssg.ser");
+
+        for (Node node : ssg.rootNodeMap.values()) {
+            if (node.identifyHash == 0 && node.className == null) {
+                System.out.println("Node: " + node);
+            }
+        }
+
+        return ssg;
     }
 
     // Test usage
     public void traverse() {
         // Find how many child a RowIndexEntry has
         for (Node node : nodeMap.values()) {
-            if (node.variableInfo.className.contains("IndexEntry")) {
-                System.out.println("start node = " + node.variableInfo);
-                System.out.println(node.children.size());
+            if (node.className.contains("IndexEntry")) {
+                System.out.println("start node = " + node);
+                System.out.println(node.children);
                 Node.printAllChildren(node);
                 System.out.println("====================================");
             }
@@ -101,9 +106,9 @@ public class SSG implements Serializable {
     public void traverse1() {
         // Find how many child a RowIndexEntry has
         for (Node node : nodeMap.values()) {
-            if (node.variableInfo.identifyHash == 519944329) {
-                System.out.println("start node = " + node.variableInfo);
-                System.out.println(node.children.size());
+            if (node.identifyHash == 519944329) {
+                System.out.println("start node = " + node);
+                System.out.println(node.children);
                 Node.printAllChildren(node);
                 System.out.println("====================================");
             }
@@ -115,13 +120,12 @@ public class SSG implements Serializable {
         // Reconstruct the SSG from the log file
 
         // Path filePath = Paths.get("serialize.log");
-        Path filePath = Paths
-                .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
-        SSG.createSSG(filePath);
-
-        SSG ssg = SSG.deserializeSSG(Paths.get("ssg.ser"));
-        System.out.println("traverse the SSG =====================");
-        ssg.traverse();
+        Path filePath = Paths.get("serialize.log");
+        SSG ssg = SSG.createSSG(filePath);
+        SSG.serializeSSG(ssg, "example_ssg_folder/ssg.ser");
+        // SSG ssg = SSG.deserializeSSG(Paths.get("ssg.ser"));
+        // System.out.println("traverse the SSG =====================");
+        // ssg.traverse();
         // ssg.traverse1();
     }
 }

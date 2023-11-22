@@ -5,10 +5,7 @@ import org.zlab.dinv.logger.Node;
 import org.zlab.dinv.logger.derive.Derivation;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class VarInfo implements Serializable {
     static final long serialVersionUID = 20231120L;
@@ -57,26 +54,29 @@ public class VarInfo implements Serializable {
 
     @Override
     public int hashCode() {
-        return this.name.hashCode() + this.type.hashCode() + this.className.hashCode()
-                + this.rootClassName.hashCode();
+        return Objects.hash(name, type, className, rootClassName);
     }
 
     public static List<VarInfo> fromNode(Node node) {
         List<VarInfo> vars = new LinkedList<>();
 
-        String name = node.variableInfo.name.split("\\.")[1];
-
-        LogEntry.VariableType type = node.variableInfo.type;
-        String className = node.variableInfo.className;
+        LogEntry.VariableType type = node.type;
+        String className = node.className;
 
         Set<String> visitedParents = new HashSet<>();
+        // FIXME: if this is the root node, how to handle it?
         for (Node parent : node.parents) {
-            if (visitedParents.contains(parent.variableInfo.className)) {
+            // get current node name, might be different
+            String name = parent.childrenIdHash2Name.get(node.identifyHash);
+            if (name == null) {
+                System.out.println("Null Node: " + node);
+                assert false;
+            }
+            if (visitedParents.contains(parent.className)) {
                 continue;
             }
-            vars.add(new VarInfo(name, type, className, parent.variableInfo.className,
-                    parent.variableInfo.className));
-            visitedParents.add(parent.variableInfo.className);
+            vars.add(new VarInfo(name, type, className, parent.className, parent.className));
+            visitedParents.add(parent.className);
         }
         return vars;
     }

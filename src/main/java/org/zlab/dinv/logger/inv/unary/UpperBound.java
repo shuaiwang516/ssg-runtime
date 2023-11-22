@@ -43,4 +43,5 @@ public class UpperBound extends UnaryInvariant {
         String name = var.parentClassName + "." + var().name;
         return name + " < " + x;
     }
+
 }
