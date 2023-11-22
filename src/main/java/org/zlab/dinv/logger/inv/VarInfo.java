@@ -67,7 +67,7 @@ public class VarInfo implements Serializable {
         // FIXME: if this is the root node, how to handle it?
         for (Node parent : node.parents) {
             // get current node name, might be different
-            String name = parent.childrenIdHash2Name.get(node.identifyHash);
+            String name = parent.childrenIdHash2Name.get(node.identifyHash).name;
             if (name == null) {
                 System.out.println("Null Node: " + node);
                 assert false;

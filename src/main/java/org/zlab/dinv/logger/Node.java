@@ -1,5 +1,7 @@
 package org.zlab.dinv.logger;
 
+import org.zlab.dinv.logger.inv.Edge;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -14,7 +16,7 @@ public class Node implements Serializable {
 
     public List<Node> parents = new LinkedList<>();
     public List<Node> children = new LinkedList<>();
-    public Map<Integer, String> childrenIdHash2Name = new HashMap<>();
+    public Map<Integer, Edge> childrenIdHash2Name = new HashMap<>();
 
     public Node(LogEntry.VariableInfo variableInfo) {
         this.type = variableInfo.type;
@@ -43,7 +45,7 @@ public class Node implements Serializable {
         parents.add(node);
     }
 
-    public void addChild(Node node, String name) {
+    public void addChild(Node node, String name, int timestamp) {
         if (node == null) {
             return;
         }
@@ -53,7 +55,7 @@ public class Node implements Serializable {
             }
         }
         children.add(node);
-        childrenIdHash2Name.put(node.identifyHash, name);
+        childrenIdHash2Name.put(node.identifyHash, new Edge(name, timestamp));
     }
 
     public static void printAllChildren(Node node, int indentLevel) {

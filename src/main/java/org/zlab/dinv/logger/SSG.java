@@ -17,7 +17,12 @@ public class SSG implements Serializable {
 
     public SSG(List<LogEntry> logEntries) {
         // construct the SSG, each logEntry is an edge consisting of parent and field
-        for (LogEntry logEntry : logEntries) {
+
+        for (int i = 0; i < logEntries.size(); i++) {
+            if (i % 10000 == 0) {
+                System.out.println("Processing " + i + "th log entry");
+            }
+            LogEntry logEntry = logEntries.get(i);
             LogEntry.VariableInfo parent = logEntry.parent;
             LogEntry.VariableInfo field = logEntry.field;
 
@@ -47,7 +52,7 @@ public class SSG implements Serializable {
                 fieldName = fieldName.split("\\.")[1];
             }
 
-            pNode.addChild(fNode, fieldName);
+            pNode.addChild(fNode, fieldName, i);
             fNode.addParent(pNode);
 
             // Update the rootNodeMap
@@ -144,11 +149,11 @@ public class SSG implements Serializable {
                 .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
         Path ssgStorePath = Paths.get("example_ssg_folder/ssg.ser");
 
-        // SSG ssg = SSG.createSSG(filePath);
-        // SSG.serializeSSG(ssg, ssgStorePath);
+        SSG ssg = SSG.createSSG(filePath);
+        SSG.serializeSSG(ssg, ssgStorePath);
 
-        SSG ssg = SSG.deserializeSSG(ssgStorePath);
-        ssg.countEdges();
+        // SSG ssg = SSG.deserializeSSG(ssgStorePath);
+        // ssg.countEdges();
 
     }
 }
