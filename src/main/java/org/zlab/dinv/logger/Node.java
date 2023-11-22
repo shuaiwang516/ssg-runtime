@@ -1,7 +1,5 @@
 package org.zlab.dinv.logger;
 
-import org.zlab.dinv.logger.inv.Edge;
-
 import java.io.Serializable;
 import java.util.*;
 
@@ -16,21 +14,26 @@ public class Node implements Serializable {
 
     public List<Node> parents = new LinkedList<>();
     public List<Node> children = new LinkedList<>();
-    public Map<Integer, Edge> childrenIdHash2Name = new HashMap<>();
+    public Map<Integer, List<Edge>> childrenIdHash2Name = new HashMap<>();
 
     public Node(LogEntry.VariableInfo variableInfo) {
         this.type = variableInfo.type;
         this.className = variableInfo.className;
-        if (variableInfo.identifyHash == 0 && variableInfo.className != null) {
+        if (variableInfo.identifyHash == 0) {
             // Static class
-            identifyHash = variableInfo.className.hashCode();
+            if (variableInfo.className != null
+                    && variableInfo.type == LogEntry.VariableType.CLASS) {
+                identifyHash = variableInfo.className.hashCode();
+            } else {
+                // Primitives
+                identifyHash = Objects.hash(variableInfo.type, variableInfo.className,
+                        variableInfo.value);
+            }
         } else {
+            // primitive type will still be 0
             identifyHash = variableInfo.identifyHash;
         }
         this.value = variableInfo.value;
-        if (className == null && identifyHash == 0) {
-            System.out.println("className and identifyHash are both null" + variableInfo);
-        }
     }
 
     public void addParent(Node node) {
@@ -46,16 +49,24 @@ public class Node implements Serializable {
     }
 
     public void addChild(Node node, String name, int timestamp) {
+        // TODO: Handle primitives, identifyHash == 0
         if (node == null) {
             return;
         }
+        boolean exist = false;
         for (Node child : children) {
             if (child.identifyHash == node.identifyHash) {
-                return;
+                exist = true;
+                break;
             }
         }
-        children.add(node);
-        childrenIdHash2Name.put(node.identifyHash, new Edge(name, timestamp));
+        if (!exist) {
+            children.add(node);
+        }
+        if (!childrenIdHash2Name.containsKey(node.identifyHash)) {
+            childrenIdHash2Name.put(node.identifyHash, new LinkedList<>());
+        }
+        childrenIdHash2Name.get(node.identifyHash).add(new Edge(name, timestamp));
     }
 
     public static void printAllChildren(Node node, int indentLevel) {
@@ -98,11 +109,14 @@ public class Node implements Serializable {
 
         visitedNodes.add(node.identifyHash);
 
-        int edgeCount = node.children.size(); // Count edges from this node to its children
+        // count size of node.childrenIdHash2Name
+        int edgeCount = 0;
+        for (List<Edge> edges : node.childrenIdHash2Name.values()) {
+            edgeCount += edges.size();
+        }
         for (Node child : node.children) {
             edgeCount += countEdges(child, visitedNodes); // Recursively count edges in child nodes
         }
-
         return edgeCount;
     }
 

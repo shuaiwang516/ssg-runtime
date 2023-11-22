@@ -145,15 +145,15 @@ public class SSG implements Serializable {
     public static void main(String[] args) {
         // Reconstruct the SSG from the log file
         // Path filePath = Paths.get("serialize.log");
-        Path filePath = Paths
-                .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
+        Path filePath = Paths.get("/Users/hanke/Desktop/Project/serialize.log");
         Path ssgStorePath = Paths.get("example_ssg_folder/ssg.ser");
 
+        // Create and Store SSG
         SSG ssg = SSG.createSSG(filePath);
         SSG.serializeSSG(ssg, ssgStorePath);
 
-        // SSG ssg = SSG.deserializeSSG(ssgStorePath);
-        // ssg.countEdges();
-
+        // Read SSG
+        SSG ssg1 = SSG.deserializeSSG(ssgStorePath);
+        ssg1.countEdges();
     }
 }

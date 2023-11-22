@@ -1,8 +1,8 @@
-package org.zlab.dinv.logger.inv;
+package org.zlab.dinv.logger;
 
 import java.io.Serializable;
 
-public class Edge  implements Serializable {
+public class Edge implements Serializable {
     private static final long serialVersionUID = 20231122L;
 
     public String name;

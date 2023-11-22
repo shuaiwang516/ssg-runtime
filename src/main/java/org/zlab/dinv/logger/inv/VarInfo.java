@@ -1,5 +1,6 @@
 package org.zlab.dinv.logger.inv;
 
+import org.zlab.dinv.logger.Edge;
 import org.zlab.dinv.logger.LogEntry;
 import org.zlab.dinv.logger.Node;
 import org.zlab.dinv.logger.derive.Derivation;
@@ -67,16 +68,19 @@ public class VarInfo implements Serializable {
         // FIXME: if this is the root node, how to handle it?
         for (Node parent : node.parents) {
             // get current node name, might be different
-            String name = parent.childrenIdHash2Name.get(node.identifyHash).name;
-            if (name == null) {
-                System.out.println("Null Node: " + node);
-                assert false;
+
+            for (Edge edge : parent.childrenIdHash2Name.get(node.identifyHash)) {
+                String name = edge.name;
+                if (name == null) {
+                    System.out.println("Null Node: " + node);
+                    assert false;
+                }
+                if (visitedParents.contains(parent.className)) {
+                    continue;
+                }
+                vars.add(new VarInfo(name, type, className, parent.className, parent.className));
+                visitedParents.add(parent.className);
             }
-            if (visitedParents.contains(parent.className)) {
-                continue;
-            }
-            vars.add(new VarInfo(name, type, className, parent.className, parent.className));
-            visitedParents.add(parent.className);
         }
         return vars;
     }
