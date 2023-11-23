@@ -1,9 +1,11 @@
 package org.zlab.dinv.logger.inv;
 
+import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.dinv.logger.Edge;
 import org.zlab.dinv.logger.LogEntry;
 import org.zlab.dinv.logger.Node;
 import org.zlab.dinv.logger.derive.Derivation;
+import org.zlab.dinv.logger.ssg.Vertex;
 
 import java.io.Serializable;
 import java.util.*;
@@ -81,6 +83,26 @@ public class VarInfo implements Serializable {
                 vars.add(new VarInfo(name, type, className, parent.className, parent.className));
                 visitedParents.add(parent.className);
             }
+        }
+        return vars;
+    }
+
+    public static List<VarInfo> fromVertex(Vertex vertex,
+            DirectedMultigraph<Vertex, org.zlab.dinv.logger.ssg.Edge> ssg) {
+        List<VarInfo> vars = new LinkedList<>();
+
+        LogEntry.VariableType type = vertex.type;
+        String className = vertex.className;
+
+        // FIXME: If this is the root node, how to handle it?
+        for (org.zlab.dinv.logger.ssg.Edge edge : ssg.incomingEdgesOf(vertex)) {
+            Vertex parent = ssg.getEdgeSource(edge);
+            String name = edge.name;
+            if (name == null) {
+                System.out.printf("null name edge:\n parent = %s\n, node = %s\n", parent, vertex);
+                assert false;
+            }
+            vars.add(new VarInfo(name, type, className, parent.className, parent.className));
         }
         return vars;
     }

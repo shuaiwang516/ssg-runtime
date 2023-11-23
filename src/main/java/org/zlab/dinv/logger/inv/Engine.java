@@ -1,15 +1,19 @@
 package org.zlab.dinv.logger.inv;
 
-import org.zlab.dinv.logger.Node;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.dinv.logger.SSG;
 import org.zlab.dinv.logger.inv.unary.UpperBound;
+import org.zlab.dinv.logger.ssg.Edge;
+import org.zlab.dinv.logger.ssg.SSGraph;
+import org.zlab.dinv.logger.ssg.Vertex;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class InferenceEngine {
+public class Engine {
+
     // List of prototype invariants
     public static final ArrayList<Invariant> proto_invs = new ArrayList<>();
     static {
@@ -31,13 +35,10 @@ public class InferenceEngine {
      * monitor the invariants
      */
     public void run(Path ssgFolder) {
-        // Read and process each ssg: folder: example_ssg_folder
         assert ssgFolder.toFile().isDirectory();
         for (File ssgFile : ssgFolder.toFile().listFiles()) {
-            // print loading + filename
             System.out.println("Loading " + ssgFile.getName());
-            SSG ssg = SSG.deserializeSSG(ssgFile.toPath());
-            // print processing + filename
+            DirectedMultigraph<Vertex, Edge> ssg = SSGraph.deserializeSSG(ssgFile.toPath());
             System.out.println("Processing " + ssgFile.getName());
             process(ssg);
         }
@@ -49,20 +50,20 @@ public class InferenceEngine {
         }
     }
 
-    public void process(SSG ssg) {
+    public void process(DirectedMultigraph<Vertex, Edge> ssg) {
         handleUnaryInvariant(ssg);
     }
 
-    public void handleUnaryInvariant(SSG ssg) {
+    public void handleUnaryInvariant(DirectedMultigraph<Vertex, Edge> ssg) {
         handleCollectionSizeInvariant(ssg);
         handlePrimitiveInvariant(ssg);
     }
 
-    public void handleCollectionSizeInvariant(SSG ssg) {
-        List<Node> collectionOrArrayNodes = findCollectionOrArray(ssg);
+    public void handleCollectionSizeInvariant(DirectedMultigraph<Vertex, Edge> ssg) {
+        List<Vertex> collectionOrArrayNodes = findCollectionOrArray(ssg);
 
-        for (Node node : collectionOrArrayNodes) {
-            List<VarInfo> varInfos = VarInfo.fromNode(node);
+        for (Vertex vertex : collectionOrArrayNodes) {
+            List<VarInfo> varInfos = VarInfo.fromVertex(vertex, ssg);
             for (VarInfo varInfo : varInfos) {
                 if (!unaryInvariantMap.containsKey(varInfo)) {
                     SSGPointSlice1 ssgPointSlice1 = new SSGPointSlice1(varInfo);
@@ -71,56 +72,37 @@ public class InferenceEngine {
                     unaryInvariantMap.put(varInfo, ssgPointSlice1);
                 }
                 SSGPointSlice1 ssgPointSlice1 = unaryInvariantMap.get(varInfo);
-                Integer collectionSize = node.children.size();
+                Integer collectionSize = ssg.outDegreeOf(vertex);
                 ssgPointSlice1.addCollectionSize(collectionSize, 1);
             }
         }
     }
 
-    public void handlePrimitiveInvariant(SSG ssg) {
+    public void handlePrimitiveInvariant(DirectedMultigraph<Vertex, Edge> ssg) {
         // TODO
     }
 
-    public void handleBinaryInvariant(SSG ssg) {
+    public void handleBinaryInvariant(DirectedMultigraph<Vertex, Edge> ssg) {
         // TODO
     }
 
-    public static List<Node> findCollectionOrArray(SSG ssg) {
-        System.out.println("Root Nodes size: " + ssg.rootNodeMap.size());
-
-        List<Node> collectionOrArrayNodes = new LinkedList<>();
-
-        for (Node node : ssg.rootNodeMap.values()) {
-            List<Node> targetNodes = findCollectionNode(node);
-
-            for (Node n : targetNodes) {
-                // print parent, current node and children
-                if (n.children.isEmpty() || n.parents.isEmpty())
+    public static List<Vertex> findCollectionOrArray(DirectedMultigraph<Vertex, Edge> ssg) {
+        List<Vertex> collectionOrArrayNodes = new LinkedList<>();
+        for (Vertex o : ssg.vertexSet()) {
+            if (o.isCollectionOrArray()) {
+                if (ssg.outDegreeOf(o) == 0) {
                     continue;
-                collectionOrArrayNodes.add(n);
+                }
+                collectionOrArrayNodes.add(o);
             }
         }
         return collectionOrArrayNodes;
     }
 
-    public static List<Node> findCollectionNode(Node node) {
-        List<Node> result = new LinkedList<>();
-        if (node == null) {
-            return result;
-        }
-        if (node.isCollectionOrArray()) {
-            result.add(node);
-        }
-        for (Node child : node.children) {
-            result.addAll(findCollectionNode(child));
-        }
-        return result;
-    }
-
     // Test Usage
     public static void main(String[] args) {
-        InferenceEngine engine = new InferenceEngine();
-        Path ssgFolder = Paths.get("example_ssg_folder");
+        Engine engine = new Engine();
+        Path ssgFolder = Paths.get("example_ssgraph_folder");
         engine.run(ssgFolder);
     }
 

@@ -70,8 +70,13 @@ public class SSGraph {
             graph.addVertex(pVertex);
             graph.addVertex(fVertex);
 
-            graph.addEdge(pVertex, fVertex, new Edge("edge", i));
+            // Compute name
+            String fieldName = field.name;
+            if (fieldName.contains(".")) {
+                fieldName = fieldName.split("\\.")[1];
+            }
 
+            graph.addEdge(pVertex, fVertex, new Edge(fieldName, i));
         }
         serializeSSG(graph, ssgStorePath);
     }
