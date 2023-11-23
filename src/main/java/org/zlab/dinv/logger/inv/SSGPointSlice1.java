@@ -1,6 +1,5 @@
 package org.zlab.dinv.logger.inv;
 
-import org.zlab.dinv.logger.SSGPointSlice;
 import org.zlab.dinv.logger.inv.unary.UnaryInvariant;
 
 import java.util.LinkedList;

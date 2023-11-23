@@ -1,7 +1,4 @@
-package org.zlab.dinv.logger;
-
-import org.zlab.dinv.logger.inv.Invariant;
-import org.zlab.dinv.logger.inv.VarInfo;
+package org.zlab.dinv.logger.inv;
 
 import java.util.LinkedList;
 import java.util.List;

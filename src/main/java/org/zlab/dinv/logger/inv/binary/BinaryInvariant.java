@@ -1,6 +1,6 @@
 package org.zlab.dinv.logger.inv.binary;
 
-import org.zlab.dinv.logger.SSGPointSlice;
+import org.zlab.dinv.logger.inv.SSGPointSlice;
 import org.zlab.dinv.logger.inv.Invariant;
 
 public class BinaryInvariant extends Invariant {

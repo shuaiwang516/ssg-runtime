@@ -1,4 +1,4 @@
-package org.zlab.dinv.logger;
+package org.zlab.dinv.logger.inv;
 
 import org.zlab.dinv.logger.inv.VarInfo;
 

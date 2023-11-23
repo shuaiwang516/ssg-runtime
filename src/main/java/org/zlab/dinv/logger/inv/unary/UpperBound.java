@@ -1,6 +1,6 @@
 package org.zlab.dinv.logger.inv.unary;
 
-import org.zlab.dinv.logger.SSGPointSlice;
+import org.zlab.dinv.logger.inv.SSGPointSlice;
 import org.zlab.dinv.logger.inv.Invariant;
 import org.zlab.dinv.logger.inv.VarInfo;
 

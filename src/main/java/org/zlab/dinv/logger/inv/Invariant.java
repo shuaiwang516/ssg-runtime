@@ -1,7 +1,5 @@
 package org.zlab.dinv.logger.inv;
 
-import org.zlab.dinv.logger.SSGPointSlice;
-
 import java.io.Serializable;
 
 public abstract class Invariant implements Serializable {
