@@ -81,11 +81,11 @@ public class SSGraph {
 
             graph.addEdge(pVertex, fVertex, new Edge(fieldName, i));
         }
-        // serializeSSG(graph, ssgStorePath);
+        serializeSSG(graph, ssgStorePath);
     }
 
     public static void createSSGParallel(List<LogEntry> logEntries, Path ssgStorePath) {
-        Graph<Vertex, Edge> baseGraph = new DirectedMultigraph<>(Edge.class);
+        DirectedMultigraph<Vertex, Edge> baseGraph = new DirectedMultigraph<>(Edge.class);
         Graph<Vertex, Edge> synchronizedGraph = new AsSynchronizedGraph<>(baseGraph);
 
         ForkJoinPool customThreadPool = new ForkJoinPool(); // Adjust the number of threads if
@@ -99,7 +99,7 @@ public class SSGraph {
         } finally {
             customThreadPool.shutdown();
         }
-        // serializeSSG(synchronizedGraph, ssgStorePath);
+        serializeSSG(baseGraph, ssgStorePath);
     }
 
     private static void processLogEntry(List<LogEntry> logEntries, LogEntry logEntry,
@@ -130,8 +130,8 @@ public class SSGraph {
 
     public static void createSSG(Path logEntryPath, Path ssgStorePath) {
         List<LogEntry> logEntries = LogReader.read(logEntryPath);
-        createSSG(logEntries, ssgStorePath);
-        // createSSGParallel(logEntries, ssgStorePath);
+        // createSSG(logEntries, ssgStorePath);
+        createSSGParallel(logEntries, ssgStorePath);
     }
 
     public static void testSSG(Path ssgPath) {
