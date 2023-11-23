@@ -1,7 +1,6 @@
 package org.zlab.dinv.logger.inv;
 
 import org.jgrapht.graph.DirectedMultigraph;
-import org.zlab.dinv.logger.SSG;
 import org.zlab.dinv.logger.inv.unary.UpperBound;
 import org.zlab.dinv.logger.ssg.Edge;
 import org.zlab.dinv.logger.ssg.SSGraph;

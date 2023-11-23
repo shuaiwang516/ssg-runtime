@@ -1,9 +1,7 @@
 package org.zlab.dinv.logger.inv;
 
 import org.jgrapht.graph.DirectedMultigraph;
-import org.zlab.dinv.logger.Edge;
 import org.zlab.dinv.logger.LogEntry;
-import org.zlab.dinv.logger.Node;
 import org.zlab.dinv.logger.derive.Derivation;
 import org.zlab.dinv.logger.ssg.Vertex;
 
@@ -58,33 +56,6 @@ public class VarInfo implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(name, type, className, rootClassName);
-    }
-
-    public static List<VarInfo> fromNode(Node node) {
-        List<VarInfo> vars = new LinkedList<>();
-
-        LogEntry.VariableType type = node.type;
-        String className = node.className;
-
-        Set<String> visitedParents = new HashSet<>();
-        // FIXME: if this is the root node, how to handle it?
-        for (Node parent : node.parents) {
-            // get current node name, might be different
-
-            for (Edge edge : parent.childrenIdHash2Name.get(node.identifyHash)) {
-                String name = edge.name;
-                if (name == null) {
-                    System.out.println("Null Node: " + node);
-                    assert false;
-                }
-                if (visitedParents.contains(parent.className)) {
-                    continue;
-                }
-                vars.add(new VarInfo(name, type, className, parent.className, parent.className));
-                visitedParents.add(parent.className);
-            }
-        }
-        return vars;
     }
 
     public static List<VarInfo> fromVertex(Vertex vertex,

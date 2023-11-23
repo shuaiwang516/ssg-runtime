@@ -15,7 +15,7 @@ public class SSGPointSlice1 extends SSGPointSlice {
 
     @Override
     public void instantiate_invariants() {
-        for (Invariant protoInv : InferenceEngine.proto_invs) {
+        for (Invariant protoInv : Engine.proto_invs) {
             Invariant inv = protoInv.instantiate(this);
             invs.add(inv);
         }
@@ -24,7 +24,7 @@ public class SSGPointSlice1 extends SSGPointSlice {
     @Override
     public void instantiate_collection_size_invariants() {
         if (varInfo.isCollection()) {
-            for (Invariant protoInv : InferenceEngine.proto_invs) {
+            for (Invariant protoInv : Engine.proto_invs) {
                 Invariant inv = protoInv.instantiate(this);
                 addCollectionSizeInvariant(inv);
             }
