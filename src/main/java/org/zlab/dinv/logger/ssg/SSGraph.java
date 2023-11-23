@@ -36,14 +36,20 @@ public class SSGraph {
         return ssg;
     }
 
-    public static void createSSG() {
-        // Path filePath = Paths.get("/Users/hanke/Desktop/Project/serialize.log");
-        Path filePath = Paths
-                .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
+    public static List<Vertex> getRootNodes(DirectedMultigraph<Vertex, Edge> graph) {
+        List<Vertex> rootNodes = new LinkedList<>();
+        for (Vertex o : graph.vertexSet()) {
+            if (graph.inDegreeOf(o) == 0) {
+                System.out.println("Root Node: " + o);
+                rootNodes.add(o);
+            }
+        }
+        return rootNodes;
+    }
 
+    public static void createSSG(List<LogEntry> logEntries, Path ssgStorePath) {
         DirectedMultigraph<Vertex, Edge> graph = new DirectedMultigraph<>(Edge.class);
 
-        List<LogEntry> logEntries = LogReader.read(filePath);
         for (int i = 0; i < logEntries.size(); i++) {
             if (i % 10000 == 0) {
                 System.out.println("Processing " + i + "th log entry");
@@ -67,26 +73,36 @@ public class SSGraph {
             graph.addEdge(pVertex, fVertex, new Edge("edge", i));
 
         }
-        serializeSSG(graph, Paths.get("example_ssgraph_folder/ssg_ori.ser"));
+        serializeSSG(graph, ssgStorePath);
     }
 
-    public static void testSSG() {
+    public static void createSSG(Path logEntryPath, Path ssgStorePath) {
+        List<LogEntry> logEntries = LogReader.read(logEntryPath);
+        createSSG(logEntries, ssgStorePath);
+
+    }
+
+    public static void testSSG(Path ssgPath) {
         DirectedMultigraph<Vertex, Edge> graph = (DirectedMultigraph<Vertex, Edge>) deserializeSSG(
-                Paths.get("example_ssgraph_folder/ssg.ser"));
+                ssgPath);
         // Find all root nodes
-        List<Vertex> rootNodes = new LinkedList<>();
-        for (Vertex o : graph.vertexSet()) {
-            if (graph.inDegreeOf(o) == 0) {
-                System.out.println("Root Node: " + o);
-                rootNodes.add(o);
-            }
-        }
-        System.out.println("Root Nodes size: " + rootNodes.size());
+        // List<Vertex> rootNodes = getRootNodes(graph);
+
+        int totalNumberOfEdges = graph.edgeSet().size();
+        System.out.println("Total number of edges: " + totalNumberOfEdges);
+
+        int totalNumberOfVertices = graph.vertexSet().size();
+        System.out.println("Total number of vertices: " + totalNumberOfVertices);
     }
 
+    // Test usage
     public static void main(String[] args) {
-        createSSG();
-        // testSSG();
+        Path ssgPath = Paths.get("example_ssgraph_folder/ssg_ori.ser");
+        Path logEntryPath = Paths
+                .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
+        // Path filePath = Paths.get("/Users/hanke/Desktop/Project/serialize.log");
+        // createSSG(logEntryPath, ssgPath);
+        testSSG(ssgPath);
     }
 
 }
