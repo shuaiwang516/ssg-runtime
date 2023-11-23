@@ -1,6 +1,8 @@
 package org.zlab.dinv.logger.ssg;
 
+import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.concurrent.AsSynchronizedGraph;
 import org.zlab.dinv.logger.*;
 
 import java.io.*;
@@ -8,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 public class SSGraph {
 
@@ -78,13 +81,57 @@ public class SSGraph {
 
             graph.addEdge(pVertex, fVertex, new Edge(fieldName, i));
         }
-        serializeSSG(graph, ssgStorePath);
+        // serializeSSG(graph, ssgStorePath);
+    }
+
+    public static void createSSGParallel(List<LogEntry> logEntries, Path ssgStorePath) {
+        Graph<Vertex, Edge> baseGraph = new DirectedMultigraph<>(Edge.class);
+        Graph<Vertex, Edge> synchronizedGraph = new AsSynchronizedGraph<>(baseGraph);
+
+        ForkJoinPool customThreadPool = new ForkJoinPool(); // Adjust the number of threads if
+                                                            // necessary
+        try {
+            customThreadPool.submit(() -> logEntries.parallelStream().forEach(logEntry -> {
+                processLogEntry(logEntries, logEntry, synchronizedGraph);
+            })).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            customThreadPool.shutdown();
+        }
+        // serializeSSG(synchronizedGraph, ssgStorePath);
+    }
+
+    private static void processLogEntry(List<LogEntry> logEntries, LogEntry logEntry,
+            Graph<Vertex, Edge> graph) {
+        // Similar processing as in your original method
+        LogEntry.VariableInfo parent = logEntry.parent;
+        LogEntry.VariableInfo field = logEntry.field;
+        if (parent == null || field == null) {
+            return;
+        }
+
+        Vertex pVertex = new Vertex(parent);
+        Vertex fVertex = new Vertex(field);
+
+        // Synchronized addVertex
+        graph.addVertex(pVertex);
+        graph.addVertex(fVertex);
+
+        // Compute name and add edge
+        String fieldName = field.name;
+        if (fieldName.contains(".")) {
+            fieldName = fieldName.split("\\.")[1];
+        }
+
+        // Synchronized addEdge
+        graph.addEdge(pVertex, fVertex, new Edge(fieldName, logEntries.indexOf(logEntry)));
     }
 
     public static void createSSG(Path logEntryPath, Path ssgStorePath) {
         List<LogEntry> logEntries = LogReader.read(logEntryPath);
         createSSG(logEntries, ssgStorePath);
-
+        // createSSGParallel(logEntries, ssgStorePath);
     }
 
     public static void testSSG(Path ssgPath) {
@@ -103,11 +150,11 @@ public class SSGraph {
     // Test usage
     public static void main(String[] args) {
         Path ssgPath = Paths.get("example_ssgraph_folder/ssg_ori.ser");
-        Path logEntryPath = Paths
-                .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
-        // Path filePath = Paths.get("/Users/hanke/Desktop/Project/serialize.log");
-        // createSSG(logEntryPath, ssgPath);
-        testSSG(ssgPath);
+        // Path logEntryPath = Paths
+        // .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
+        Path logEntryPath = Paths.get("serialize.log");
+        createSSG(logEntryPath, ssgPath);
+        // testSSG(ssgPath);
     }
 
 }
