@@ -8,8 +8,10 @@ import org.zlab.dinv.logger.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 
 public class SSGraph {
@@ -135,8 +137,7 @@ public class SSGraph {
     }
 
     public static void testSSG(Path ssgPath) {
-        DirectedMultigraph<Vertex, Edge> graph = (DirectedMultigraph<Vertex, Edge>) deserializeSSG(
-                ssgPath);
+        DirectedMultigraph<Vertex, Edge> graph = deserializeSSG(ssgPath);
         // Find all root nodes
         // List<Vertex> rootNodes = getRootNodes(graph);
 
@@ -147,14 +148,44 @@ public class SSGraph {
         System.out.println("Total number of vertices: " + totalNumberOfVertices);
     }
 
+    public static void testSSG1(Path ssgPath) {
+        // Count number of nodes that are not leading to serialization
+
+        DirectedMultigraph<Vertex, Edge> graph = deserializeSSG(ssgPath);
+
+        // Iterate all nodes
+        int count = 0;
+        int count_primitive = 0;
+        Set<String> classNames = new HashSet<>();
+        for (Vertex v : graph.vertexSet()) {
+            if (graph.outDegreeOf(v) == 0) {
+                // Check if it's not primitive type or String or null
+                if (!v.type.isPrintable() && !v.className.toLowerCase().contains("buffer")) {
+                    count += graph.inDegreeOf(v);
+                    classNames.add(v.className);
+                } else {
+                    count_primitive += graph.inDegreeOf(v);
+                }
+            }
+        }
+
+        System.out.println("Number of nodes that are not leading to serialization: " + count);
+        System.out.println("Number of primitive nodes: " + count_primitive);
+
+        System.out.println(
+                "Number of classes that are not leading to serialization: " + classNames.size());
+        System.out.println("Classes that are not leading to serialization: " + classNames);
+    }
+
     // Test usage
     public static void main(String[] args) {
         Path ssgPath = Paths.get("example_ssgraph_folder/ssg_ori.ser");
         // Path logEntryPath = Paths
         // .get("/Users/hanke/Desktop/Project/cassandra/cassandra1/logs/serialize.log");
         Path logEntryPath = Paths.get("serialize.log");
-        createSSG(logEntryPath, ssgPath);
+        // createSSG(logEntryPath, ssgPath);
         // testSSG(ssgPath);
+        // testSSG1(ssgPath);
     }
 
 }
