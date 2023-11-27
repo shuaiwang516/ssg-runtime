@@ -1,4 +1,7 @@
-# dinv-monitor
+# ssg-runtime
+
+This repo is split from dinv-monitor for only JDK8 usage.
+
 * Performs source code instrumentation to embed the invariants. Use `Runtime` 
 to collect violations and send this information back to the user. 
 * When the jvm exits, it dumps the violations to violations.txt using a
@@ -73,58 +76,3 @@ $HADOOP_ROOT_PATH/share/hadoop/hdfs/lib/dinv-monitor-shadow.jar
 After building the dist version, after untar, also create a lib folder
 and add this jar file.
 
-
-## Visibility Rewrite
-Our program analysis can track to some interesting variables. We want
-daikon to monitor them. However, those variables could be local variables
-and daikon won't monitor them. Therefore, we add a local dummy field to
-represent their values.
-
-E.g.
-
-Before
-```java
-pubilc Class Example {
-    public void f(int a) {
-        int b = 0;
-        if (a > b) {
-        }
-
-    }
-}
-```
-After
-```java
-pubilc Class Example {
-    public int left_;
-    
-    public void f(int a) {
-        int b = 0;
-        left_ = a;
-        if (a > b) {
-        }
-        // Specify invariants over a and a_daikon_dummy_field
-    }
-}
-```
-
-## TODOs
-
-Handle invariants
-- comparison between pre and post state
-
-**Avoid the side effect**: the current implementation cannot handle the side effect related stmts.
-This will cause problems.
-
-We also need to overwrite the if branches, use the field in the if branches.
-```bash
-
-left_ = a++;
-right = b;
-if (a++ > b) {
-
-}}
-```
-
-Test configurations
-* ENUM: extract the constants

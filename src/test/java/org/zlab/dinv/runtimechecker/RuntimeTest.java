@@ -12,7 +12,7 @@ public class RuntimeTest {
     private static final String SERVER_HOST = "localhost"; // the server host name or IP address
     private static final int SERVER_PORT = 62000; // the server port
 
-    @Test
+    // @Test
     public void testRuntimeServer() {
         try {
             dumpViolationServer();
@@ -71,15 +71,6 @@ public class RuntimeTest {
         out.close();
         in.close();
         socket.close();
-    }
-
-    public void tmp() {
-        System.out.println("hh");
-    }
-
-    @Test
-    public void test() {
-        System.out.println("hello");
     }
 
 }

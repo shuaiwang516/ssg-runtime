@@ -61,41 +61,6 @@ application {
     mainClassName = 'org.zlab.dinv.visibility.Main'
 }
 
-task instSerializePoints(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.serializepoint.Main')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-task embedInv(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.runtimechecker.Main')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-task modifiedFields(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.modifiedfields.Main')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-task modifiedConfigs(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.diffconfig.RetrieveDiffConfigMain')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-task diffHandler(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.diffconfig.DiffHandlerMain')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-task createSSG(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.logger.SSG')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
-task createSSGraph(type: JavaExec) {
-    mainClass.set('org.zlab.dinv.logger.ssg.SSGraph')
-    classpath = sourceSets.main.runtimeClasspath
-}
-
 test {
     testLogging {
         showStandardStreams = true
