@@ -38,17 +38,23 @@ public class ObjectCoverage {
         classInfoA.fields.put("a", new IntegerType());
         classInfoA.fields.put("b", new IntegerType());
         classInfoA.fields.put("bObj",
-                new ObjectType("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA.TargetClassB"));
+                new ObjectType("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB"));
 
         ClassInfo classInfoB = new ClassInfo();
-        classInfoB.fields.put("value", new IntegerType());
+        classInfoB.fields.put("i", new IntegerType());
 
         ClassInfo classInfoC = new ClassInfo();
         classInfoC.fields.put("c", new IntegerType());
 
+        ClassInfo classInfoD = new ClassInfo();
+        classInfoD.fields.put("a", new IntegerType());
+        classInfoD.fields.put("bObj",
+                new ObjectType("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB"));
+
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA", classInfoA);
-        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA.TargetClassB", classInfoB);
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB", classInfoB);
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassC", classInfoC);
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD", classInfoD);
     }
 
     public ObjectCoverage() {
@@ -56,6 +62,7 @@ public class ObjectCoverage {
         // Classname = org.zlab.ocov.dumper.TestObjectGraphDumper.TargetClassA
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA");
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD");
         // Get classinfo from base
         for (String className : topObjects) {
             ClassInfo classInfo = baseClassInfo.get(className);

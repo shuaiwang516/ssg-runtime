@@ -6,22 +6,57 @@ import org.zlab.ocov.dumper.TestObjectGraphDumper;
 public class TestObjectCoverage {
 
     @Test
-    public void testCoverageUpdater() {
+    public void testObjectCoverageUpdater() {
+        /**
+         * Test condition: if there are 2 differences, both of them have a field with classC.
+         * We want to track them differently since they might manifest differently.
+         */
         // obj1 and obj2 share same format, obj3 is different
-        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
-        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
-        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
-        obj3.a = 1000;
-
-        boolean flag;
         ObjectCoverage coverage = new ObjectCoverage();
 
-        flag = coverage.update(obj1);
-        assert(flag);
-        flag = coverage.update(obj2);
-        assert(!flag);
-        flag = coverage.update(obj3);
-        assert(flag);
+        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
+        assert (coverage.update(obj1));
+
+        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
+        assert (!coverage.update(obj2));
+
+        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
+        obj3.a = 1000;
+        assert (coverage.update(obj3));
+
+
+        TestObjectGraphDumper.TargetClassA obj4 = new TestObjectGraphDumper.TargetClassA();
+        obj4.c = 10000;
+        assert (!coverage.update(obj4));
+    }
+
+
+    @Test
+    public void testSubObjectUpdater() {
+        /**
+         * Test condition: if there are 2 differences, both of them have a field with classC.
+         * We want to track them differently since they might manifest differently.
+         */
+        // obj1 and obj2 share same format, obj3 is different
+
+        ObjectCoverage coverage = new ObjectCoverage();
+
+        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
+        assert (coverage.update(obj1));
+
+        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
+        assert (!coverage.update(obj2));
+
+        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
+        obj3.bObj.i = 1000;
+        assert (coverage.update(obj3));
+
+        TestObjectGraphDumper.TargetClassD obj4 = new TestObjectGraphDumper.TargetClassD();
+        assert (coverage.update(obj4));
+
+        TestObjectGraphDumper.TargetClassD obj5 = new TestObjectGraphDumper.TargetClassD();
+        obj5.bObj.i = 1000;
+        assert (coverage.update(obj5));
     }
 
 }
