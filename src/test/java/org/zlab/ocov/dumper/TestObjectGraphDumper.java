@@ -6,8 +6,8 @@ public class TestObjectGraphDumper {
 
     public static class TargetClassA {
         // Define some fields here for testing
-        int a = 1;
-        int b = 0;
+        public int a = 1;
+        public int b = 0;
         TargetClassB bObj = new TargetClassB();
 
     }
