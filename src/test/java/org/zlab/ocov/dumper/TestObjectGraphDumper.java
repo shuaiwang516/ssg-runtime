@@ -9,12 +9,16 @@ public class TestObjectGraphDumper {
         public int a = 1;
         public int b = 0;
         TargetClassB bObj = new TargetClassB();
-
     }
 
     public static class TargetClassB {
         // Define some fields here for testing
         String value = "Hello World!";
+    }
+
+    public static class TargetClassC {
+        // Define some fields here for testing
+        int c = 100;
     }
 
     @Test

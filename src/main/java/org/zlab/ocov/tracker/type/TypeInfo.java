@@ -1,6 +1,8 @@
 package org.zlab.ocov.tracker.type;
 
-public abstract class TypeInfo {
+import java.io.Serializable;
+
+public abstract class TypeInfo implements Serializable {
     // Constraint information
 
     // Declared in source code

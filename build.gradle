@@ -25,6 +25,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.3'
     implementation 'info.picocli:picocli:4.6.1'
     implementation 'org.jgrapht:jgrapht-core:1.5.1' // Use the latest version
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
 }
 
 test {
