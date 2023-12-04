@@ -33,8 +33,7 @@ public class ObjectCoverage {
         ClassInfo classInfoA = new ClassInfo();
         classInfoA.fields.put("a", new IntegerType());
         classInfoA.fields.put("b", new IntegerType());
-        classInfoA.fields.put("bObj",
-                new ObjectType("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB"));
+        classInfoA.fields.put("bObj", new ObjectType());
 
         ClassInfo classInfoB = new ClassInfo();
         classInfoB.fields.put("i", new IntegerType());
@@ -45,9 +44,7 @@ public class ObjectCoverage {
 
         ClassInfo classInfoD = new ClassInfo();
         classInfoD.fields.put("a", new IntegerType());
-        classInfoD.fields.put("bObj",
-                new ObjectType("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB"));
-
+        classInfoD.fields.put("bObj", new ObjectType());
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA", classInfoA);
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB", classInfoB);
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassC", classInfoC);

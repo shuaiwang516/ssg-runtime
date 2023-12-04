@@ -13,8 +13,8 @@ public class ObjectType extends TypeInfo {
 
     public Map<String, ClassInfo> classNames = new HashMap<>();
 
-    public ObjectType(String typeName) {
-        super(typeName);
+    public ObjectType() {
+        super("object");
     }
 
     @Override
