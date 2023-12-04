@@ -59,4 +59,29 @@ public class TestObjectCoverage {
         assert (coverage.update(obj5));
     }
 
+    @Test
+    public void testCollectionCoverageUpdater() {
+        /**
+         * Test condition: if there are 2 differences, both of them have a field with classC.
+         * We want to track them differently since they might manifest differently.
+         */
+        // obj1 and obj2 share same format, obj3 is different
+        ObjectCoverage coverage = new ObjectCoverage();
+        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
+        assert (coverage.update(obj1));
+
+        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
+        assert (!coverage.update(obj2));
+
+        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
+        obj3.bObj.ids.clear();
+        assert (coverage.update(obj3));
+
+        TestObjectGraphDumper.TargetClassA obj4 = new TestObjectGraphDumper.TargetClassA();
+        obj4.bObj.ids.add(2);
+        assert (coverage.update(obj4));
+        assert (!coverage.update(obj4));
+
+    }
+
 }

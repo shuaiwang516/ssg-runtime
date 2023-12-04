@@ -2,6 +2,9 @@ package org.zlab.ocov.dumper;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class TestObjectGraphDumper {
 
     public static class TargetClassA {
@@ -16,6 +19,13 @@ public class TestObjectGraphDumper {
         // Define some fields here for testing
         public int i = 0;
         String value = "Hello World!";
+
+        public List<Integer> ids = new LinkedList<>();
+
+        public TargetClassB() {
+            ids.add(1);
+            ids.add(2);
+        }
     }
 
     public static class TargetClassC {

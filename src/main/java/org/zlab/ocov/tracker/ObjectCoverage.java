@@ -1,5 +1,6 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.tracker.type.CollectionType;
 import org.zlab.ocov.tracker.type.IntegerType;
 import org.zlab.ocov.tracker.type.ObjectType;
 import org.apache.commons.lang3.SerializationUtils;
@@ -42,6 +43,7 @@ public class ObjectCoverage {
 
         ClassInfo classInfoB = new ClassInfo();
         classInfoB.fields.put("i", new IntegerType());
+        classInfoB.fields.put("ids", new CollectionType());
 
         ClassInfo classInfoC = new ClassInfo();
         classInfoC.fields.put("c", new IntegerType());

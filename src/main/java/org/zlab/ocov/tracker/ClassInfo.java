@@ -11,6 +11,7 @@ public class ClassInfo implements Serializable {
     // Iterate all instances of this class, and update the constraint information
     Map<String, TypeInfo> fields = new HashMap<>();
 
+    // Additional Relationships
     public boolean update(Object obj) {
         // Iterate all fields
         boolean isNew = false;
