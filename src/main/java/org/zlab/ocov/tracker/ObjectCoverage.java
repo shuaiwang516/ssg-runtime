@@ -18,23 +18,18 @@ public class ObjectCoverage {
     // a new ClassInfo
     public static Map<String, ClassInfo> baseClassInfo = new HashMap<>();
 
-    static {
-        initBaseClassInfo();
-    }
-
-    public static void initBaseClassInfo() {
+    public void initBaseClassInfo() {
         // preset a list of objects to watch
         /*
-         * The sub objects can be tracked at 2 levels:
-         * 1. Separate the sub object from the parent object.
-         * 2. Track the sub object as part of the parent object.
+         * The sub objects can be tracked at 2 levels: 1. Separate the sub object from
+         * the parent object. 2. Track the sub object as part of the parent object.
          * Separate them would give us a better accuracy.
          */
         // Test Purpose
         initExampleClassInfo();
     }
 
-    public static void initExampleClassInfo() {
+    public void initExampleClassInfo() {
         ClassInfo classInfoA = new ClassInfo();
         classInfoA.fields.put("a", new IntegerType());
         classInfoA.fields.put("b", new IntegerType());
@@ -59,12 +54,18 @@ public class ObjectCoverage {
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD", classInfoD);
     }
 
-    public ObjectCoverage() {
-        // we have a list of objects to watch
-        // Classname = org.zlab.ocov.dumper.TestObjectGraphDumper.TargetClassA
+    public Set<String> initExampleTopObjects() {
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA");
         topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD");
+        return topObjects;
+    }
+
+    public ObjectCoverage() {
+        // Input1: A list of classnames, fieldnames and type to watch
+        // Input2: List<String> topObjects
+        initBaseClassInfo();
+        Set<String> topObjects = initExampleTopObjects();
         // Get classinfo from base
         for (String className : topObjects) {
             ClassInfo classInfo = baseClassInfo.get(className);

@@ -8,8 +8,9 @@ public class TestObjectCoverage {
     @Test
     public void testObjectCoverageUpdater() {
         /**
-         * Test condition: if there are 2 differences, both of them have a field with classC.
-         * We want to track them differently since they might manifest differently.
+         * Test condition: if there are 2 differences, both of them have a field with
+         * classC. We want to track them differently since they might manifest
+         * differently.
          */
         // obj1 and obj2 share same format, obj3 is different
         ObjectCoverage coverage = new ObjectCoverage();
@@ -24,18 +25,17 @@ public class TestObjectCoverage {
         obj3.a = 1000;
         assert (coverage.update(obj3));
 
-
         TestObjectGraphDumper.TargetClassA obj4 = new TestObjectGraphDumper.TargetClassA();
         obj4.c = 10000;
         assert (!coverage.update(obj4));
     }
 
-
     @Test
     public void testSubObjectUpdater() {
         /**
-         * Test condition: if there are 2 differences, both of them have a field with classC.
-         * We want to track them differently since they might manifest differently.
+         * Test condition: if there are 2 differences, both of them have a field with
+         * classC. We want to track them differently since they might manifest
+         * differently.
          */
         // obj1 and obj2 share same format, obj3 is different
 
@@ -62,8 +62,9 @@ public class TestObjectCoverage {
     @Test
     public void testCollectionCoverageUpdater() {
         /**
-         * Test condition: if there are 2 differences, both of them have a field with classC.
-         * We want to track them differently since they might manifest differently.
+         * Test condition: if there are 2 differences, both of them have a field with
+         * classC. We want to track them differently since they might manifest
+         * differently.
          */
         // obj1 and obj2 share same format, obj3 is different
         ObjectCoverage coverage = new ObjectCoverage();

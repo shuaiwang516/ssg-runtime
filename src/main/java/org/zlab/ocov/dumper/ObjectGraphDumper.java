@@ -33,9 +33,9 @@ public class ObjectGraphDumper {
     }
 
     private boolean isPrimitiveOrWrapper(Object obj) {
-        if (obj instanceof Integer || obj instanceof Float || obj instanceof Double ||
-                obj instanceof Long || obj instanceof Boolean || obj instanceof Character ||
-                obj instanceof Byte || obj instanceof Short || obj instanceof String) {
+        if (obj instanceof Integer || obj instanceof Float || obj instanceof Double
+                || obj instanceof Long || obj instanceof Boolean || obj instanceof Character
+                || obj instanceof Byte || obj instanceof Short || obj instanceof String) {
             return true;
         }
         return false;

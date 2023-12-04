@@ -27,7 +27,8 @@ public class ObjectType extends TypeInfo {
             if (!ObjectCoverage.baseClassInfo.containsKey(className)) {
                 return false;
             }
-            ClassInfo newClassInfo = SerializationUtils.clone(ObjectCoverage.baseClassInfo.get(className));
+            ClassInfo newClassInfo = SerializationUtils
+                    .clone(ObjectCoverage.baseClassInfo.get(className));
             newClassInfo.update(value);
             classNames.put(className, newClassInfo);
             return true;
