@@ -1,10 +1,13 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.type.CollectionType;
 import org.zlab.ocov.tracker.type.IntegerType;
 import org.zlab.ocov.tracker.type.ObjectType;
 import org.apache.commons.lang3.SerializationUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,10 +16,11 @@ import java.util.Set;
 public class ObjectCoverage {
     // Only contain the top level objects: class name -> class info
     public Map<String, ClassInfo> objCoverage = new HashMap<>();
+    public Set<String> topObjects;
 
     // contains all target class info, clone one from this if we need
     // a new ClassInfo
-    public static Map<String, ClassInfo> baseClassInfo = new HashMap<>();
+    public static Map<String, ClassInfo> baseClassInfo;
 
     public void initBaseClassInfo() {
         // preset a list of objects to watch
@@ -26,29 +30,12 @@ public class ObjectCoverage {
          * Separate them would give us a better accuracy.
          */
         // Test Purpose
-        initExampleClassInfo();
+        initExample();
     }
 
-    public void initExampleClassInfo() {
-        ClassInfo classInfoA = new ClassInfo();
-        classInfoA.fields.put("a", new IntegerType());
-        classInfoA.fields.put("b", new IntegerType());
-        classInfoA.fields.put("bObj", new ObjectType());
-
-        ClassInfo classInfoB = new ClassInfo();
-        classInfoB.fields.put("i", new IntegerType());
-        classInfoB.fields.put("ids", new CollectionType());
-
-        ClassInfo classInfoC = new ClassInfo();
-        classInfoC.fields.put("c", new IntegerType());
-
-        ClassInfo classInfoD = new ClassInfo();
-        classInfoD.fields.put("a", new IntegerType());
-        classInfoD.fields.put("bObj", new ObjectType());
-        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA", classInfoA);
-        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB", classInfoB);
-        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassC", classInfoC);
-        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD", classInfoD);
+    public void initExample() {
+        baseClassInfo = readClassInfo(Paths.get("input/baseClassInfo.json"));
+        topObjects = readTopObjects(Paths.get("input/topObjects.json"));
     }
 
     public Set<String> initExampleTopObjects() {
@@ -56,6 +43,33 @@ public class ObjectCoverage {
         topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA");
         topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD");
         return topObjects;
+    }
+
+    public static Map<String, ClassInfo> readClassInfo(Path file) {
+        Map<String, Map<String, String>> classInfoOri = Utils.loadMapFromFile(file.toString());
+        // transform it into Map<String, ClassInfo>
+        Map<String, ClassInfo> classInfo = new HashMap<>();
+        assert classInfoOri != null;
+        for (String className : classInfoOri.keySet()) {
+            ClassInfo classInfoItem = new ClassInfo();
+            for (String fieldName : classInfoOri.get(className).keySet()) {
+                String fieldType = classInfoOri.get(className).get(fieldName);
+                // Map from fieldType to TypeInfo
+                if (fieldType.equals("int")) {
+                    classInfoItem.fields.put(fieldName, new IntegerType());
+                } else if (fieldType.equals("java.util.List")) {
+                    classInfoItem.fields.put(fieldName, new CollectionType());
+                } else {
+                    classInfoItem.fields.put(fieldName, new ObjectType());
+                }
+            }
+            classInfo.put(className, classInfoItem);
+        }
+        return classInfo;
+    }
+
+    public static Set<String> readTopObjects(Path file) {
+        return Utils.loadSetFromFile(file.toString());
     }
 
     public ObjectCoverage() {
@@ -77,7 +91,6 @@ public class ObjectCoverage {
     }
 
     public boolean update(Object obj) {
-        boolean isNew = false;
         // get object class name
         String className = obj.getClass().getName();
         // get class info
@@ -85,8 +98,7 @@ public class ObjectCoverage {
         if (classInfo == null) {
             return false;
         }
-        isNew = classInfo.update(obj);
-        return isNew;
+        return classInfo.update(obj);
     }
 
 }
