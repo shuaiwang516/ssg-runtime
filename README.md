@@ -9,6 +9,47 @@ hook
 
 Requirement: JDK8
 
+
+## Monitor
+
+### CASSANDRA
+Generate rt jar
+```bash
+./gradlew fatJar
+cp /Users/hanke/Desktop/Project/ssg-runtime/build/libs/ssgFatJar.jar lib/
+```
+
+Make sure rt class is loaded
+```java
+// CassandraDaemon.java
+public static void main(String[] args)
+{
+    try {
+        Class.forName("org.zlab.ocov.tracker.Runtime");
+    } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+    }
+    instance.activate();
+}
+```
+
+Update monitor coverage
+```java
+/*
+ * Table metadata serialization/deserialization.
+ */
+
+public static Mutation makeCreateTableMutation(KSMetaData keyspace, CFMetaData table, long timestamp)
+{
+    boolean ret = org.zlab.ocov.tracker.Runtime.update(table);
+    logger.info("[hklog] ret = " + ret);
+    // Include the serialized keyspace in case the target node missed a CREATE KEYSPACE migration (see CASSANDRA-5631).
+    Mutation mutation = makeCreateKeyspaceMutation(keyspace, timestamp, false);
+    addTableToSchemaMutation(table, timestamp, true, mutation);
+    return mutation;
+}
+```
+
 ## Usage
 
 ### Logger
