@@ -45,12 +45,6 @@ public class Runtime {
     public static boolean update(Object obj) {
         boolean val = objectCoverage.update(obj);
         System.out.println("Update coverage " + val);
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write("content");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return val;
     }
 

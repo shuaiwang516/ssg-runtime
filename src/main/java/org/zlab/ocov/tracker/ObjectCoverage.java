@@ -16,11 +16,11 @@ import java.util.Set;
 public class ObjectCoverage {
     // Only contain the top level objects: class name -> class info
     public Map<String, ClassInfo> objCoverage = new HashMap<>();
-    public Set<String> topObjects;
 
     // contains all target class info, clone one from this if we need
     // a new ClassInfo
     public Map<String, ClassInfo> baseClassInfo;
+    public Set<String> topObjects;
 
     public void initExample() {
         baseClassInfo = readClassInfo(Paths.get("input/baseClassInfo.json"));
@@ -84,8 +84,10 @@ public class ObjectCoverage {
         // get class info
         ClassInfo classInfo = objCoverage.get(className);
         if (classInfo == null) {
+            Runtime.log("[hklog] classInfo is null for " + className);
             return false;
         }
+        Runtime.log("[hklog] classInfo is not null");
         Set<String> visitedClasses = new HashSet<>();
         if (!Utils.isPrimitiveType(className)) {
             visitedClasses.add(className);

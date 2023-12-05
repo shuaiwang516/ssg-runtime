@@ -59,6 +59,8 @@ public class TestInput {
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.apache.cassandra.config.CFMetaData");
         topObjects.add("org.apache.cassandra.db.Mutation");
+        topObjects.add("org.apache.cassandra.db.AtomicBTreeColumns");
+
         Utils.saveSetToFile(topObjects, "input/topObjects_cass.json");
     }
 
@@ -66,6 +68,11 @@ public class TestInput {
     public void test() {
         // Example input for baseClassInfo
         ObjectCoverage coverage = new ObjectCoverage(Runtime.baseClassPath, Runtime.topObjectsPath);
+
+        System.out.println("ret1 = "
+                + coverage.baseClassInfo.containsKey("org.apache.cassandra.db.AtomicBTreeColumns"));
+        System.out.println("ret2 = "
+                + coverage.baseClassInfo.get("org.apache.cassandra.db.AtomicBTreeColumns"));
     }
 
 }
