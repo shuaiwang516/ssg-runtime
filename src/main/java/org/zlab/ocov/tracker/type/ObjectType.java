@@ -22,6 +22,9 @@ public class ObjectType extends TypeInfo {
     @Override
     public boolean update(Object value, Set<String> visitedClasses,
             Map<String, ClassInfo> baseClassInfo) {
+        // TODO: Handle null situation
+        if (value == null)
+            return false;
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
             return classNames.get(className).update(value, visitedClasses, baseClassInfo);
