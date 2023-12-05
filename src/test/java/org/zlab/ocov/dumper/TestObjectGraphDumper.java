@@ -36,6 +36,7 @@ public class TestObjectGraphDumper {
     public static class TargetClassD {
         public int a = 1;
         public TargetClassB bObj = new TargetClassB();
+        public static TargetClassD dObj = new TargetClassD();
 
         public TargetClassD() {
             bObj.i = 100;

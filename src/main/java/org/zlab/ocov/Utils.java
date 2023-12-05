@@ -49,4 +49,16 @@ public class Utils {
         return null;
     }
 
+    public static boolean isPrimitiveType(String type) {
+        // Also include int, integer, long, ....
+        return type.equals("int") || type.equals("java.lang.Integer") || type.equals("long")
+                || type.equals("java.lang.Long") || type.equals("double")
+                || type.equals("java.lang.Double") || type.equals("float")
+                || type.equals("java.lang.Float") || type.equals("boolean")
+                || type.equals("java.lang.Boolean") || type.equals("char")
+                || type.equals("java.lang.Character") || type.equals("short")
+                || type.equals("java.lang.Short") || type.equals("byte")
+                || type.equals("java.lang.Byte");
+    }
+
 }

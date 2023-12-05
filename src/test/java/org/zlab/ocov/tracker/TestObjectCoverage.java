@@ -3,6 +3,9 @@ package org.zlab.ocov.tracker;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.dumper.TestObjectGraphDumper;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class TestObjectCoverage {
 
     @Test
@@ -13,8 +16,10 @@ public class TestObjectCoverage {
          * differently.
          */
         // obj1 and obj2 share same format, obj3 is different
-        ObjectCoverage coverage = new ObjectCoverage();
+        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path topObjectsPath = Paths.get("input/topObjects.json");
 
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
         TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
         assert (coverage.update(obj1));
 
@@ -39,8 +44,10 @@ public class TestObjectCoverage {
          */
         // obj1 and obj2 share same format, obj3 is different
 
-        ObjectCoverage coverage = new ObjectCoverage();
+        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path topObjectsPath = Paths.get("input/topObjects.json");
 
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
         TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
         assert (coverage.update(obj1));
 
@@ -67,7 +74,11 @@ public class TestObjectCoverage {
          * differently.
          */
         // obj1 and obj2 share same format, obj3 is different
-        ObjectCoverage coverage = new ObjectCoverage();
+
+        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path topObjectsPath = Paths.get("input/topObjects.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
         TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
         assert (coverage.update(obj1));
 
@@ -82,7 +93,6 @@ public class TestObjectCoverage {
         obj4.bObj.ids.add(2);
         assert (coverage.update(obj4));
         assert (!coverage.update(obj4));
-
     }
 
 }

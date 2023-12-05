@@ -20,18 +20,7 @@ public class ObjectCoverage {
 
     // contains all target class info, clone one from this if we need
     // a new ClassInfo
-    public static Map<String, ClassInfo> baseClassInfo;
-
-    public void initBaseClassInfo() {
-        // preset a list of objects to watch
-        /*
-         * The sub objects can be tracked at 2 levels: 1. Separate the sub object from
-         * the parent object. 2. Track the sub object as part of the parent object.
-         * Separate them would give us a better accuracy.
-         */
-        // Test Purpose
-        initExample();
-    }
+    public Map<String, ClassInfo> baseClassInfo;
 
     public void initExample() {
         baseClassInfo = readClassInfo(Paths.get("input/baseClassInfo.json"));
@@ -72,11 +61,10 @@ public class ObjectCoverage {
         return Utils.loadSetFromFile(file.toString());
     }
 
-    public ObjectCoverage() {
-        // Input1: A list of classnames, fieldnames and type to watch
-        // Input2: List<String> topObjects
-        initBaseClassInfo();
-        Set<String> topObjects = initExampleTopObjects();
+    public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath) {
+        baseClassInfo = readClassInfo(baseClassInfoPath);
+        topObjects = readTopObjects(topObjectsPath);
+
         // Get classinfo from base
         for (String className : topObjects) {
             ClassInfo classInfo = baseClassInfo.get(className);
@@ -98,7 +86,11 @@ public class ObjectCoverage {
         if (classInfo == null) {
             return false;
         }
-        return classInfo.update(obj);
+        Set<String> visitedClasses = new HashSet<>();
+        if (!Utils.isPrimitiveType(className)) {
+            visitedClasses.add(className);
+        }
+        return classInfo.update(obj, visitedClasses, baseClassInfo);
     }
 
 }

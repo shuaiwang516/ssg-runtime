@@ -11,7 +11,7 @@ import java.util.Set;
 public class TestInput {
 
     @Test
-    public void createExample() {
+    public void createExampleInput() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA
         baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA",
@@ -44,22 +44,28 @@ public class TestInput {
                 "int");
         baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD").put("bObj",
                 "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassB");
-
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD").put("dObj",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD");
         Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo.json");
+
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA");
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassD");
+        Utils.saveSetToFile(topObjects, "input/topObjects.json");
     }
 
     @Test
-    public void createExampleTopObjects() {
-        Set<String> baseClassInfo = new HashSet<>();
-        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassA
-        Utils.saveSetToFile(baseClassInfo, "input/topObjects.json");
+    public void createExampleTopObjectsCassandra() {
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.apache.cassandra.config.CFMetaData");
+        topObjects.add("org.apache.cassandra.db.Mutation");
+        Utils.saveSetToFile(topObjects, "input/topObjects_cass.json");
     }
 
     @Test
     public void test() {
         // Example input for baseClassInfo
-        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        Map<String, String> cfMetaData = new HashMap<>();
+        ObjectCoverage coverage = new ObjectCoverage(Runtime.baseClassPath, Runtime.topObjectsPath);
     }
 
 }

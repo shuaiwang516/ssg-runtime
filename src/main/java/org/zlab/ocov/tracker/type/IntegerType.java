@@ -1,5 +1,10 @@
 package org.zlab.ocov.tracker.type;
 
+import org.zlab.ocov.tracker.ClassInfo;
+
+import java.util.Map;
+import java.util.Set;
+
 public class IntegerType extends TypeInfo {
     int max = Integer.MIN_VALUE;
     int min = Integer.MAX_VALUE;
@@ -10,7 +15,8 @@ public class IntegerType extends TypeInfo {
     }
 
     @Override
-    public boolean update(Object value) {
+    public boolean update(Object value, Set<String> visitedClasses,
+            Map<String, ClassInfo> baseClassInfo) {
         if (value instanceof Integer) {
             int v = (Integer) value;
             boolean changed = false;

@@ -33,23 +33,22 @@ test {
 }
 
 shadowJar {
-    archiveBaseName.set('dinv-monitor-shadow')
+    archiveBaseName.set('ocov-shadow')
     archiveClassifier.set('')
     archiveVersion.set('')
     mergeServiceFiles()
 
-//    dependencies {
-//        exclude(dependency('com.github.javaparser:javaparser-core:3.25.2'))
-//        exclude(dependency('com.github.javaparser:javaparser-symbol-solver-core:3.23.0'))
-//    }
+//    include 'org/zlab/dinv/runtimechecker/Runtime*'
+//    include 'org/zlab/dinv/runtimechecker/Quant*'
 
-    include 'org/zlab/dinv/runtimechecker/Runtime*'
-    include 'org/zlab/dinv/runtimechecker/Quant*'
+    include 'org/zlab/ocov/tracker/*'
+    include 'org/zlab/ocov/tracker/type/*'
+    include 'org/zlab/ocov/*'
 }
 
 // Defining a custom shadowJar task
-task loggerShadowJar(type: ShadowJar) {
-    archiveBaseName.set('logger-shadow')
+task fatJar(type: ShadowJar) {
+    archiveBaseName.set('ssgFatJar')
     archiveClassifier.set('')
     archiveVersion.set('')
 
