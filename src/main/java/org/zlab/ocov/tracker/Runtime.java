@@ -1,8 +1,8 @@
 package org.zlab.ocov.tracker;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -26,6 +26,8 @@ public class Runtime {
     static {
         try {
             writer = new BufferedWriter(new FileWriter(filePath, true));
+            formatCoverageTracker();
+            log("Invariant Runtime initialized!");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -46,6 +48,57 @@ public class Runtime {
         boolean val = objectCoverage.update(obj);
         Runtime.log("Update coverage ret = " + val);
         return val;
+    }
+
+    private static final int PORT = 62000; // the port to listen on
+
+    public static void formatCoverageTracker() throws IOException {
+        Thread serverThread = new Thread(() -> {
+            try {
+                ServerSocket serverSocket = new ServerSocket(PORT);
+                while (true) {
+                    log("[hklog] Invariant Runtime waiting!");
+                    Socket clientSocket = serverSocket.accept();
+                    // handle client connection in a new thread
+                    new Thread(() -> {
+                        try {
+                            log("Client connected from "
+                                    + clientSocket.getInetAddress().getHostAddress());
+
+                            BufferedReader in = new BufferedReader(
+                                    new InputStreamReader(clientSocket.getInputStream()));
+                            ObjectOutputStream out = new ObjectOutputStream(
+                                    clientSocket.getOutputStream());
+
+                            String inputLine;
+                            while ((inputLine = in.readLine()) != null) {
+                                log("Received command: " + inputLine);
+                                // process the command and generate a response
+                                Object response = processCommand(inputLine);
+                                out.writeObject(response); // send the response to the client
+                                System.out.println("Sent response: " + response);
+                            }
+                        } catch (IOException e) {
+                            System.out.println("Error in client connection: " + e);
+                        } finally {
+                            try {
+                                clientSocket.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start(); // start the new thread
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        serverThread.start();
+    }
+
+    private static Object processCommand(String command) {
+        // only return the violations
+        return objectCoverage;
     }
 
 }

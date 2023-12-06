@@ -7,6 +7,7 @@ import org.zlab.ocov.tracker.type.ObjectType;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.type.TypeInfo;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ObjectCoverage {
+public class ObjectCoverage implements Serializable {
     // Only contain the top level objects: class name -> class info
     public Map<String, ClassInfo> objCoverage = new HashMap<>();
 
