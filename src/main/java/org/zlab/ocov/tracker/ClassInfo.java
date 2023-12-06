@@ -14,8 +14,7 @@ public class ClassInfo implements Serializable {
     Map<String, TypeInfo> fields = new HashMap<>();
 
     // Additional Relationships
-    public boolean update(Object obj,
-            Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo) {
         // Iterate all fields
         boolean isNew = false;
         try {
@@ -50,8 +49,7 @@ public class ClassInfo implements Serializable {
         return isNew;
     }
 
-    private boolean update(String fieldName, Object value,
-            Map<String, ClassInfo> baseClassInfo) {
+    private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo) {
         if (!fields.containsKey(fieldName)) {
             // Only track target fields
             return false;

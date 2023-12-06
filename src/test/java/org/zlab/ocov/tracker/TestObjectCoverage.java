@@ -115,6 +115,8 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects.json");
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
         TestObjectGraphDumper.TargetClassD obj = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraphDumper.TargetClassD obj2 = new TestObjectGraphDumper.TargetClassD();
+        obj.dObj = obj2;
         assert (coverage.update(obj));
     }
 
