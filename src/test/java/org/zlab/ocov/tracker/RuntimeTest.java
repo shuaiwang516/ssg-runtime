@@ -43,28 +43,8 @@ public class RuntimeTest {
     }
 
     @Test
-    public void testFetch() throws InterruptedException {
-        // fetchInvInfo();
-        Thread t1 = new Thread(() -> {
-            try {
-                fetchInvInfo();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        t1.start();
-
-        Thread t2 = new Thread(() -> {
-            try {
-                fetchInvInfo();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        t2.start();
-
-        t1.join();
-        t2.join();
+    public void testFetch() throws InterruptedException, IOException, ClassNotFoundException {
+        fetchInvInfo();
     }
 
     public void fetchInvInfo() throws IOException, ClassNotFoundException {
