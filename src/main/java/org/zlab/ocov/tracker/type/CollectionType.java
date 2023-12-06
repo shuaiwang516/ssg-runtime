@@ -16,6 +16,9 @@ public class CollectionType extends TypeInfo {
     @Override
     public boolean update(Object value, Set<String> visitedClasses,
             Map<String, ClassInfo> baseClassInfo) {
+        if (value == null) {
+            return false;
+        }
         if (value instanceof java.util.Collection) {
             int size = ((java.util.Collection) value).size();
             boolean changed = false;
@@ -30,7 +33,7 @@ public class CollectionType extends TypeInfo {
             return changed;
         }
         // Why would it not be a collection type?
-        throw new RuntimeException("Not an collectiontype but claimed to be");
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 
 }

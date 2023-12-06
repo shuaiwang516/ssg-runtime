@@ -5,13 +5,13 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 import java.util.Set;
 
-public class StringType extends TypeInfo {
+public class BooleanType extends TypeInfo {
+    int trueCount = 0;
+    int falseCount = 0;
 
-    int max = Integer.MIN_VALUE;
-    int min = Integer.MAX_VALUE;
-
-    public StringType() {
-        super("String");
+    // describe some characteristics
+    public BooleanType() {
+        super("Boolean");
     }
 
     @Override
@@ -20,20 +20,19 @@ public class StringType extends TypeInfo {
         if (value == null) {
             return false;
         }
-        if (value instanceof String) {
-            String v = (String) value;
-            int len = v.length();
+        if (value instanceof Boolean) {
+            boolean v = (Boolean) value;
             boolean changed = false;
-            if (len > max) {
-                max = v.length();
+            if (v) {
+                trueCount++;
                 changed = true;
-            }
-            if (len < min) {
-                min = v.length();
+            } else {
+                falseCount++;
                 changed = true;
             }
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
+
 }

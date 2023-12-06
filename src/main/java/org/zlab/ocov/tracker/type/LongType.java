@@ -5,13 +5,13 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 import java.util.Set;
 
-public class StringType extends TypeInfo {
+public class LongType extends TypeInfo {
+    long max = Long.MIN_VALUE;
+    long min = Long.MAX_VALUE;
 
-    int max = Integer.MIN_VALUE;
-    int min = Integer.MAX_VALUE;
-
-    public StringType() {
-        super("String");
+    // describe some characteristics
+    public LongType() {
+        super("Long");
     }
 
     @Override
@@ -20,20 +20,20 @@ public class StringType extends TypeInfo {
         if (value == null) {
             return false;
         }
-        if (value instanceof String) {
-            String v = (String) value;
-            int len = v.length();
+        if (value instanceof Long) {
+            long v = (Long) value;
             boolean changed = false;
-            if (len > max) {
-                max = v.length();
+            if (v > max) {
+                max = v;
                 changed = true;
             }
-            if (len < min) {
-                min = v.length();
+            if (v < min) {
+                min = v;
                 changed = true;
             }
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
+
 }

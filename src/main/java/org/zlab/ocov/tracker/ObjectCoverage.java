@@ -5,6 +5,7 @@ import org.zlab.ocov.tracker.type.CollectionType;
 import org.zlab.ocov.tracker.type.IntegerType;
 import org.zlab.ocov.tracker.type.ObjectType;
 import org.apache.commons.lang3.SerializationUtils;
+import org.zlab.ocov.tracker.type.TypeInfo;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,13 +45,12 @@ public class ObjectCoverage {
             for (String fieldName : classInfoOri.get(className).keySet()) {
                 String fieldType = classInfoOri.get(className).get(fieldName);
                 // Map from fieldType to TypeInfo
-                if (fieldType.equals("int")) {
-                    classInfoItem.fields.put(fieldName, new IntegerType());
-                } else if (fieldType.equals("java.util.List")) {
-                    classInfoItem.fields.put(fieldName, new CollectionType());
-                } else {
-                    classInfoItem.fields.put(fieldName, new ObjectType());
+                TypeInfo typeInfo = TypeInfo.createTypeInfo(fieldType);
+                if (typeInfo == null) {
+                    // skip it
+                    continue;
                 }
+                classInfoItem.fields.put(fieldName, typeInfo);
             }
             classInfo.put(className, classInfoItem);
         }

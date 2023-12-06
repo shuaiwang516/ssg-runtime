@@ -34,7 +34,7 @@ public class ClassInfo implements Serializable {
                     visitedClasses.add(fieldClassName);
                 }
 
-                // if field is static and final, skip it
+                // if field is static and final, skip it: but still might change?
                 if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
                         && java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
                     continue;
@@ -59,7 +59,10 @@ public class ClassInfo implements Serializable {
             return false;
         }
         TypeInfo typeInfo = fields.get(fieldName);
-        assert typeInfo != null;
+        // if typeInfo is null, skip it
+        if (typeInfo == null) {
+            return false;
+        }
         return typeInfo.update(value, visitedClasses, baseClassInfo);
     }
 

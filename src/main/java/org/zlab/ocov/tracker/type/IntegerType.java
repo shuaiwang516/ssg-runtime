@@ -17,6 +17,9 @@ public class IntegerType extends TypeInfo {
     @Override
     public boolean update(Object value, Set<String> visitedClasses,
             Map<String, ClassInfo> baseClassInfo) {
+        if (value == null) {
+            return false;
+        }
         if (value instanceof Integer) {
             int v = (Integer) value;
             boolean changed = false;
@@ -31,7 +34,7 @@ public class IntegerType extends TypeInfo {
             return changed;
         }
         // Why would it not be integer?
-        throw new RuntimeException("Not an integer but claimed to be integer");
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 
 }

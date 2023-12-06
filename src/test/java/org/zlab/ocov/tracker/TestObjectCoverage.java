@@ -95,4 +95,18 @@ public class TestObjectCoverage {
         assert (!coverage.update(obj4));
     }
 
+    @Test
+    public void testTmp() {
+        int[] a = new int[10];
+        f(a);
+    }
+
+    public void f(Object o) {
+        if (o instanceof Object[]) {
+            System.out.println("yes1");
+        } else if (o instanceof int[]) {
+            System.out.println("yes2");
+        }
+    }
+
 }
