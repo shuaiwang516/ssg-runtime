@@ -44,7 +44,7 @@ public class Runtime {
 
     public static boolean update(Object obj) {
         boolean val = objectCoverage.update(obj);
-        System.out.println("Update coverage " + val);
+        Runtime.log("Update coverage ret = " + val);
         return val;
     }
 

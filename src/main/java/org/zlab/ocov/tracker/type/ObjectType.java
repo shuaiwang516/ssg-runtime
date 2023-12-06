@@ -20,15 +20,14 @@ public class ObjectType extends TypeInfo {
     }
 
     @Override
-    public boolean update(Object value, Set<String> visitedClasses,
-            Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         // TODO: Handle null situation
         if (value == null) {
             return false;
         }
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
-            return classNames.get(className).update(value, visitedClasses, baseClassInfo);
+            return classNames.get(className).update(value, baseClassInfo);
         } else {
             // Check whether this is a field that could be serialized
             if (!baseClassInfo.containsKey(className)) {
@@ -37,7 +36,7 @@ public class ObjectType extends TypeInfo {
             Runtime.log("New class " + className);
             // Avoid self reference
             ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
-            newClassInfo.update(value, visitedClasses, baseClassInfo);
+            newClassInfo.update(value, baseClassInfo);
             classNames.put(className, newClassInfo);
             return true;
         }

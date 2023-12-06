@@ -15,8 +15,7 @@ public class LongType extends TypeInfo {
     }
 
     @Override
-    public boolean update(Object value, Set<String> visitedClasses,
-            Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         if (value == null) {
             return false;
         }

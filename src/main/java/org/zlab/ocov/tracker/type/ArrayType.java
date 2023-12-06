@@ -14,8 +14,7 @@ public class ArrayType extends TypeInfo {
     }
 
     @Override
-    public boolean update(Object value, Set<String> visitedClasses,
-            Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         // value should be array type, update its size
 
         // TODO: Handle null situation, it should be a special type

@@ -109,4 +109,13 @@ public class TestObjectCoverage {
         }
     }
 
+    @Test
+    public void testRecursiveTracking() {
+        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path topObjectsPath = Paths.get("input/topObjects.json");
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
+        TestObjectGraphDumper.TargetClassD obj = new TestObjectGraphDumper.TargetClassD();
+        assert (coverage.update(obj));
+    }
+
 }

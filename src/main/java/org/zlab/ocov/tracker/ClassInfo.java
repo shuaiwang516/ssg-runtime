@@ -14,7 +14,7 @@ public class ClassInfo implements Serializable {
     Map<String, TypeInfo> fields = new HashMap<>();
 
     // Additional Relationships
-    public boolean update(Object obj, Set<String> visitedClasses,
+    public boolean update(Object obj,
             Map<String, ClassInfo> baseClassInfo) {
         // Iterate all fields
         boolean isNew = false;
@@ -23,28 +23,26 @@ public class ClassInfo implements Serializable {
             for (Field field : fields) {
                 field.setAccessible(true);
                 Object value = field.get(obj);
-
+                Runtime.log("[hklog] processing field name = " + field.getName() + ", value = "
+                        + value);
                 // get field class name
+                String fieldName = field.getName();
                 String fieldClassName = field.getType().getName();
                 // if fieldClassName is visited, skip it to avoid stackoverflow
-                if (visitedClasses.contains(fieldClassName)) {
-                    continue;
-                }
-                if (!Utils.isPrimitiveType(fieldClassName)) {
-                    visitedClasses.add(fieldClassName);
-                }
-
                 // if field is static and final, skip it: but still might change?
                 if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
                         && java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
+                    Runtime.log("[hklog] field is static and final, skip it");
                     continue;
                 }
-
-                if (update(field.getName(), value, visitedClasses, baseClassInfo)) {
+                // Log classname + name
+                Runtime.log("[hklog] end fieldClassName = " + fieldClassName + ", fieldName = "
+                        + fieldName);
+                if (update(fieldName, value, baseClassInfo)) {
                     if (!isNew)
                         isNew = true;
                 }
-                System.out.println(field.getName() + ": " + value);
+                Runtime.log(fieldName + ": " + value);
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -52,7 +50,7 @@ public class ClassInfo implements Serializable {
         return isNew;
     }
 
-    private boolean update(String fieldName, Object value, Set<String> visitedClasses,
+    private boolean update(String fieldName, Object value,
             Map<String, ClassInfo> baseClassInfo) {
         if (!fields.containsKey(fieldName)) {
             // Only track target fields
@@ -63,7 +61,7 @@ public class ClassInfo implements Serializable {
         if (typeInfo == null) {
             return false;
         }
-        return typeInfo.update(value, visitedClasses, baseClassInfo);
+        return typeInfo.update(value, baseClassInfo);
     }
 
 }

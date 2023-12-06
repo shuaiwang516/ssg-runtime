@@ -36,7 +36,7 @@ public class TestObjectGraphDumper {
     public static class TargetClassD {
         public int a = 1;
         public TargetClassB bObj = new TargetClassB();
-        public static TargetClassD dObj = new TargetClassD();
+        public TargetClassD dObj = null;
 
         public TargetClassD() {
             bObj.i = 100;
@@ -51,6 +51,11 @@ public class TestObjectGraphDumper {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testRecursiveObject() {
+        TargetClassD obj = new TargetClassD();
     }
 
 }

@@ -87,12 +87,8 @@ public class ObjectCoverage {
             Runtime.log("[hklog] classInfo is null for " + className);
             return false;
         }
-        Runtime.log("[hklog] classInfo is not null");
-        Set<String> visitedClasses = new HashSet<>();
-        if (!Utils.isPrimitiveType(className)) {
-            visitedClasses.add(className);
-        }
-        return classInfo.update(obj, visitedClasses, baseClassInfo);
+        Runtime.log("[hklog] classInfo = " + className);
+        return classInfo.update(obj, baseClassInfo);
     }
 
 }
