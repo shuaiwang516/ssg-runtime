@@ -11,6 +11,7 @@ import java.util.Date;
 public class Runtime {
     /**
      * Collect & update coverage information, dump coverage when program finishes.
+     * TODO: These paths need to be configured with input arguments
      */
     public static Path baseClassPath = Paths.get(
             "/Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-2.2.8/serializedFields_alg1.json");
