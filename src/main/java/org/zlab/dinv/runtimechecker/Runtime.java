@@ -26,15 +26,12 @@ public class Runtime {
 
     private static final int[] violations = new int[1000];
 
-    static {
-        System.out.println("Invariant rt initialized!");
-
+    public static void init() {
         try {
             dumpViolationServer();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         // FIXME: write the violation to disk (only for testing purpose: comment out
         // later)
         // java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -56,7 +53,7 @@ public class Runtime {
         violations[invId]++;
     }
 
-    private static final int PORT = 62000; // the port to listen on
+    private static final int PORT = 61000; // the port to listen on
 
     public static void dumpViolationServer() throws IOException {
 

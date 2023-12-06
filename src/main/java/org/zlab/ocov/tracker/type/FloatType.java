@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class FloatType extends TypeInfo {
     float max = Float.MIN_VALUE;
@@ -28,6 +27,24 @@ public class FloatType extends TypeInfo {
             }
             if (v < min) {
                 min = v;
+                changed = true;
+            }
+            return changed;
+        }
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
+    }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        if (otherTypeInfo instanceof FloatType) {
+            FloatType otherFloatType = (FloatType) otherTypeInfo;
+            boolean changed = false;
+            if (otherFloatType.max > max) {
+                max = otherFloatType.max;
+                changed = true;
+            }
+            if (otherFloatType.min < min) {
+                min = otherFloatType.min;
                 changed = true;
             }
             return changed;

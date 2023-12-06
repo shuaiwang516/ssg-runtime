@@ -12,23 +12,51 @@ public class Runtime {
     /**
      * Collect & update coverage information, dump coverage when program finishes.
      * TODO: These paths need to be configured with input arguments
+     * /Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-2.2.8/serializedFields_alg1.json
+     * /Users/hanke/Desktop/Project/ssg-runtime/input/topObjects_cass.json
      */
-    public static Path baseClassPath = Paths.get(
-            "/Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-2.2.8/serializedFields_alg1.json");
-    public static Path topObjectsPath = Paths
-            .get("/Users/hanke/Desktop/Project/ssg-runtime/input/topObjects_cass.json");
-    public static ObjectCoverage objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath);
-
-    public static String filePath = "/Users/hanke/Desktop/Project/cassandra/cassandra1/coverage.log";
-
-    public static BufferedWriter writer;
+    public static Path baseClassPath = Paths.get("/tmp/serializedFields_alg1.json");
+    public static Path topObjectsPath = Paths.get("/tmp/topObjects.json");
+    public static Path filePath = Paths.get("/tmp/coverage.log");
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    static {
+    public static BufferedWriter writer;
+    public static ObjectCoverage objectCoverage;
+
+    public static void init() {
         try {
-            writer = new BufferedWriter(new FileWriter(filePath, true));
+            writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
+            objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void init(Path baseClassPath, Path topObjectsPath) {
+        try {
+            writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
+            objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath);
+            formatCoverageTracker();
+            log("Invariant Runtime initialized!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Only init writer
+    public static void initWriter() {
+        try {
+            writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void initWriter(Path filePath) {
+        try {
+            writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
         } catch (IOException e) {
             e.printStackTrace();
         }

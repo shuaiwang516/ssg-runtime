@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class CollectionType extends TypeInfo {
     int maxSize = Integer.MIN_VALUE;
@@ -32,6 +31,24 @@ public class CollectionType extends TypeInfo {
             return changed;
         }
         // Why would it not be a collection type?
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
+    }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        if (otherTypeInfo instanceof CollectionType) {
+            CollectionType otherCollectionType = (CollectionType) otherTypeInfo;
+            boolean changed = false;
+            if (otherCollectionType.maxSize > maxSize) {
+                maxSize = otherCollectionType.maxSize;
+                changed = true;
+            }
+            if (otherCollectionType.minSize < minSize) {
+                minSize = otherCollectionType.minSize;
+                changed = true;
+            }
+            return changed;
+        }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 

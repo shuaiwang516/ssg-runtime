@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class ShortType extends TypeInfo {
     short max = Short.MIN_VALUE;
@@ -33,6 +32,24 @@ public class ShortType extends TypeInfo {
             return changed;
         }
         // Why would it not be integer?
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
+    }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        if (otherTypeInfo instanceof ShortType) {
+            ShortType otherShortType = (ShortType) otherTypeInfo;
+            boolean changed = false;
+            if (otherShortType.max > max) {
+                max = otherShortType.max;
+                changed = true;
+            }
+            if (otherShortType.min < min) {
+                min = otherShortType.min;
+                changed = true;
+            }
+            return changed;
+        }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 

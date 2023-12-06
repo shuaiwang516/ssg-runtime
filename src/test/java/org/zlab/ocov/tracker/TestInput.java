@@ -61,7 +61,7 @@ public class TestInput {
         topObjects.add("org.apache.cassandra.db.Mutation");
         topObjects.add("org.apache.cassandra.db.AtomicBTreeColumns");
 
-        Utils.saveSetToFile(topObjects, "input/topObjects_cass.json");
+        Utils.saveSetToFile(topObjects, "/tmp/topObjects.json");
     }
 
     @Test

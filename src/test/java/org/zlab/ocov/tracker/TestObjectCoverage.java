@@ -1,12 +1,22 @@
 package org.zlab.ocov.tracker;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.dumper.TestObjectGraphDumper;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class TestObjectCoverage {
+
+    @BeforeAll
+    public static void init() {
+        Runtime.initWriter();
+    }
 
     @Test
     public void testObjectCoverageUpdater() {
@@ -118,6 +128,51 @@ public class TestObjectCoverage {
         TestObjectGraphDumper.TargetClassD obj2 = new TestObjectGraphDumper.TargetClassD();
         obj.dObj = obj2;
         assert (coverage.update(obj));
+    }
+
+    @Test
+    public void testCoverageMerging() {
+        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path topObjectsPath = Paths.get("input/topObjects.json");
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+        TestObjectGraphDumper.TargetClassD obj1 = new TestObjectGraphDumper.TargetClassD();
+        assert (coverage1.update(obj1));
+
+        ObjectCoverage coverage2 = new ObjectCoverage(bassClassPath, topObjectsPath);
+
+        TestObjectGraphDumper.TargetClassD obj2 = new TestObjectGraphDumper.TargetClassD();
+        obj2.a = 1000;
+        assert (coverage2.update(obj2));
+
+        assert (coverage1.merge(coverage2));
+
+    }
+
+    // @Test
+    public void testJson() {
+        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path topObjectsPath = Paths.get("input/topObjects.json");
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+        TestObjectGraphDumper.TargetClassD obj1 = new TestObjectGraphDumper.TargetClassD();
+        assert (coverage1.update(obj1));
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String filename = "/tmp/obj_coverage.json";
+
+        // write coverage1 to json
+        try {
+            mapper.writeValue(new File(filename), coverage1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // read coverage1 from json
+        try {
+            ObjectCoverage coverage = mapper.readValue(new File(filename), ObjectCoverage.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

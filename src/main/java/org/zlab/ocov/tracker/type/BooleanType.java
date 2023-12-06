@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class BooleanType extends TypeInfo {
     int trueCount = 0;
@@ -29,6 +28,18 @@ public class BooleanType extends TypeInfo {
                 falseCount++;
                 changed = true;
             }
+            return changed;
+        }
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
+    }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        if (otherTypeInfo instanceof BooleanType) {
+            BooleanType otherBooleanType = (BooleanType) otherTypeInfo;
+            boolean changed = false;
+            trueCount += otherBooleanType.trueCount;
+            falseCount += otherBooleanType.falseCount;
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

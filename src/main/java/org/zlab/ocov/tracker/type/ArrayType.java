@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class ArrayType extends TypeInfo {
     int maxSize = Integer.MIN_VALUE;
@@ -32,6 +31,26 @@ public class ArrayType extends TypeInfo {
             changed = true;
         }
         return changed;
+    }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        // Check whether it's null
+        if (otherTypeInfo instanceof ArrayType) {
+            ArrayType otherArrayType = (ArrayType) otherTypeInfo;
+            boolean changed = false;
+            if (otherArrayType.maxSize > maxSize) {
+                maxSize = otherArrayType.maxSize;
+                changed = true;
+            }
+            if (otherArrayType.minSize < minSize) {
+                minSize = otherArrayType.minSize;
+                changed = true;
+            }
+            return changed;
+        } else {
+            throw new RuntimeException("Type not match");
+        }
     }
 
     public static int getArrayLength(Object array) {

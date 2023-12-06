@@ -24,6 +24,10 @@ public class ObjectCoverage implements Serializable {
     public Map<String, ClassInfo> baseClassInfo;
     public Set<String> topObjects;
 
+    public ObjectCoverage() {
+        // for json
+    }
+
     public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath) {
         baseClassInfo = readClassInfo(baseClassInfoPath);
         topObjects = readTopObjects(topObjectsPath);
@@ -52,6 +56,30 @@ public class ObjectCoverage implements Serializable {
         }
         Runtime.log("[hklog] classInfo = " + className);
         return classInfo.update(obj, baseClassInfo);
+    }
+
+    public boolean merge(ObjectCoverage otherObjCoverage) {
+        // The coverage's class info should be similar
+        // Let's include all new here
+        boolean newCoverage = false;
+        for (String className : otherObjCoverage.objCoverage.keySet()) {
+            ClassInfo otherClassInfo = otherObjCoverage.objCoverage.get(className);
+            if (otherClassInfo == null) {
+                // Skip this
+                continue;
+            }
+            ClassInfo classInfo = objCoverage.get(className);
+            if (classInfo == null) {
+                // Add it
+                objCoverage.put(className, otherClassInfo);
+                newCoverage = true;
+            } else {
+                // merge it
+                if (classInfo.merge(otherClassInfo))
+                    newCoverage = true;
+            }
+        }
+        return newCoverage;
     }
 
     public static Map<String, ClassInfo> readClassInfo(Path file) {

@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class StringType extends TypeInfo {
 
@@ -35,4 +34,23 @@ public class StringType extends TypeInfo {
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        if (otherTypeInfo instanceof StringType) {
+            StringType otherStringType = (StringType) otherTypeInfo;
+            boolean changed = false;
+            if (otherStringType.max > max) {
+                max = otherStringType.max;
+                changed = true;
+            }
+            if (otherStringType.min < min) {
+                min = otherStringType.min;
+                changed = true;
+            }
+            return changed;
+        }
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
+    }
+
 }

@@ -2,12 +2,10 @@ package org.zlab.ocov.tracker.type;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
-import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class ObjectType extends TypeInfo {
     // Could be Object type, which might be any type
@@ -34,12 +32,34 @@ public class ObjectType extends TypeInfo {
                 return false;
             }
             Runtime.log("New class " + className);
-            // Avoid self reference
             ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
             newClassInfo.update(value, baseClassInfo);
             classNames.put(className, newClassInfo);
             return true;
         }
+    }
+
+    @Override
+    public boolean merge(TypeInfo otherTypeInfo) {
+        if (otherTypeInfo instanceof ObjectType) {
+            ObjectType otherObjectType = (ObjectType) otherTypeInfo;
+            boolean changed = false;
+            for (Map.Entry<String, ClassInfo> entry : otherObjectType.classNames.entrySet()) {
+                String className = entry.getKey();
+                ClassInfo otherClassInfo = entry.getValue();
+                if (classNames.containsKey(className)) {
+                    ClassInfo classInfo = classNames.get(className);
+                    if (classInfo.merge(otherClassInfo))
+                        changed = true;
+                } else {
+                    ClassInfo newClassInfo = SerializationUtils.clone(otherClassInfo);
+                    classNames.put(className, newClassInfo);
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 
 }

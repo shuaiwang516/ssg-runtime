@@ -1,17 +1,19 @@
 package org.zlab.ocov.tracker;
 
-import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.type.TypeInfo;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class ClassInfo implements Serializable {
     // Iterate all instances of this class, and update the constraint information
-    Map<String, TypeInfo> fields = new HashMap<>();
+    public Map<String, TypeInfo> fields = new HashMap<>();
+
+    public ClassInfo() {
+        // for json
+    }
 
     // Additional Relationships
     public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo) {
@@ -60,6 +62,29 @@ public class ClassInfo implements Serializable {
             return false;
         }
         return typeInfo.update(value, baseClassInfo);
+    }
+
+    // merge
+    public boolean merge(ClassInfo otherClassInfo) {
+        boolean newCoverage = false;
+        for (String fieldName : otherClassInfo.fields.keySet()) {
+            TypeInfo otherTypeInfo = otherClassInfo.fields.get(fieldName);
+            if (otherTypeInfo == null) {
+                // Skip this
+                continue;
+            }
+            TypeInfo typeInfo = fields.get(fieldName);
+            if (typeInfo == null) {
+                // Add it
+                fields.put(fieldName, otherTypeInfo);
+                newCoverage = true;
+            } else {
+                // merge it
+                if (typeInfo.merge(otherTypeInfo))
+                    newCoverage = true;
+            }
+        }
+        return newCoverage;
     }
 
 }
