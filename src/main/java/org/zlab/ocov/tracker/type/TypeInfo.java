@@ -1,23 +1,10 @@
 package org.zlab.ocov.tracker.type;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.zlab.ocov.tracker.ClassInfo;
 
 import java.io.Serializable;
 import java.util.Map;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({@JsonSubTypes.Type(value = ArrayType.class, name = "array"),
-        @JsonSubTypes.Type(value = BooleanType.class, name = "boolean"),
-        @JsonSubTypes.Type(value = CollectionType.class, name = "collection"),
-        @JsonSubTypes.Type(value = DoubleType.class, name = "double"),
-        @JsonSubTypes.Type(value = FloatType.class, name = "float"),
-        @JsonSubTypes.Type(value = IntegerType.class, name = "integer"),
-        @JsonSubTypes.Type(value = LongType.class, name = "long"),
-        @JsonSubTypes.Type(value = ObjectType.class, name = "object"),
-        @JsonSubTypes.Type(value = ShortType.class, name = "short"),
-        @JsonSubTypes.Type(value = StringType.class, name = "string")})
 public abstract class TypeInfo implements Serializable {
     public String typeName;
 
