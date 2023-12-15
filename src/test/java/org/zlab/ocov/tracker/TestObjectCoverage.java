@@ -1,15 +1,15 @@
 package org.zlab.ocov.tracker;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.dumper.TestObjectGraphDumper;
+import org.zlab.ocov.tracker.type.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 public class TestObjectCoverage {
 
@@ -156,23 +156,24 @@ public class TestObjectCoverage {
         TestObjectGraphDumper.TargetClassD obj1 = new TestObjectGraphDumper.TargetClassD();
         assert (coverage1.update(obj1));
 
-        ObjectMapper mapper = new ObjectMapper();
+        RuntimeTypeAdapterFactory<TypeInfo> typeFactory = RuntimeTypeAdapterFactory
+                .of(TypeInfo.class, "type") // "type" is a field in JSON that tells us what the
+                // actual type is
+                .registerSubtype(ArrayType.class, "array")
+                .registerSubtype(BooleanType.class, "boolean")
+                .registerSubtype(CollectionType.class, "collection")
+                .registerSubtype(DoubleType.class, "double")
+                .registerSubtype(FloatType.class, "float")
+                .registerSubtype(IntegerType.class, "integer")
+                .registerSubtype(LongType.class, "long").registerSubtype(ObjectType.class, "object")
+                .registerSubtype(ShortType.class, "short")
+                .registerSubtype(StringType.class, "string");
 
-        String filename = "/tmp/obj_coverage.json";
+        Gson gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory).create();
+        String jsonStr = gson.toJson(coverage1);
+        System.out.println(jsonStr);
 
-        // write coverage1 to json
-        try {
-            mapper.writeValue(new File(filename), coverage1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // read coverage1 from json
-        try {
-            ObjectCoverage coverage = mapper.readValue(new File(filename), ObjectCoverage.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ObjectCoverage coverage2 = gson.fromJson(jsonStr, ObjectCoverage.class);
     }
 
 }
