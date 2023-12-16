@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class BooleanType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     int trueCount = 0;
     int falseCount = 0;
 

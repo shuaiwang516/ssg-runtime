@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ObjectType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     // Could be Object type, which might be any type
     // Or it could be a specific class type, the class name might change
 

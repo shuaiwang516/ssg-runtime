@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class FloatType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     float max = Float.MIN_VALUE;
     float min = Float.MAX_VALUE;
 

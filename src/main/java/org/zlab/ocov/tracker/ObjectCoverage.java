@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class ObjectCoverage implements Serializable {
+    private static final long serialVersionUID = 20231215L;
+
     // Only contain the top level objects: class name -> class info
     public Map<String, ClassInfo> objCoverage = new HashMap<>();
 

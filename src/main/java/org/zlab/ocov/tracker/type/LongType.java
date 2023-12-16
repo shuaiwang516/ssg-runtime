@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class LongType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     long max = Long.MIN_VALUE;
     long min = Long.MAX_VALUE;
 

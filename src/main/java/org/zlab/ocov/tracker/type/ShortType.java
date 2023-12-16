@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class ShortType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     short max = Short.MIN_VALUE;
     short min = Short.MAX_VALUE;
 

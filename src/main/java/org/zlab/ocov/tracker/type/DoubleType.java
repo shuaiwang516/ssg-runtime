@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class DoubleType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     double max = Double.MIN_VALUE;
     double min = Double.MAX_VALUE;
 

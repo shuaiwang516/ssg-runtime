@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClassInfo implements Serializable {
+    private static final long serialVersionUID = 20231215L;
+
     // Iterate all instances of this class, and update the constraint information
     public Map<String, TypeInfo> fields = new HashMap<>();
 

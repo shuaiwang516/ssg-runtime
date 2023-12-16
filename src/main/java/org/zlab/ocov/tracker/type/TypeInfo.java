@@ -6,6 +6,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 public abstract class TypeInfo implements Serializable {
+    private static final long serialVersionUID = 20231215L;
+
     public String typeName;
 
     public TypeInfo() {

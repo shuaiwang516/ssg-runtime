@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class CollectionType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     int maxSize = Integer.MIN_VALUE;
     int minSize = Integer.MAX_VALUE;
 

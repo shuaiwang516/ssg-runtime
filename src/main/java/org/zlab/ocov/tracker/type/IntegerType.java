@@ -5,6 +5,8 @@ import org.zlab.ocov.tracker.ClassInfo;
 import java.util.Map;
 
 public class IntegerType extends TypeInfo {
+    private static final long serialVersionUID = 20231215L;
+
     int max = Integer.MIN_VALUE;
     int min = Integer.MAX_VALUE;
 
