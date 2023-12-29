@@ -33,7 +33,7 @@ public class ObjectType extends TypeInfo {
             if (!baseClassInfo.containsKey(className)) {
                 return false;
             }
-            Runtime.log("New class " + className);
+            // Runtime.log("New class " + className);
             ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
             newClassInfo.update(value, baseClassInfo);
             classNames.put(className, newClassInfo);

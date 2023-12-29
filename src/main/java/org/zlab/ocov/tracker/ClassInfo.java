@@ -26,8 +26,9 @@ public class ClassInfo implements Serializable {
             for (Field field : fields) {
                 field.setAccessible(true);
                 Object value = field.get(obj);
-                Runtime.log("[hklog] processing field name = " + field.getName() + ", value = "
-                        + value);
+                // Runtime.log("[hklog] processing field name = " + field.getName() + ", value =
+                // "
+                // + value);
                 // get field class name
                 String fieldName = field.getName();
                 String fieldClassName = field.getType().getName();
@@ -35,17 +36,18 @@ public class ClassInfo implements Serializable {
                 // if field is static and final, skip it: but still might change?
                 if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
                         && java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
-                    Runtime.log("[hklog] field is static and final, skip it");
+                    // Runtime.log("[hklog] field is static and final, skip it");
                     continue;
                 }
                 // Log classname + name
-                Runtime.log("[hklog] end fieldClassName = " + fieldClassName + ", fieldName = "
-                        + fieldName);
+                // Runtime.log("[hklog] end fieldClassName = " + fieldClassName + ", fieldName =
+                // "
+                // + fieldName);
                 if (update(fieldName, value, baseClassInfo)) {
                     if (!isNew)
                         isNew = true;
                 }
-                Runtime.log(fieldName + ": " + value);
+                // Runtime.log(fieldName + ": " + value);
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();

@@ -58,7 +58,7 @@ public class ObjectCoverage implements Serializable {
             // Runtime.log("[hklog] classInfo is null for " + className);
             return false;
         }
-        Runtime.log("[hklog] classInfo = " + className);
+        // Runtime.log("[hklog] classInfo = " + className);
         return classInfo.update(obj, baseClassInfo);
     }
 
