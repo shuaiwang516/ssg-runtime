@@ -42,7 +42,9 @@ public class ObjectCoverage implements Serializable {
                 ClassInfo copyClassInfo = SerializationUtils.clone(classInfo);
                 objCoverage.put(className, copyClassInfo);
             } else {
-                throw new RuntimeException("ClassInfo not found for " + className);
+                // throw new RuntimeException("ClassInfo not found for " + className);
+                // skip it
+                Runtime.log("[hklog] ClassInfo not found for " + className);
             }
         }
     }
@@ -53,7 +55,7 @@ public class ObjectCoverage implements Serializable {
         // get class info
         ClassInfo classInfo = objCoverage.get(className);
         if (classInfo == null) {
-            Runtime.log("[hklog] classInfo is null for " + className);
+            // Runtime.log("[hklog] classInfo is null for " + className);
             return false;
         }
         Runtime.log("[hklog] classInfo = " + className);
