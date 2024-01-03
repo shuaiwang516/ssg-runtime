@@ -86,6 +86,9 @@ public class ObjectCoverage implements Serializable {
                 }
             }
         }
+        if (newCoverage) {
+            Runtime.log("[hklog] --- Merged new coverage ---");
+        }
         return newCoverage;
     }
 
