@@ -63,6 +63,9 @@ public class Runtime {
     }
 
     public static void log(String message) {
+        // writer needs to be initialized for logging!
+        if (writer == null)
+            return;
         try {
             String timeStamp = dateFormat.format(new Date());
             writer.write(timeStamp + " - " + message);

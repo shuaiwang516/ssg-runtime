@@ -75,12 +75,15 @@ public class ObjectCoverage implements Serializable {
             ClassInfo classInfo = objCoverage.get(className);
             if (classInfo == null) {
                 // Add it
+                Runtime.log("[hklog] Add new classInfo for " + className);
                 objCoverage.put(className, otherClassInfo);
                 newCoverage = true;
             } else {
                 // merge it
-                if (classInfo.merge(otherClassInfo))
+                if (classInfo.merge(otherClassInfo)) {
                     newCoverage = true;
+                    Runtime.log("[hklog] new format coverage for " + className);
+                }
             }
         }
         return newCoverage;

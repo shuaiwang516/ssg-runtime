@@ -1,6 +1,7 @@
 package org.zlab.ocov.tracker.type;
 
 import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
 
@@ -82,6 +83,8 @@ public class ShortType extends TypeInfo {
                 min = otherShortType.min;
                 changed = true;
             }
+            if (changed)
+                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

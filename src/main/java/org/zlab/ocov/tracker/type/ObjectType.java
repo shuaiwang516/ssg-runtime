@@ -59,6 +59,8 @@ public class ObjectType extends TypeInfo {
                     changed = true;
                 }
             }
+            if (changed)
+                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

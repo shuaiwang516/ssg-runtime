@@ -1,6 +1,7 @@
 package org.zlab.ocov.tracker.type;
 
 import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
 
@@ -72,6 +73,8 @@ public class ArrayType extends TypeInfo {
                 minSize = otherArrayType.minSize;
                 changed = true;
             }
+            if (changed)
+                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         } else {
             throw new RuntimeException("Type not match");
