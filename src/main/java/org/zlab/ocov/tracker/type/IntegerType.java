@@ -10,6 +10,14 @@ public class IntegerType extends TypeInfo {
     int max = Integer.MIN_VALUE;
     int min = Integer.MAX_VALUE;
 
+    // Special values: null, -1, 0, 1
+    boolean beenNullOnce = false;
+    boolean beenMinusOneOnce = false;
+    boolean beenZeroOnce = false;
+    boolean beenOneOnce = false;
+
+    boolean enableRangeCheck = false;
+
     // describe some characteristics
     public IntegerType() {
         super("Integer");
@@ -18,18 +26,42 @@ public class IntegerType extends TypeInfo {
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         if (value == null) {
+            if (!beenNullOnce) {
+                beenNullOnce = true;
+                return true;
+            }
             return false;
         }
         if (value instanceof Integer) {
             int v = (Integer) value;
             boolean changed = false;
-            if (v > max) {
-                max = v;
-                changed = true;
+            if (v == -1) {
+                if (!beenMinusOneOnce) {
+                    beenMinusOneOnce = true;
+                    changed = true;
+                }
             }
-            if (v < min) {
-                min = v;
-                changed = true;
+            if (v == 0) {
+                if (!beenZeroOnce) {
+                    beenZeroOnce = true;
+                    changed = true;
+                }
+            }
+            if (v == 1) {
+                if (!beenOneOnce) {
+                    beenOneOnce = true;
+                    changed = true;
+                }
+            }
+            if (enableRangeCheck) {
+                if (v > max) {
+                    max = v;
+                    changed = true;
+                }
+                if (v < min) {
+                    min = v;
+                    changed = true;
+                }
             }
             return changed;
         }
@@ -42,13 +74,31 @@ public class IntegerType extends TypeInfo {
         if (otherTypeInfo instanceof IntegerType) {
             IntegerType otherIntegerType = (IntegerType) otherTypeInfo;
             boolean changed = false;
-            if (otherIntegerType.max > max) {
-                max = otherIntegerType.max;
+            if (otherIntegerType.beenNullOnce && !beenNullOnce) {
+                beenNullOnce = true;
                 changed = true;
             }
-            if (otherIntegerType.min < min) {
-                min = otherIntegerType.min;
+            if (otherIntegerType.beenMinusOneOnce && !beenMinusOneOnce) {
+                beenMinusOneOnce = true;
                 changed = true;
+            }
+            if (otherIntegerType.beenZeroOnce && !beenZeroOnce) {
+                beenZeroOnce = true;
+                changed = true;
+            }
+            if (otherIntegerType.beenOneOnce && !beenOneOnce) {
+                beenOneOnce = true;
+                changed = true;
+            }
+            if (enableRangeCheck) {
+                if (otherIntegerType.max > max) {
+                    max = otherIntegerType.max;
+                    changed = true;
+                }
+                if (otherIntegerType.min < min) {
+                    min = otherIntegerType.min;
+                    changed = true;
+                }
             }
             return changed;
         }

@@ -10,6 +10,9 @@ public class CollectionType extends TypeInfo {
     int maxSize = Integer.MIN_VALUE;
     int minSize = Integer.MAX_VALUE;
 
+    boolean beenNullOnce = false;
+    boolean beenZeroOnce = false;
+
     public CollectionType() {
         super("collection");
     }
@@ -17,11 +20,21 @@ public class CollectionType extends TypeInfo {
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         if (value == null) {
+            if (!beenNullOnce) {
+                beenNullOnce = true;
+                return true;
+            }
             return false;
         }
         if (value instanceof java.util.Collection) {
             int size = ((java.util.Collection) value).size();
             boolean changed = false;
+            if (size == 0) {
+                if (!beenZeroOnce) {
+                    beenZeroOnce = true;
+                    changed = true;
+                }
+            }
             if (size > maxSize) {
                 maxSize = size;
                 changed = true;
@@ -41,6 +54,18 @@ public class CollectionType extends TypeInfo {
         if (otherTypeInfo instanceof CollectionType) {
             CollectionType otherCollectionType = (CollectionType) otherTypeInfo;
             boolean changed = false;
+            if (otherCollectionType.beenNullOnce) {
+                if (!beenNullOnce) {
+                    beenNullOnce = true;
+                    changed = true;
+                }
+            }
+            if (otherCollectionType.beenZeroOnce) {
+                if (!beenZeroOnce) {
+                    beenZeroOnce = true;
+                    changed = true;
+                }
+            }
             if (otherCollectionType.maxSize > maxSize) {
                 maxSize = otherCollectionType.maxSize;
                 changed = true;

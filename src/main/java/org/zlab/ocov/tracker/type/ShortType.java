@@ -10,6 +10,14 @@ public class ShortType extends TypeInfo {
     short max = Short.MIN_VALUE;
     short min = Short.MAX_VALUE;
 
+    // Special values: null, -1, 0, 1
+    boolean beenNullOnce = false;
+    boolean beenMinusOneOnce = false;
+    boolean beenZeroOnce = false;
+    boolean beenOneOnce = false;
+
+    boolean enableRangeCheck = false;
+
     // describe some characteristics
     public ShortType() {
         super("Short");
@@ -18,18 +26,42 @@ public class ShortType extends TypeInfo {
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         if (value == null) {
+            if (!beenNullOnce) {
+                beenNullOnce = true;
+                return true;
+            }
             return false;
         }
         if (value instanceof Short) {
             short v = (Short) value;
             boolean changed = false;
-            if (v > max) {
-                max = v;
-                changed = true;
+            if (v == -1) {
+                if (!beenMinusOneOnce) {
+                    beenMinusOneOnce = true;
+                    changed = true;
+                }
             }
-            if (v < min) {
-                min = v;
-                changed = true;
+            if (v == 0) {
+                if (!beenZeroOnce) {
+                    beenZeroOnce = true;
+                    changed = true;
+                }
+            }
+            if (v == 1) {
+                if (!beenOneOnce) {
+                    beenOneOnce = true;
+                    changed = true;
+                }
+            }
+            if (enableRangeCheck) {
+                if (v > max) {
+                    max = v;
+                    changed = true;
+                }
+                if (v < min) {
+                    min = v;
+                    changed = true;
+                }
             }
             return changed;
         }

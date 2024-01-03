@@ -37,11 +37,11 @@ public class TestObjectCoverage {
         assert (!coverage.update(obj2));
 
         TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
-        obj3.a = 1000;
+        obj3.a = -1;
         assert (coverage.update(obj3));
 
         TestObjectGraphDumper.TargetClassA obj4 = new TestObjectGraphDumper.TargetClassA();
-        obj4.c = 10000;
+        obj4.c = -1;
         assert (!coverage.update(obj4));
     }
 
@@ -65,14 +65,14 @@ public class TestObjectCoverage {
         assert (!coverage.update(obj2));
 
         TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
-        obj3.bObj.i = 1000;
+        obj3.bObj.i = 1;
         assert (coverage.update(obj3));
 
         TestObjectGraphDumper.TargetClassD obj4 = new TestObjectGraphDumper.TargetClassD();
         assert (coverage.update(obj4));
 
         TestObjectGraphDumper.TargetClassD obj5 = new TestObjectGraphDumper.TargetClassD();
-        obj5.bObj.i = 1000;
+        obj5.bObj.i = 1;
         assert (coverage.update(obj5));
     }
 
@@ -141,7 +141,7 @@ public class TestObjectCoverage {
         ObjectCoverage coverage2 = new ObjectCoverage(bassClassPath, topObjectsPath);
 
         TestObjectGraphDumper.TargetClassD obj2 = new TestObjectGraphDumper.TargetClassD();
-        obj2.a = 1000;
+        obj2.a = 0;
         assert (coverage2.update(obj2));
 
         assert (coverage1.merge(coverage2));

@@ -10,6 +10,9 @@ public class ArrayType extends TypeInfo {
     int maxSize = Integer.MIN_VALUE;
     int minSize = Integer.MAX_VALUE;
 
+    boolean beenNullOnce = false;
+    boolean beenZeroOnce = false;
+
     public ArrayType() {
         super("array");
     }
@@ -17,13 +20,21 @@ public class ArrayType extends TypeInfo {
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         // value should be array type, update its size
-
-        // TODO: Handle null situation, it should be a special type
-        if (value == null)
+        if (value == null) {
+            if (!beenNullOnce) {
+                beenNullOnce = true;
+                return true;
+            }
             return false;
-
+        }
         int size = getArrayLength(value);
         boolean changed = false;
+        if (size == 0) {
+            if (!beenZeroOnce) {
+                beenZeroOnce = true;
+                changed = true;
+            }
+        }
         if (size > maxSize) {
             maxSize = size;
             changed = true;
@@ -41,6 +52,18 @@ public class ArrayType extends TypeInfo {
         if (otherTypeInfo instanceof ArrayType) {
             ArrayType otherArrayType = (ArrayType) otherTypeInfo;
             boolean changed = false;
+            if (otherArrayType.beenNullOnce) {
+                if (!beenNullOnce) {
+                    beenNullOnce = true;
+                    changed = true;
+                }
+            }
+            if (otherArrayType.beenZeroOnce) {
+                if (!beenZeroOnce) {
+                    beenZeroOnce = true;
+                    changed = true;
+                }
+            }
             if (otherArrayType.maxSize > maxSize) {
                 maxSize = otherArrayType.maxSize;
                 changed = true;

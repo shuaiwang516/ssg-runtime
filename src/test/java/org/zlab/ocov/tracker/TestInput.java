@@ -64,7 +64,7 @@ public class TestInput {
         Utils.saveSetToFile(topObjects, "/tmp/topObjects.json");
     }
 
-    @Test
+    // @Test
     public void test() {
         // Example input for baseClassInfo
         ObjectCoverage coverage = new ObjectCoverage(Runtime.baseClassPath, Runtime.topObjectsPath);

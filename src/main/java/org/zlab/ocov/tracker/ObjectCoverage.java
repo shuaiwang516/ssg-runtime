@@ -44,7 +44,7 @@ public class ObjectCoverage implements Serializable {
             } else {
                 // throw new RuntimeException("ClassInfo not found for " + className);
                 // skip it
-                Runtime.log("[hklog] ClassInfo not found for " + className);
+                // Runtime.log("[hklog] ClassInfo not found for " + className);
             }
         }
     }
