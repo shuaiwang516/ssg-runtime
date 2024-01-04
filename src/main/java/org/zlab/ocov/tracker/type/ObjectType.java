@@ -30,20 +30,22 @@ public class ObjectType extends TypeInfo {
             }
             return false;
         }
+        boolean changed = false;
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
-            return classNames.get(className).update(value, baseClassInfo);
+            if (classNames.get(className).update(value, baseClassInfo))
+                changed = true;
         } else {
             // Check whether this is a field that could be serialized
-            if (!baseClassInfo.containsKey(className)) {
-                return false;
+            if (baseClassInfo.containsKey(className)) {
+                // Runtime.log("New class " + className);
+                ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
+                newClassInfo.update(value, baseClassInfo);
+                classNames.put(className, newClassInfo);
+                changed = true;
             }
-            // Runtime.log("New class " + className);
-            ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
-            newClassInfo.update(value, baseClassInfo);
-            classNames.put(className, newClassInfo);
-            return true;
         }
+        return changed;
     }
 
     @Override

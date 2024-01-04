@@ -43,6 +43,36 @@ public class TestObjectGraphDumper {
         }
     }
 
+    public static class TargetClassE {
+        // Define some fields here for testing
+        public List<TargetClassF> fList = new LinkedList<>();
+    }
+
+    public static abstract class TargetClassF {
+        // Define some fields here for testing
+        public abstract void foo();
+    }
+
+    public static class TargetClassF1 extends TargetClassF {
+        // Define some fields here for testing
+        public int f1 = 1;
+
+        @Override
+        public void foo() {
+            System.out.println("TargetClassF1");
+        }
+    }
+
+    public static class TargetClassF2 extends TargetClassF {
+        // Define some fields here for testing
+        public int f2 = 2;
+
+        @Override
+        public void foo() {
+            System.out.println("TargetClassF2");
+        }
+    }
+
     @Test
     public void testDumper() {
         TargetClassA obj = new TargetClassA();

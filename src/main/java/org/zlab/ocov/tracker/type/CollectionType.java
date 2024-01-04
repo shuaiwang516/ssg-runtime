@@ -1,8 +1,10 @@
 package org.zlab.ocov.tracker.type;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.Runtime;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class CollectionType extends TypeInfo {
@@ -11,9 +13,11 @@ public class CollectionType extends TypeInfo {
     int maxSize = Integer.MIN_VALUE;
     int minSize = Integer.MAX_VALUE;
 
-    // FIXME: remain condition for every type
+    // FIXME: recursive record objects inside the collection
     boolean beenNullOnce = false;
     boolean beenZeroOnce = false;
+
+    public Map<String, ClassInfo> classNames = new HashMap<>();
 
     public CollectionType() {
         super("collection");
@@ -35,6 +39,27 @@ public class CollectionType extends TypeInfo {
                 if (!beenZeroOnce) {
                     beenZeroOnce = true;
                     changed = true;
+                }
+            } else {
+                // Recursively check the objects inside this collection
+                // Do we track all objects inside it?
+                // Track all for now
+                for (Object object : (java.util.Collection) value) {
+                    String className = object.getClass().getName();
+                    if (classNames.containsKey(className)) {
+                        if (classNames.get(className).update(object, baseClassInfo))
+                            changed = true;
+                    } else {
+                        // Check whether this is a field that could be serialized
+                        if (baseClassInfo.containsKey(className)) {
+                            // Runtime.log("New class " + className);
+                            ClassInfo newClassInfo = SerializationUtils
+                                    .clone(baseClassInfo.get(className));
+                            newClassInfo.update(object, baseClassInfo);
+                            classNames.put(className, newClassInfo);
+                            changed = true;
+                        }
+                    }
                 }
             }
             if (size > maxSize) {
