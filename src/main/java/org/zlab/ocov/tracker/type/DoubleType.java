@@ -15,6 +15,7 @@ public class DoubleType extends TypeInfo {
     boolean beenMinusOneOnce = false;
     boolean beenZeroOnce = false;
     boolean beenOneOnce = false;
+    boolean beenRestConditionOnce = false;
 
     boolean enableRangeCheck = false;
 
@@ -41,19 +42,23 @@ public class DoubleType extends TypeInfo {
                     beenMinusOneOnce = true;
                     changed = true;
                 }
-            }
-            if (v == 0) {
+            } else if (v == 0) {
                 if (!beenZeroOnce) {
                     beenZeroOnce = true;
                     changed = true;
                 }
-            }
-            if (v == 1) {
+            } else if (v == 1) {
                 if (!beenOneOnce) {
                     beenOneOnce = true;
                     changed = true;
                 }
+            } else {
+                if (!beenRestConditionOnce) {
+                    beenRestConditionOnce = true;
+                    changed = true;
+                }
             }
+
             if (enableRangeCheck) {
                 if (v > max) {
                     max = v;
@@ -88,6 +93,10 @@ public class DoubleType extends TypeInfo {
             }
             if (otherDoubleType.beenOneOnce && !beenOneOnce) {
                 beenOneOnce = true;
+                changed = true;
+            }
+            if (otherDoubleType.beenRestConditionOnce && !beenRestConditionOnce) {
+                beenRestConditionOnce = true;
                 changed = true;
             }
             if (enableRangeCheck) {

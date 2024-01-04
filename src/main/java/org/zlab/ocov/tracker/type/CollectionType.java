@@ -11,6 +11,7 @@ public class CollectionType extends TypeInfo {
     int maxSize = Integer.MIN_VALUE;
     int minSize = Integer.MAX_VALUE;
 
+    // FIXME: remain condition for every type
     boolean beenNullOnce = false;
     boolean beenZeroOnce = false;
 

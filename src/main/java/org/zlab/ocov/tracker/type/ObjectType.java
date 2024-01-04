@@ -12,6 +12,7 @@ public class ObjectType extends TypeInfo {
 
     // Could be Object type, which might be any type
     // Or it could be a specific class type, the class name might change
+    boolean beenNullOnce = false;
 
     public Map<String, ClassInfo> classNames = new HashMap<>();
 
@@ -23,6 +24,10 @@ public class ObjectType extends TypeInfo {
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
         // TODO: Handle null situation
         if (value == null) {
+            if (!beenNullOnce) {
+                beenNullOnce = true;
+                return true;
+            }
             return false;
         }
         String className = value.getClass().getName();

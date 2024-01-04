@@ -15,6 +15,7 @@ public class StringType extends TypeInfo {
     boolean beenNullOnce = false;
     boolean beenEmptyOnce = false;
     boolean beenOneCharacterOnce = false;
+    boolean beenRestConditionOnce = false;
 
     boolean enableRangeCheck = false;
 
@@ -40,10 +41,14 @@ public class StringType extends TypeInfo {
                     beenEmptyOnce = true;
                     changed = true;
                 }
-            }
-            if (len == 1) {
+            } else if (len == 1) {
                 if (!beenOneCharacterOnce) {
                     beenOneCharacterOnce = true;
+                    changed = true;
+                }
+            } else {
+                if (!beenRestConditionOnce) {
+                    beenRestConditionOnce = true;
                     changed = true;
                 }
             }
@@ -77,6 +82,10 @@ public class StringType extends TypeInfo {
             }
             if (otherStringType.beenOneCharacterOnce && !beenOneCharacterOnce) {
                 beenOneCharacterOnce = true;
+                changed = true;
+            }
+            if (otherStringType.beenRestConditionOnce && !beenRestConditionOnce) {
+                beenRestConditionOnce = true;
                 changed = true;
             }
             if (enableRangeCheck) {

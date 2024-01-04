@@ -16,6 +16,7 @@ public class ShortType extends TypeInfo {
     boolean beenMinusOneOnce = false;
     boolean beenZeroOnce = false;
     boolean beenOneOnce = false;
+    boolean beenRestConditionOnce = false;
 
     boolean enableRangeCheck = false;
 
@@ -41,16 +42,19 @@ public class ShortType extends TypeInfo {
                     beenMinusOneOnce = true;
                     changed = true;
                 }
-            }
-            if (v == 0) {
+            } else if (v == 0) {
                 if (!beenZeroOnce) {
                     beenZeroOnce = true;
                     changed = true;
                 }
-            }
-            if (v == 1) {
+            } else if (v == 1) {
                 if (!beenOneOnce) {
                     beenOneOnce = true;
+                    changed = true;
+                }
+            } else {
+                if (!beenRestConditionOnce) {
+                    beenRestConditionOnce = true;
                     changed = true;
                 }
             }
@@ -75,13 +79,35 @@ public class ShortType extends TypeInfo {
         if (otherTypeInfo instanceof ShortType) {
             ShortType otherShortType = (ShortType) otherTypeInfo;
             boolean changed = false;
-            if (otherShortType.max > max) {
-                max = otherShortType.max;
+            if (otherShortType.beenNullOnce && !beenNullOnce) {
+                beenNullOnce = true;
                 changed = true;
             }
-            if (otherShortType.min < min) {
-                min = otherShortType.min;
+            if (otherShortType.beenMinusOneOnce && !beenMinusOneOnce) {
+                beenMinusOneOnce = true;
                 changed = true;
+            }
+            if (otherShortType.beenZeroOnce && !beenZeroOnce) {
+                beenZeroOnce = true;
+                changed = true;
+            }
+            if (otherShortType.beenOneOnce && !beenOneOnce) {
+                beenOneOnce = true;
+                changed = true;
+            }
+            if (otherShortType.beenRestConditionOnce && !beenRestConditionOnce) {
+                beenRestConditionOnce = true;
+                changed = true;
+            }
+            if (enableRangeCheck) {
+                if (otherShortType.max > max) {
+                    max = otherShortType.max;
+                    changed = true;
+                }
+                if (otherShortType.min < min) {
+                    min = otherShortType.min;
+                    changed = true;
+                }
             }
             if (changed)
                 Runtime.log(String.format("[hklog] %s merge changed", typeName));
