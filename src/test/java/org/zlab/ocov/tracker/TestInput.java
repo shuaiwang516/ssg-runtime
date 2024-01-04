@@ -82,6 +82,33 @@ public class TestInput {
     }
 
     @Test
+    public void createExampleInputForMap() {
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassWithMap",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassWithMap")
+                .put("map", "java.util.Map");
+
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1").put("f1",
+                "int");
+
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF2
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF2",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF2").put("f2",
+                "int");
+        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo2.json");
+
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassWithMap");
+        Utils.saveSetToFile(topObjects, "input/topObjects2.json");
+    }
+
+    @Test
     public void createExampleTopObjectsCassandra() {
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.apache.cassandra.config.CFMetaData");

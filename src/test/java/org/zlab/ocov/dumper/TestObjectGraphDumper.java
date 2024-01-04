@@ -2,8 +2,10 @@ package org.zlab.ocov.dumper;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class TestObjectGraphDumper {
 
@@ -71,6 +73,11 @@ public class TestObjectGraphDumper {
         public void foo() {
             System.out.println("TargetClassF2");
         }
+    }
+
+    public static class TargetClassWithMap {
+        // Define some fields here for testing
+        public Map<Integer, TargetClassF> map = new HashMap<>();
     }
 
     @Test

@@ -182,6 +182,27 @@ public class TestObjectCoverage {
         assert (!coverage.update(obj4));
     }
 
+    @Test
+    public void testMap() {
+        /**
+         * Suppose a collection will be serialized, the size of it is always2. However,
+         * its object type is changed, we should also capture it and report a new format
+         * coverage.
+         */
+        Path bassClassPath = Paths.get("input/baseClassInfo2.json");
+        Path topObjectsPath = Paths.get("input/topObjects2.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
+        TestObjectGraphDumper.TargetClassWithMap obj1 = new TestObjectGraphDumper.TargetClassWithMap();
+        assert (coverage.update(obj1));
+
+        TestObjectGraphDumper.TargetClassWithMap obj2 = new TestObjectGraphDumper.TargetClassWithMap();
+        assert (!coverage.update(obj2));
+
+        obj2.map.put(1, new TestObjectGraphDumper.TargetClassF1());
+        assert (coverage.update(obj2));
+    }
+
     // @Test
     public void testJson() {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");

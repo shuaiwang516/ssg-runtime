@@ -59,7 +59,7 @@ public abstract class TypeInfo implements Serializable {
                 || typeName.equals("java.util.ConcurrentHashMap")
                 || typeName.equals("java.util.ConcurrentSkipListMap")) {
             // Map
-            return null;
+            return new MapType();
         } else if (typeName.equals("java.util.Set") || typeName.equals("java.util.HashSet")
                 || typeName.equals("java.util.TreeSet")
                 || typeName.equals("java.util.LinkedHashSet")
