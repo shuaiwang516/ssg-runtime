@@ -5,30 +5,23 @@ import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
 
-public class FloatType extends TypeInfo {
+public class FloatType extends ScalaType {
     private static final long serialVersionUID = 20231215L;
 
     float max = Float.MIN_VALUE;
     float min = Float.MAX_VALUE;
 
-    boolean beenNullOnce = false;
-    boolean beenMinusOneOnce = false;
-    boolean beenZeroOnce = false;
-    boolean beenOneOnce = false;
-    boolean beenRestConditionOnce = false;
-
-    boolean enableRangeCheck = false;
-
     // describe some characteristics
-    public FloatType() {
-        super("Float");
+    public FloatType(String itinerary) {
+        super("Float", itinerary);
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
@@ -39,31 +32,37 @@ public class FloatType extends TypeInfo {
             if (v == -1) {
                 if (!beenMinusOneOnce) {
                     beenMinusOneOnce = true;
+                    dumpIdMinusOneOnce = dumpId;
                     changed = true;
                 }
             } else if (v == 0) {
                 if (!beenZeroOnce) {
                     beenZeroOnce = true;
+                    dumpIdZeroOnce = dumpId;
                     changed = true;
                 }
             } else if (v == 1) {
                 if (!beenOneOnce) {
                     beenOneOnce = true;
+                    dumpIdOneOnce = dumpId;
                     changed = true;
                 }
             } else {
                 if (!beenRestConditionOnce) {
                     beenRestConditionOnce = true;
+                    dumpIdRestConditionOnce = dumpId;
                     changed = true;
                 }
             }
             if (enableRangeCheck) {
                 if (v > max) {
                     max = v;
+                    dumpIdMaxSize = dumpId;
                     changed = true;
                 }
                 if (v < min) {
                     min = v;
+                    dumpIdMinSize = dumpId;
                     changed = true;
                 }
             }
@@ -73,42 +72,26 @@ public class FloatType extends TypeInfo {
     }
 
     @Override
-    public boolean merge(TypeInfo otherTypeInfo) {
-        if (otherTypeInfo instanceof FloatType) {
-            FloatType otherFloatType = (FloatType) otherTypeInfo;
+    public boolean merge(TypeInfo other) {
+        if (other instanceof FloatType) {
+            FloatType otherType = (FloatType) other;
             boolean changed = false;
-            if (otherFloatType.beenNullOnce && !beenNullOnce) {
-                beenNullOnce = true;
+            if (merge(otherType))
                 changed = true;
-            }
-            if (otherFloatType.beenMinusOneOnce && !beenMinusOneOnce) {
-                beenMinusOneOnce = true;
-                changed = true;
-            }
-            if (otherFloatType.beenZeroOnce && !beenZeroOnce) {
-                beenZeroOnce = true;
-                changed = true;
-            }
-            if (otherFloatType.beenOneOnce && !beenOneOnce) {
-                beenOneOnce = true;
-                changed = true;
-            }
-            if (otherFloatType.beenRestConditionOnce && !beenRestConditionOnce) {
-                beenRestConditionOnce = true;
-                changed = true;
-            }
             if (enableRangeCheck) {
-                if (otherFloatType.max > max) {
-                    max = otherFloatType.max;
+                if (otherType.max > max) {
+                    max = otherType.max;
+                    dumpIdMaxSize = otherType.dumpIdMaxSize;
+                    log("itineraryMaxSize", itinerary, dumpIdMaxSize);
                     changed = true;
                 }
-                if (otherFloatType.min < min) {
-                    min = otherFloatType.min;
+                if (otherType.min < min) {
+                    min = otherType.min;
+                    dumpIdMinSize = otherType.dumpIdMinSize;
+                    log("itineraryMinSize", itinerary, dumpIdMinSize);
                     changed = true;
                 }
             }
-            if (changed)
-                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

@@ -1,6 +1,7 @@
 package org.zlab.ocov.tracker.type;
 
 import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.Runtime;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -9,47 +10,52 @@ public abstract class TypeInfo implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     public String typeName;
+    public String itinerary;
 
     public TypeInfo() {
     }
 
-    public TypeInfo(String typeName) {
+    public TypeInfo(String typeName, String itinerary) {
         this.typeName = typeName;
+        this.itinerary = itinerary;
     }
+
+    // Handle the typeInfo which contains recursive types
+    public abstract void updateItinerary(String itineraryPrefix);
 
     // Update constraint information
     // NULL Value should be handled inside each type!
-    public abstract boolean update(Object value, Map<String, ClassInfo> baseClassInfo);
+    public abstract boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId);
 
     // Merge
     public abstract boolean merge(TypeInfo otherTypeInfo);
 
     // TODO: Support all types
-    public static TypeInfo createTypeInfo(String typeName) {
+    public static TypeInfo createTypeInfo(String typeName, String itinerary) {
         if (typeName.equals("int") || typeName.equals("java.lang.Integer")) {
-            return new IntegerType();
+            return new IntegerType(itinerary);
         } else if (typeName.equals("long") || typeName.equals("java.lang.Long")) {
-            return new LongType();
+            return new LongType(itinerary);
         } else if (typeName.equals("float") || typeName.equals("java.lang.Float")) {
-            return new FloatType();
+            return new FloatType(itinerary);
         } else if (typeName.equals("double") || typeName.equals("java.lang.Double")) {
-            return new DoubleType();
+            return new DoubleType(itinerary);
         } else if (typeName.equals("boolean") || typeName.equals("java.lang.Boolean")) {
-            return new BooleanType();
+            return new BooleanType(itinerary);
         } else if (typeName.equals("char") || typeName.equals("java.lang.Character")) {
             // Skip char?
             return null;
         } else if (typeName.equals("byte") || typeName.equals("java.lang.Byte")) {
             return null;
         } else if (typeName.equals("short") || typeName.equals("java.lang.Short")) {
-            return new ShortType();
+            return new ShortType(itinerary);
         } else if (typeName.equals("java.lang.String")) {
-            return new StringType();
+            return new StringType(itinerary);
         } else if (typeName.equals("java.util.List") || typeName.equals("java.util.ArrayList")
                 || typeName.equals("java.util.LinkedList") || typeName.equals("java.util.Vector")
                 || typeName.equals("java.util.Stack") || typeName.equals("java.util.Queue")
                 || typeName.equals("java.util.PriorityQueue")) {
-            return new CollectionType();
+            return new CollectionType(itinerary);
         } else if (typeName.equals("java.util.Map") || typeName.equals("java.util.HashMap")
                 || typeName.equals("java.util.TreeMap") || typeName.equals("java.util.Hashtable")
                 || typeName.equals("java.util.LinkedHashMap")
@@ -59,25 +65,30 @@ public abstract class TypeInfo implements Serializable {
                 || typeName.equals("java.util.ConcurrentHashMap")
                 || typeName.equals("java.util.ConcurrentSkipListMap")) {
             // Map
-            return new MapType();
+            return new MapType(itinerary);
         } else if (typeName.equals("java.util.Set") || typeName.equals("java.util.HashSet")
                 || typeName.equals("java.util.TreeSet")
                 || typeName.equals("java.util.LinkedHashSet")
                 || typeName.equals("java.util.EnumSet")
                 || typeName.equals("java.util.concurrent.CopyOnWriteArraySet")) {
             // Set
-            return new CollectionType();
+            return new CollectionType(itinerary);
         } else if (typeName.equals("java.util.SortedSet")
                 || typeName.equals("java.util.NavigableSet")
                 || typeName.equals("java.util.concurrent.ConcurrentSkipListSet")) {
             // SortedSet
-            return new CollectionType();
+            return new CollectionType(itinerary);
         } else if (typeName.contains("[]")) {
             // Array
-            return new ArrayType();
+            return new ArrayType(itinerary);
         } else {
-            return new ObjectType();
+            return new ObjectType(itinerary);
         }
+    }
+
+    public void log(String msg, String itinerary, int dumpId) {
+        Runtime.log(String.format("%s, template = %s, itinerary = %s, dumpId = %d", typeName, msg,
+                itinerary, dumpId));
     }
 
 }

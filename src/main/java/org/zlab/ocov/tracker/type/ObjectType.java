@@ -16,12 +16,21 @@ public class ObjectType extends TypeInfo {
 
     public Map<String, ClassInfo> classNames = new HashMap<>();
 
-    public ObjectType() {
-        super("object");
+    public ObjectType(String itinerary) {
+        super("object", itinerary);
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
+    public void updateItinerary(String itineraryPrefix) {
+        itinerary = itineraryPrefix + itineraryPrefix;
+        // Update itinerary for all classInfo
+        for (String className : classNames.keySet()) {
+            classNames.get(className).updateItinerary(itineraryPrefix);
+        }
+    }
+
+    @Override
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         // TODO: Handle null situation
         if (value == null) {
             if (!beenNullOnce) {
@@ -33,14 +42,15 @@ public class ObjectType extends TypeInfo {
         boolean changed = false;
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
-            if (classNames.get(className).update(value, baseClassInfo))
+            if (classNames.get(className).update(value, baseClassInfo, dumpId))
                 changed = true;
         } else {
             // Check whether this is a field that could be serialized
             if (baseClassInfo.containsKey(className)) {
                 // Runtime.log("New class " + className);
                 ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
-                newClassInfo.update(value, baseClassInfo);
+                newClassInfo.updateItinerary(itinerary);
+                newClassInfo.update(value, baseClassInfo, dumpId);
                 classNames.put(className, newClassInfo);
                 changed = true;
             }
@@ -66,8 +76,6 @@ public class ObjectType extends TypeInfo {
                     changed = true;
                 }
             }
-            if (changed)
-                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

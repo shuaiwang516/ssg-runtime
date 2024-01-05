@@ -76,8 +76,9 @@ public class Runtime {
         }
     }
 
-    public static boolean update(Object obj) {
-        boolean val = objectCoverage.update(obj);
+    // id uniquely identify the program location for dumping
+    public static boolean update(Object obj, int dumpId) {
+        boolean val = objectCoverage.update(obj, dumpId);
         // Runtime.log("Update coverage ret = " + val);
         return val;
     }

@@ -5,31 +5,23 @@ import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
 
-public class DoubleType extends TypeInfo {
+public class DoubleType extends ScalaType {
     private static final long serialVersionUID = 20231215L;
 
     double max = Double.MIN_VALUE;
     double min = Double.MAX_VALUE;
 
-    boolean beenNullOnce = false;
-    boolean beenMinusOneOnce = false;
-    boolean beenZeroOnce = false;
-    boolean beenOneOnce = false;
-    boolean beenRestConditionOnce = false;
-
-    boolean enableRangeCheck = false;
-
     // describe some characteristics
-    public DoubleType() {
-        super("Float");
+    public DoubleType(String itinerary) {
+        super("Double", itinerary);
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
-
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
@@ -40,21 +32,25 @@ public class DoubleType extends TypeInfo {
             if (v == -1) {
                 if (!beenMinusOneOnce) {
                     beenMinusOneOnce = true;
+                    dumpIdMinusOneOnce = dumpId;
                     changed = true;
                 }
             } else if (v == 0) {
                 if (!beenZeroOnce) {
                     beenZeroOnce = true;
+                    dumpIdZeroOnce = dumpId;
                     changed = true;
                 }
             } else if (v == 1) {
                 if (!beenOneOnce) {
                     beenOneOnce = true;
+                    dumpIdOneOnce = dumpId;
                     changed = true;
                 }
             } else {
                 if (!beenRestConditionOnce) {
                     beenRestConditionOnce = true;
+                    dumpIdRestConditionOnce = dumpId;
                     changed = true;
                 }
             }
@@ -62,10 +58,12 @@ public class DoubleType extends TypeInfo {
             if (enableRangeCheck) {
                 if (v > max) {
                     max = v;
+                    dumpIdMaxSize = dumpId;
                     changed = true;
                 }
                 if (v < min) {
                     min = v;
+                    dumpIdMinSize = dumpId;
                     changed = true;
                 }
             }
@@ -75,42 +73,26 @@ public class DoubleType extends TypeInfo {
     }
 
     @Override
-    public boolean merge(TypeInfo otherTypeInfo) {
-        if (otherTypeInfo instanceof DoubleType) {
-            DoubleType otherDoubleType = (DoubleType) otherTypeInfo;
+    public boolean merge(TypeInfo other) {
+        if (other instanceof DoubleType) {
+            DoubleType otherType = (DoubleType) other;
             boolean changed = false;
-            if (otherDoubleType.beenNullOnce && !beenNullOnce) {
-                beenNullOnce = true;
+            if (merge(otherType))
                 changed = true;
-            }
-            if (otherDoubleType.beenMinusOneOnce && !beenMinusOneOnce) {
-                beenMinusOneOnce = true;
-                changed = true;
-            }
-            if (otherDoubleType.beenZeroOnce && !beenZeroOnce) {
-                beenZeroOnce = true;
-                changed = true;
-            }
-            if (otherDoubleType.beenOneOnce && !beenOneOnce) {
-                beenOneOnce = true;
-                changed = true;
-            }
-            if (otherDoubleType.beenRestConditionOnce && !beenRestConditionOnce) {
-                beenRestConditionOnce = true;
-                changed = true;
-            }
             if (enableRangeCheck) {
-                if (otherDoubleType.max > max) {
-                    max = otherDoubleType.max;
+                if (otherType.max > max) {
+                    max = otherType.max;
+                    dumpIdMaxSize = otherType.dumpIdMaxSize;
+                    log("itineraryMaxSize", itinerary, dumpIdMaxSize);
                     changed = true;
                 }
-                if (otherDoubleType.min < min) {
-                    min = otherDoubleType.min;
+                if (otherType.min < min) {
+                    min = otherType.min;
+                    dumpIdMinSize = otherType.dumpIdMinSize;
+                    log("itineraryMinSize", itinerary, dumpIdMinSize);
                     changed = true;
                 }
             }
-            if (changed)
-                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

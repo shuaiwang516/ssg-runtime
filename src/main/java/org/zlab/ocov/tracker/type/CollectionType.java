@@ -7,69 +7,63 @@ import org.zlab.ocov.tracker.Runtime;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CollectionType extends TypeInfo {
+public class CollectionType extends SequenceType {
     private static final long serialVersionUID = 20231215L;
 
-    int maxSize = Integer.MIN_VALUE;
-    int minSize = Integer.MAX_VALUE;
-
-    // FIXME: recursive record objects inside the collection
-    boolean beenNullOnce = false;
-    boolean beenZeroOnce = false;
-
     public Map<String, ClassInfo> classNames = new HashMap<>();
+    public int dumpId = -1;
 
-    public CollectionType() {
-        super("collection");
+    public CollectionType(String itinerary) {
+        super("collection", itinerary);
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
+    public void updateItinerary(String itineraryPrefix) {
+        itinerary = itineraryPrefix + itinerary;
+        // Update itinerary for all classInfo
+        for (String className : classNames.keySet()) {
+            classNames.get(className).updateItinerary(itineraryPrefix);
+        }
+    }
+
+    @Override
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
         }
         if (value instanceof java.util.Collection) {
-            int size = ((java.util.Collection) value).size();
             boolean changed = false;
-            if (size == 0) {
-                if (!beenZeroOnce) {
-                    beenZeroOnce = true;
-                    changed = true;
-                }
-            } else {
-                // Recursively check the objects inside this collection
-                // Do we track all objects inside it?
-                // Track all for now
-                for (Object object : (java.util.Collection) value) {
-                    String className = object.getClass().getName();
-                    if (classNames.containsKey(className)) {
-                        if (classNames.get(className).update(object, baseClassInfo))
-                            changed = true;
-                    } else {
-                        // Check whether this is a field that could be serialized
-                        if (baseClassInfo.containsKey(className)) {
-                            // Runtime.log("New class " + className);
-                            ClassInfo newClassInfo = SerializationUtils
-                                    .clone(baseClassInfo.get(className));
-                            newClassInfo.update(object, baseClassInfo);
-                            classNames.put(className, newClassInfo);
-                            changed = true;
-                        }
+            // Recursively check the objects inside this collection
+            // Do we track all objects inside it?
+            // Track all for now
+            for (Object object : (java.util.Collection) value) {
+                String className = object.getClass().getName();
+                if (classNames.containsKey(className)) {
+                    if (classNames.get(className).update(object, baseClassInfo, dumpId))
+                        changed = true;
+                } else {
+                    // Check whether this is a field that could be serialized
+                    if (baseClassInfo.containsKey(className)) {
+                        // Runtime.log("New class " + className);
+                        ClassInfo newClassInfo = SerializationUtils
+                                .clone(baseClassInfo.get(className));
+                        newClassInfo.updateItinerary(itinerary + ".collection_item");
+                        newClassInfo.update(object, baseClassInfo, dumpId);
+                        classNames.put(className, newClassInfo);
+                        this.itinerary = itinerary;
+                        this.dumpId = dumpId;
+                        changed = true;
                     }
                 }
             }
-            if (size > maxSize) {
-                maxSize = size;
+            int size = ((java.util.Collection) value).size();
+            if (updateSize(size, dumpId))
                 changed = true;
-            }
-            if (size < minSize) {
-                minSize = size;
-                changed = true;
-            }
             return changed;
         }
         // Why would it not be a collection type?
@@ -77,44 +71,27 @@ public class CollectionType extends TypeInfo {
     }
 
     @Override
-    public boolean merge(TypeInfo otherTypeInfo) {
-        if (otherTypeInfo instanceof CollectionType) {
-            CollectionType otherCollectionType = (CollectionType) otherTypeInfo;
+    public boolean merge(TypeInfo other) {
+        if (other instanceof CollectionType) {
+            CollectionType otherType = (CollectionType) other;
             boolean changed = false;
-            if (otherCollectionType.beenNullOnce) {
-                if (!beenNullOnce) {
-                    beenNullOnce = true;
-                    changed = true;
-                }
-            }
-            if (otherCollectionType.beenZeroOnce) {
-                if (!beenZeroOnce) {
-                    beenZeroOnce = true;
-                    changed = true;
-                }
-            }
-            if (otherCollectionType.maxSize > maxSize) {
-                maxSize = otherCollectionType.maxSize;
+            if (merge(otherType))
                 changed = true;
-            }
-            if (otherCollectionType.minSize < minSize) {
-                minSize = otherCollectionType.minSize;
-                changed = true;
-            }
-            for (String className : otherCollectionType.classNames.keySet()) {
+            for (String className : otherType.classNames.keySet()) {
                 if (classNames.containsKey(className)) {
-                    if (classNames.get(className)
-                            .merge(otherCollectionType.classNames.get(className)))
+                    if (classNames.get(className).merge(otherType.classNames.get(className)))
                         changed = true;
                 } else {
                     ClassInfo newClassInfo = SerializationUtils
-                            .clone(otherCollectionType.classNames.get(className));
+                            .clone(otherType.classNames.get(className));
                     classNames.put(className, newClassInfo);
+                    this.itinerary = otherType.itinerary;
+                    this.dumpId = otherType.dumpId;
+                    log("new class in collection: " + className, this.itinerary, otherType.dumpId);
                     changed = true;
                 }
             }
-            if (changed)
-                Runtime.log(String.format("[hklog] %s merge changed", typeName));
+            // Is this still necessary? We already have itinerary for tracking
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

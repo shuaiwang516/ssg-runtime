@@ -5,32 +5,23 @@ import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
 
-public class IntegerType extends TypeInfo {
+public class IntegerType extends ScalaType {
     private static final long serialVersionUID = 20231215L;
 
     int max = Integer.MIN_VALUE;
     int min = Integer.MAX_VALUE;
 
-    // Special values: null, -1, 0, 1
-    // FIXME: Positive integers (except these values, the remaining situations)
-    boolean beenNullOnce = false;
-    boolean beenMinusOneOnce = false;
-    boolean beenZeroOnce = false;
-    boolean beenOneOnce = false;
-    boolean beenRestConditionOnce = false;
-
-    boolean enableRangeCheck = false;
-
     // describe some characteristics
-    public IntegerType() {
-        super("Integer");
+    public IntegerType(String itinerary) {
+        super("Integer", itinerary);
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
@@ -41,21 +32,25 @@ public class IntegerType extends TypeInfo {
             if (v == -1) {
                 if (!beenMinusOneOnce) {
                     beenMinusOneOnce = true;
+                    dumpIdMinusOneOnce = dumpId;
                     changed = true;
                 }
             } else if (v == 0) {
                 if (!beenZeroOnce) {
                     beenZeroOnce = true;
+                    dumpIdZeroOnce = dumpId;
                     changed = true;
                 }
             } else if (v == 1) {
                 if (!beenOneOnce) {
                     beenOneOnce = true;
+                    dumpIdOneOnce = dumpId;
                     changed = true;
                 }
             } else {
                 if (!beenRestConditionOnce) {
                     beenRestConditionOnce = true;
+                    dumpIdRestConditionOnce = dumpId;
                     changed = true;
                 }
             }
@@ -63,56 +58,41 @@ public class IntegerType extends TypeInfo {
             if (enableRangeCheck) {
                 if (v > max) {
                     max = v;
+                    dumpIdMaxSize = dumpId;
                     changed = true;
                 }
                 if (v < min) {
                     min = v;
+                    dumpIdMinSize = dumpId;
                     changed = true;
                 }
             }
             return changed;
         }
-        // Why would it not be integer?
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 
     @Override
-    public boolean merge(TypeInfo otherTypeInfo) {
-        if (otherTypeInfo instanceof IntegerType) {
-            IntegerType otherIntegerType = (IntegerType) otherTypeInfo;
+    public boolean merge(TypeInfo other) {
+        if (other instanceof IntegerType) {
+            IntegerType otherType = (IntegerType) other;
             boolean changed = false;
-            if (otherIntegerType.beenNullOnce && !beenNullOnce) {
-                beenNullOnce = true;
+            if (merge(otherType))
                 changed = true;
-            }
-            if (otherIntegerType.beenMinusOneOnce && !beenMinusOneOnce) {
-                beenMinusOneOnce = true;
-                changed = true;
-            }
-            if (otherIntegerType.beenZeroOnce && !beenZeroOnce) {
-                beenZeroOnce = true;
-                changed = true;
-            }
-            if (otherIntegerType.beenOneOnce && !beenOneOnce) {
-                beenOneOnce = true;
-                changed = true;
-            }
-            if (otherIntegerType.beenRestConditionOnce && !beenRestConditionOnce) {
-                beenRestConditionOnce = true;
-                changed = true;
-            }
             if (enableRangeCheck) {
-                if (otherIntegerType.max > max) {
-                    max = otherIntegerType.max;
+                if (otherType.max > max) {
+                    max = otherType.max;
+                    dumpIdMaxSize = otherType.dumpIdMaxSize;
+                    log("itineraryMaxSize", itinerary, dumpIdMaxSize);
                     changed = true;
                 }
-                if (otherIntegerType.min < min) {
-                    min = otherIntegerType.min;
+                if (otherType.min < min) {
+                    min = otherType.min;
+                    dumpIdMinSize = otherType.dumpIdMinSize;
+                    log("itineraryMinSize", itinerary, dumpIdMinSize);
                     changed = true;
                 }
             }
-            if (changed)
-                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

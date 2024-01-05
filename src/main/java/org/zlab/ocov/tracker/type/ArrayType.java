@@ -5,76 +5,44 @@ import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
 
-public class ArrayType extends TypeInfo {
+public class ArrayType extends SequenceType {
     private static final long serialVersionUID = 20231215L;
 
-    int maxSize = Integer.MIN_VALUE;
-    int minSize = Integer.MAX_VALUE;
-
-    boolean beenNullOnce = false;
-    boolean beenZeroOnce = false;
-
-    public ArrayType() {
-        super("array");
+    public ArrayType(String itinerary) {
+        super("array", itinerary);
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo) {
+    public void updateItinerary(String itineraryPrefix) {
+        itinerary = itineraryPrefix + itinerary;
+    }
+
+    @Override
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         // value should be array type, update its size
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
         }
         int size = getArrayLength(value);
         boolean changed = false;
-        if (size == 0) {
-            if (!beenZeroOnce) {
-                beenZeroOnce = true;
-                changed = true;
-            }
-        }
-        if (size > maxSize) {
-            maxSize = size;
+        if (updateSize(size, dumpId))
             changed = true;
-        }
-        if (size < minSize) {
-            minSize = size;
-            changed = true;
-        }
         return changed;
     }
 
     @Override
-    public boolean merge(TypeInfo otherTypeInfo) {
+    public boolean merge(TypeInfo other) {
         // Check whether it's null
-        if (otherTypeInfo instanceof ArrayType) {
-            ArrayType otherArrayType = (ArrayType) otherTypeInfo;
+        if (other instanceof ArrayType) {
+            ArrayType otherType = (ArrayType) other;
             boolean changed = false;
-            if (otherArrayType.beenNullOnce) {
-                if (!beenNullOnce) {
-                    beenNullOnce = true;
-                    changed = true;
-                }
-            }
-            if (otherArrayType.beenZeroOnce) {
-                if (!beenZeroOnce) {
-                    beenZeroOnce = true;
-                    changed = true;
-                }
-            }
-            if (otherArrayType.maxSize > maxSize) {
-                maxSize = otherArrayType.maxSize;
+            if (merge(otherType))
                 changed = true;
-            }
-            if (otherArrayType.minSize < minSize) {
-                minSize = otherArrayType.minSize;
-                changed = true;
-            }
-            if (changed)
-                Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
         } else {
             throw new RuntimeException("Type not match");

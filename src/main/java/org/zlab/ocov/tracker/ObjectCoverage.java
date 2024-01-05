@@ -1,9 +1,6 @@
 package org.zlab.ocov.tracker;
 
 import org.zlab.ocov.Utils;
-import org.zlab.ocov.tracker.type.CollectionType;
-import org.zlab.ocov.tracker.type.IntegerType;
-import org.zlab.ocov.tracker.type.ObjectType;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.type.TypeInfo;
 
@@ -11,7 +8,6 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,7 +55,20 @@ public class ObjectCoverage implements Serializable {
             return false;
         }
         // Runtime.log("[hklog] classInfo = " + className);
-        return classInfo.update(obj, baseClassInfo);
+        return classInfo.update(obj, baseClassInfo, -1);
+    }
+
+    public boolean update(Object obj, int dumpId) {
+        // get object class name
+        String className = obj.getClass().getName();
+        // get class info
+        ClassInfo classInfo = objCoverage.get(className);
+        if (classInfo == null) {
+            // Runtime.log("[hklog] classInfo is null for " + className);
+            return false;
+        }
+        // Runtime.log("[hklog] classInfo = " + className);
+        return classInfo.update(obj, baseClassInfo, dumpId);
     }
 
     public boolean merge(ObjectCoverage otherObjCoverage) {
@@ -82,7 +91,7 @@ public class ObjectCoverage implements Serializable {
                 // merge it
                 if (classInfo.merge(otherClassInfo)) {
                     newCoverage = true;
-                    Runtime.log("[hklog] new format coverage for " + className);
+                    // Runtime.log("[hklog] new format coverage for " + className);
                 }
             }
         }
@@ -102,7 +111,7 @@ public class ObjectCoverage implements Serializable {
             for (String fieldName : classInfoOri.get(className).keySet()) {
                 String fieldType = classInfoOri.get(className).get(fieldName);
                 // Map from fieldType to TypeInfo
-                TypeInfo typeInfo = TypeInfo.createTypeInfo(fieldType);
+                TypeInfo typeInfo = TypeInfo.createTypeInfo(fieldType, className);
                 if (typeInfo == null) {
                     // skip it
                     continue;

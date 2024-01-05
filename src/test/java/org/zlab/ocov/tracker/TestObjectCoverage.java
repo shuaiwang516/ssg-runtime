@@ -187,6 +187,56 @@ public class TestObjectCoverage {
     }
 
     @Test
+    public void testCollectionItemMerge() {
+        /**
+         * Suppose a collection will be serialized, the size of it is always2. However,
+         * its object type is changed, we should also capture it and report a new format
+         * coverage.
+         */
+        Path bassClassPath = Paths.get("input/baseClassInfo1.json");
+        Path topObjectsPath = Paths.get("input/topObjects1.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
+
+        TestObjectGraphDumper.TargetClassE obj2 = new TestObjectGraphDumper.TargetClassE();
+        obj2.fList.add(new TestObjectGraphDumper.TargetClassF1());
+        assert (coverage.update(obj2));
+
+        TestObjectGraphDumper.TargetClassE obj3 = new TestObjectGraphDumper.TargetClassE();
+        obj3.fList.add(new TestObjectGraphDumper.TargetClassF2());
+        assert (coverage.update(obj3));
+
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+        assert coverage1.merge(coverage);
+        assert !coverage.merge(coverage1);
+    }
+
+    @Test
+    public void testCollectionRecursiveMerge() {
+        /**
+         * Suppose a collection will be serialized, it always contains a single object.
+         * If this object's field contains a new format, it should also report a new
+         * format coverage. E -> [tmpF1] tmpF1 -> f1
+         */
+        Path bassClassPath = Paths.get("input/baseClassInfo1.json");
+        Path topObjectsPath = Paths.get("input/topObjects1.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
+        TestObjectGraphDumper.TargetClassE obj2 = new TestObjectGraphDumper.TargetClassE();
+        obj2.fList.add(new TestObjectGraphDumper.TargetClassF1());
+        assert (coverage.update(obj2));
+
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+        TestObjectGraphDumper.TargetClassE obj3 = new TestObjectGraphDumper.TargetClassE();
+        TestObjectGraphDumper.TargetClassF1 tmpF1 = new TestObjectGraphDumper.TargetClassF1();
+        tmpF1.f1 = 0;
+        obj3.fList.add(tmpF1);
+        assert (coverage1.update(obj3));
+
+        assert coverage.merge(coverage1);
+    }
+
+    @Test
     public void testMap() {
         /**
          * Suppose a collection will be serialized, the size of it is always2. However,

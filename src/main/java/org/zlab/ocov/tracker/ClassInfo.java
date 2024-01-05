@@ -17,8 +17,20 @@ public class ClassInfo implements Serializable {
         // for json
     }
 
+    // Update itinerary if necessary
+    public void updateItinerary(String itineraryPrefix) {
+        for (String fieldName : fields.keySet()) {
+            TypeInfo typeInfo = fields.get(fieldName);
+            if (typeInfo == null) {
+                // Skip this
+                continue;
+            }
+            typeInfo.updateItinerary(itineraryPrefix + "->");
+        }
+    }
+
     // Additional Relationships
-    public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo) {
+    public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         // Iterate all fields
         boolean isNew = false;
         try {
@@ -43,7 +55,7 @@ public class ClassInfo implements Serializable {
                 // Runtime.log("[hklog] end fieldClassName = " + fieldClassName + ", fieldName =
                 // "
                 // + fieldName);
-                if (update(fieldName, value, baseClassInfo)) {
+                if (update(fieldName, value, baseClassInfo, dumpId)) {
                     if (!isNew)
                         isNew = true;
                 }
@@ -55,7 +67,8 @@ public class ClassInfo implements Serializable {
         return isNew;
     }
 
-    private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo) {
+    private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo,
+            int id) {
         if (!fields.containsKey(fieldName)) {
             // Only track target fields
             return false;
@@ -65,7 +78,7 @@ public class ClassInfo implements Serializable {
         if (typeInfo == null) {
             return false;
         }
-        return typeInfo.update(value, baseClassInfo);
+        return typeInfo.update(value, baseClassInfo, id);
     }
 
     // merge
