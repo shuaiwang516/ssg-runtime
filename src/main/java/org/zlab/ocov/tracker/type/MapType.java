@@ -94,6 +94,71 @@ public class MapType extends TypeInfo {
 
     @Override
     public boolean merge(TypeInfo otherTypeInfo) {
-        return false;
+        if (otherTypeInfo instanceof MapType) {
+            MapType otherMapType = (MapType) otherTypeInfo;
+            boolean changed = false;
+            if (otherMapType.beenNullOnce) {
+                if (!beenNullOnce) {
+                    beenNullOnce = true;
+                    changed = true;
+                }
+            }
+            if (otherMapType.beenZeroOnce) {
+                if (!beenZeroOnce) {
+                    beenZeroOnce = true;
+                    changed = true;
+                }
+            }
+            for (String className : otherMapType.keyClassNames.keySet()) {
+                ClassInfo otherClassInfo = otherMapType.keyClassNames.get(className);
+                if (otherClassInfo == null) {
+                    // Skip this
+                    continue;
+                }
+                ClassInfo classInfo = keyClassNames.get(className);
+                if (classInfo == null) {
+                    // Add it
+                    // Runtime.log("[hklog] Add new classInfo for " + className);
+                    keyClassNames.put(className, otherClassInfo);
+                    changed = true;
+                } else {
+                    // merge it
+                    if (classInfo.merge(otherClassInfo)) {
+                        changed = true;
+                        // Runtime.log("[hklog] new format coverage for " + className);
+                    }
+                }
+            }
+            for (String className : otherMapType.valueClassNames.keySet()) {
+                ClassInfo otherClassInfo = otherMapType.valueClassNames.get(className);
+                if (otherClassInfo == null) {
+                    // Skip this
+                    continue;
+                }
+                ClassInfo classInfo = valueClassNames.get(className);
+                if (classInfo == null) {
+                    // Add it
+                    // Runtime.log("[hklog] Add new classInfo for " + className);
+                    valueClassNames.put(className, otherClassInfo);
+                    changed = true;
+                } else {
+                    // merge it
+                    if (classInfo.merge(otherClassInfo)) {
+                        changed = true;
+                        // Runtime.log("[hklog] new format coverage for " + className);
+                    }
+                }
+            }
+            if (otherMapType.maxSize > maxSize) {
+                maxSize = otherMapType.maxSize;
+                changed = true;
+            }
+            if (otherMapType.minSize < minSize) {
+                minSize = otherMapType.minSize;
+                changed = true;
+            }
+            return changed;
+        }
+        throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 }

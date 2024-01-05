@@ -180,6 +180,10 @@ public class TestObjectCoverage {
         f1.f1 = 0;
         assert (coverage.update(obj4));
         assert (!coverage.update(obj4));
+
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+        assert coverage1.merge(coverage);
+        assert !coverage.merge(coverage1);
     }
 
     @Test
@@ -201,6 +205,10 @@ public class TestObjectCoverage {
 
         obj2.map.put(1, new TestObjectGraphDumper.TargetClassF1());
         assert (coverage.update(obj2));
+
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+        assert coverage1.merge(coverage);
+        assert !coverage1.merge(coverage);
     }
 
     // @Test

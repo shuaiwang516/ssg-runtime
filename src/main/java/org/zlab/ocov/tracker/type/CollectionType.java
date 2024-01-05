@@ -101,6 +101,18 @@ public class CollectionType extends TypeInfo {
                 minSize = otherCollectionType.minSize;
                 changed = true;
             }
+            for (String className : otherCollectionType.classNames.keySet()) {
+                if (classNames.containsKey(className)) {
+                    if (classNames.get(className)
+                            .merge(otherCollectionType.classNames.get(className)))
+                        changed = true;
+                } else {
+                    ClassInfo newClassInfo = SerializationUtils
+                            .clone(otherCollectionType.classNames.get(className));
+                    classNames.put(className, newClassInfo);
+                    changed = true;
+                }
+            }
             if (changed)
                 Runtime.log(String.format("[hklog] %s merge changed", typeName));
             return changed;
