@@ -111,7 +111,7 @@ public class ObjectCoverage implements Serializable {
             for (String fieldName : classInfoOri.get(className).keySet()) {
                 String fieldType = classInfoOri.get(className).get(fieldName);
                 // Map from fieldType to TypeInfo
-                TypeInfo typeInfo = TypeInfo.createTypeInfo(fieldType, className);
+                TypeInfo typeInfo = TypeInfo.createTypeInfo(fieldType, className + "." + fieldName);
                 if (typeInfo == null) {
                     // skip it
                     continue;
