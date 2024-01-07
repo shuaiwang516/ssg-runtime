@@ -13,8 +13,10 @@ public class ObjectType extends TypeInfo {
     // Could be Object type, which might be any type
     // Or it could be a specific class type, the class name might change
     boolean beenNullOnce = false;
+    int dumpIdNullOnce = -1;
 
     public Map<String, ClassInfo> classNames = new HashMap<>();
+    public Map<String, Integer> classNamesDumpId = new HashMap<>();
 
     public ObjectType(String itinerary) {
         super("object", itinerary);
@@ -31,10 +33,10 @@ public class ObjectType extends TypeInfo {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
-        // TODO: Handle null situation
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
@@ -52,6 +54,7 @@ public class ObjectType extends TypeInfo {
                 newClassInfo.updateItinerary(itinerary);
                 newClassInfo.update(value, baseClassInfo, dumpId);
                 classNames.put(className, newClassInfo);
+                classNamesDumpId.put(className, dumpId);
                 changed = true;
             }
         }
@@ -63,6 +66,12 @@ public class ObjectType extends TypeInfo {
         if (otherTypeInfo instanceof ObjectType) {
             ObjectType otherObjectType = (ObjectType) otherTypeInfo;
             boolean changed = false;
+            if (beenNullOnce != otherObjectType.beenNullOnce) {
+                beenNullOnce = true;
+                dumpIdNullOnce = otherObjectType.dumpIdNullOnce;
+                log("itineraryNullOnce", itinerary, dumpIdNullOnce);
+                changed = true;
+            }
             for (Map.Entry<String, ClassInfo> entry : otherObjectType.classNames.entrySet()) {
                 String className = entry.getKey();
                 ClassInfo otherClassInfo = entry.getValue();
@@ -73,6 +82,10 @@ public class ObjectType extends TypeInfo {
                 } else {
                     ClassInfo newClassInfo = SerializationUtils.clone(otherClassInfo);
                     classNames.put(className, newClassInfo);
+                    classNamesDumpId.put(className,
+                            otherObjectType.classNamesDumpId.get(className));
+                    log("new class: " + className, itinerary,
+                            otherObjectType.classNamesDumpId.get(className));
                     changed = true;
                 }
             }

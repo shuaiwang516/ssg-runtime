@@ -21,7 +21,7 @@ public abstract class SequenceType extends TypeInfo {
     boolean beenRestConditionOnce = false;
     int dumpIdRestConditionOnce = -1;
 
-    boolean enableRangeCheck = true;
+    boolean enableRangeCheck = false;
 
     public SequenceType(String name, String itinerary) {
         super(name, itinerary);

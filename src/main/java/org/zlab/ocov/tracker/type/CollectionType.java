@@ -95,14 +95,12 @@ public class CollectionType extends SequenceType {
                     ClassInfo newClassInfo = SerializationUtils
                             .clone(otherType.classNames.get(className));
                     classNames.put(className, newClassInfo);
-                    this.itinerary = otherType.itinerary;
-                    this.classNamesDumpId.put(className, otherType.classNamesDumpId.get(className));
+                    classNamesDumpId.put(className, otherType.classNamesDumpId.get(className));
                     log("new class in collection: " + className, this.itinerary,
                             otherType.classNamesDumpId.get(className));
                     changed = true;
                 }
             }
-            // Is this still necessary? We already have itinerary for tracking
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
