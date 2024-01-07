@@ -11,7 +11,7 @@ public class CollectionType extends SequenceType {
     private static final long serialVersionUID = 20231215L;
 
     public Map<String, ClassInfo> classNames = new HashMap<>();
-    public int dumpId = -1;
+    public Map<String, Integer> classNamesDumpId = new HashMap<>();
 
     public CollectionType(String itinerary) {
         super("collection", itinerary);
@@ -42,6 +42,9 @@ public class CollectionType extends SequenceType {
             // Do we track all objects inside it?
             // Track all for now
             for (Object object : (java.util.Collection) value) {
+                if (object == null) {
+                    continue;
+                }
                 String className = object.getClass().getName();
                 if (classNames.containsKey(className)) {
                     if (classNames.get(className).update(object, baseClassInfo, dumpId))
@@ -55,8 +58,7 @@ public class CollectionType extends SequenceType {
                         newClassInfo.updateItinerary(itinerary + ".collection_item");
                         newClassInfo.update(object, baseClassInfo, dumpId);
                         classNames.put(className, newClassInfo);
-                        this.itinerary = itinerary;
-                        this.dumpId = dumpId;
+                        classNamesDumpId.put(className, dumpId);
                         changed = true;
                     }
                 }
@@ -70,6 +72,14 @@ public class CollectionType extends SequenceType {
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));
     }
 
+    /**
+     * OriCov NewCov - dumpId = 1 => New object - dumpId = 2 => Another object but
+     * with different format
+     *
+     * When merging: OriCov.merge(NewCov) - The object is created by 2 dumps, but
+     * the second dump is - recorded inside the dump. - We should only record
+     * dumpId1
+     */
     @Override
     public boolean merge(TypeInfo other) {
         if (other instanceof CollectionType) {
@@ -86,8 +96,9 @@ public class CollectionType extends SequenceType {
                             .clone(otherType.classNames.get(className));
                     classNames.put(className, newClassInfo);
                     this.itinerary = otherType.itinerary;
-                    this.dumpId = otherType.dumpId;
-                    log("new class in collection: " + className, this.itinerary, otherType.dumpId);
+                    this.classNamesDumpId.put(className, otherType.classNamesDumpId.get(className));
+                    log("new class in collection: " + className, this.itinerary,
+                            otherType.classNamesDumpId.get(className));
                     changed = true;
                 }
             }

@@ -10,9 +10,11 @@ public class MapType extends SequenceType {
 
     private static final long serialVersionUID = 20231215L;
 
+    // record dumpId for each newly added class
     public Map<String, ClassInfo> keyClassNames = new HashMap<>();
+    public Map<String, Integer> keyClassNamesDumpId = new HashMap<>();
     public Map<String, ClassInfo> valueClassNames = new HashMap<>();
-    int dumpId = -1;
+    public Map<String, Integer> valueClassNamesDumpId = new HashMap<>();
 
     public MapType(String itinerary) {
         super("map", itinerary);
@@ -35,6 +37,7 @@ public class MapType extends SequenceType {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
+                dumpIdNullOnce = dumpId;
                 return true;
             }
             return false;
@@ -46,6 +49,9 @@ public class MapType extends SequenceType {
             // Do we track all objects inside it?
             // Track all for now
             for (Object object : ((java.util.Map) value).keySet()) {
+                if (object == null) {
+                    continue;
+                }
                 String className = object.getClass().getName();
                 if (keyClassNames.containsKey(className)) {
                     if (keyClassNames.get(className).update(object, baseClassInfo, dumpId))
@@ -59,11 +65,15 @@ public class MapType extends SequenceType {
                         newClassInfo.updateItinerary(itinerary + ".map_keyItem");
                         newClassInfo.update(object, baseClassInfo, dumpId);
                         keyClassNames.put(className, newClassInfo);
+                        keyClassNamesDumpId.put(className, dumpId);
                         changed = true;
                     }
                 }
             }
             for (Object object : ((java.util.Map) value).values()) {
+                if (object == null) {
+                    continue;
+                }
                 String className = object.getClass().getName();
                 if (valueClassNames.containsKey(className)) {
                     if (valueClassNames.get(className).update(object, baseClassInfo, dumpId))
@@ -77,6 +87,7 @@ public class MapType extends SequenceType {
                         newClassInfo.updateItinerary(itinerary + ".map_valueItem");
                         newClassInfo.update(object, baseClassInfo, dumpId);
                         valueClassNames.put(className, newClassInfo);
+                        valueClassNamesDumpId.put(className, dumpId);
                         changed = true;
                     }
                 }
@@ -104,8 +115,10 @@ public class MapType extends SequenceType {
                 if (classInfo == null) {
                     keyClassNames.put(className, otherClassInfo);
                     this.itinerary = otherType.itinerary;
-                    this.dumpId = otherType.dumpId;
-                    log("new key class", otherType.itinerary, otherType.dumpId);
+                    this.keyClassNamesDumpId.put(className,
+                            otherType.keyClassNamesDumpId.get(className));
+                    log("new key class", otherType.itinerary,
+                            otherType.keyClassNamesDumpId.get(className));
                     changed = true;
                 } else {
                     // merge it
@@ -125,7 +138,10 @@ public class MapType extends SequenceType {
                 if (classInfo == null) {
                     valueClassNames.put(className, otherClassInfo);
                     this.itinerary = otherType.itinerary;
-                    this.dumpId = otherType.dumpId;
+                    this.valueClassNamesDumpId.put(className,
+                            otherType.valueClassNamesDumpId.get(className));
+                    log("new value class", otherType.itinerary,
+                            otherType.valueClassNamesDumpId.get(className));
                     changed = true;
                 } else {
                     if (classInfo.merge(otherClassInfo)) {
