@@ -92,7 +92,7 @@ public class ClassInfo implements Serializable {
             }
             TypeInfo typeInfo = fields.get(fieldName);
             if (typeInfo == null) {
-                // Add it
+                // FIXME: This could be removed?
                 fields.put(fieldName, otherTypeInfo);
                 newCoverage = true;
             } else {

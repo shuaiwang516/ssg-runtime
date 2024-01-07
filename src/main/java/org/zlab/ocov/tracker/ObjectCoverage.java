@@ -46,16 +46,7 @@ public class ObjectCoverage implements Serializable {
     }
 
     public boolean update(Object obj) {
-        // get object class name
-        String className = obj.getClass().getName();
-        // get class info
-        ClassInfo classInfo = objCoverage.get(className);
-        if (classInfo == null) {
-            // Runtime.log("[hklog] classInfo is null for " + className);
-            return false;
-        }
-        // Runtime.log("[hklog] classInfo = " + className);
-        return classInfo.update(obj, baseClassInfo, -1);
+        return update(obj, -1);
     }
 
     public boolean update(Object obj, int dumpId) {
@@ -72,6 +63,10 @@ public class ObjectCoverage implements Serializable {
     }
 
     public boolean merge(ObjectCoverage otherObjCoverage) {
+        return merge(otherObjCoverage, -1);
+    }
+
+    public boolean merge(ObjectCoverage otherObjCoverage, int testId) {
         // The coverage's class info should be similar
         // Let's include all new here
         boolean newCoverage = false;
@@ -91,12 +86,12 @@ public class ObjectCoverage implements Serializable {
                 // merge it
                 if (classInfo.merge(otherClassInfo)) {
                     newCoverage = true;
-                    // Runtime.log("[hklog] new format coverage for " + className);
                 }
             }
         }
         if (newCoverage) {
-            Runtime.log("[hklog] --- Merged new coverage ---");
+            Runtime.log(
+                    String.format("[hklog] --- Merged new coverage from testId: %d ---", testId));
         }
         return newCoverage;
     }
