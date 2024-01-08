@@ -66,7 +66,7 @@ public class ObjectType extends TypeInfo {
         if (otherTypeInfo instanceof ObjectType) {
             ObjectType otherObjectType = (ObjectType) otherTypeInfo;
             boolean changed = false;
-            if (beenNullOnce != otherObjectType.beenNullOnce) {
+            if (otherObjectType.beenNullOnce && !beenNullOnce) {
                 beenNullOnce = true;
                 dumpIdNullOnce = otherObjectType.dumpIdNullOnce;
                 log("itineraryNullOnce", itinerary, dumpIdNullOnce);
