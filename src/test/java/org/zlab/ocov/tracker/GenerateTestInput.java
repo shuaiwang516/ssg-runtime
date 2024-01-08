@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TestInput {
+public class GenerateTestInput {
 
     @Test
     public void createExampleInput() {
@@ -116,6 +116,28 @@ public class TestInput {
         topObjects.add("org.apache.cassandra.db.AtomicBTreeColumns");
 
         Utils.saveSetToFile(topObjects, "/tmp/topObjects.json");
+    }
+
+    @Test
+    public void createExampleInputForEnum() {
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum").put("e",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetEnum");
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum").put("f1",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1");
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1").put("f1",
+                "int");
+        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForEnum.json");
+
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum");
+        Utils.saveSetToFile(topObjects, "input/topObjectsForEnum.json");
     }
 
     // @Test

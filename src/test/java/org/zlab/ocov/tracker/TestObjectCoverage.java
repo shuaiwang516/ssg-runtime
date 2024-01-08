@@ -261,6 +261,32 @@ public class TestObjectCoverage {
         assert !coverage1.merge(coverage);
     }
 
+    @Test
+    public void testEnum() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForEnum.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEnum.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+
+        TestObjectGraphDumper.TargetClassForEnum obj1 = new TestObjectGraphDumper.TargetClassForEnum();
+        assert (coverage.update(obj1));
+
+        TestObjectGraphDumper.TargetClassForEnum obj2 = new TestObjectGraphDumper.TargetClassForEnum();
+        obj2.e = TestObjectGraphDumper.TargetEnum.A;
+        assert (coverage.update(obj2));
+        assert coverage1.merge(coverage);
+
+        obj2.e = TestObjectGraphDumper.TargetEnum.B;
+        assert (coverage.update(obj2));
+        assert coverage1.merge(coverage);
+        assert !coverage1.merge(coverage);
+
+        obj2.e = TestObjectGraphDumper.TargetEnum.A;
+        assert (!coverage.update(obj2));
+        assert !coverage1.merge(coverage);
+    }
+
     // @Test
     public void testJson() {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");

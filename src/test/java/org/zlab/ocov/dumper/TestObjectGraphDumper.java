@@ -80,6 +80,16 @@ public class TestObjectGraphDumper {
         public Map<Integer, TargetClassF> map = new HashMap<>();
     }
 
+    public enum TargetEnum {
+        A, B, C
+    }
+
+    public static class TargetClassForEnum {
+        // Define some fields here for testing
+        public TargetEnum e;
+        public TargetClassF1 f1 = new TargetClassF1();
+    }
+
     @Test
     public void testDumper() {
         TargetClassA obj = new TargetClassA();

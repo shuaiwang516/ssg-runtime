@@ -6,6 +6,7 @@ import org.zlab.ocov.tracker.Runtime;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ObjectType extends TypeInfo {
     private static final long serialVersionUID = 20231215L;
@@ -14,6 +15,13 @@ public class ObjectType extends TypeInfo {
     // Or it could be a specific class type, the class name might change
     boolean beenNullOnce = false;
     int dumpIdNullOnce = -1;
+
+    // Enum Type
+    boolean beenEnumOnce = false;
+    // Enum Constants
+    public Map<String, Set<String>> enumConstants = new HashMap<>();
+    public Map<String, Set<String>> visitedEnumConstants = new HashMap<>();
+    public Map<String, Map<String, Integer>> visitedEnumConstantsDumpId = new HashMap<>();
 
     public Map<String, ClassInfo> classNames = new HashMap<>();
     public Map<String, Integer> classNamesDumpId = new HashMap<>();
@@ -41,7 +49,45 @@ public class ObjectType extends TypeInfo {
             }
             return false;
         }
+
         boolean changed = false;
+        if (value.getClass().isEnum()) {
+            if (!beenEnumOnce) {
+                beenEnumOnce = true;
+            }
+            String enumName = value.getClass().getName();
+            if (!enumConstants.containsKey(enumName)) {
+                // Only need to update once
+                enumConstants.put(enumName, new java.util.HashSet<>());
+                for (Object enumConstant : value.getClass().getEnumConstants()) {
+                    String enumConstantName = enumConstant.toString();
+                    enumConstants.get(enumName).add(enumConstantName);
+                }
+            }
+            // Update visited constants
+            // Check whether it's visited before
+            boolean visited = false;
+            if (visitedEnumConstants.containsKey(enumName)) {
+                if (visitedEnumConstants.get(enumName).contains(value.toString())) {
+                    visited = true;
+                }
+            }
+            if (!visited) {
+                // Update visited constants
+                if (!visitedEnumConstants.containsKey(enumName)) {
+                    visitedEnumConstants.put(enumName, new java.util.HashSet<>());
+                }
+                visitedEnumConstants.get(enumName).add(value.toString());
+                // Update dumpId
+                if (!visitedEnumConstantsDumpId.containsKey(enumName)) {
+                    visitedEnumConstantsDumpId.put(enumName, new HashMap<>());
+                }
+                visitedEnumConstantsDumpId.get(enumName).put(value.toString(), dumpId);
+                // A new constant is reached
+                changed = true;
+            }
+        }
+
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
             if (classNames.get(className).update(value, baseClassInfo, dumpId))
@@ -72,6 +118,48 @@ public class ObjectType extends TypeInfo {
                 log("itineraryNullOnce", itinerary, dumpIdNullOnce);
                 changed = true;
             }
+            if (otherObjectType.beenEnumOnce && !beenEnumOnce) {
+                beenEnumOnce = true;
+                changed = true;
+            }
+            // merge enum related
+            if (otherObjectType.beenEnumOnce) {
+                // merge enum Constants
+                for (Map.Entry<String, Set<String>> entry : otherObjectType.enumConstants
+                        .entrySet()) {
+                    String enumName = entry.getKey();
+                    Set<String> otherEnumConstants = entry.getValue();
+                    if (!enumConstants.containsKey(enumName)) {
+                        enumConstants.put(enumName, new java.util.HashSet<>());
+
+                    }
+                }
+                // merge visited enum Constants
+                for (Map.Entry<String, Set<String>> entry : otherObjectType.visitedEnumConstants
+                        .entrySet()) {
+                    String enumName = entry.getKey();
+                    Set<String> otherVisitedEnumConstants = entry.getValue();
+                    if (!visitedEnumConstants.containsKey(enumName)) {
+                        visitedEnumConstants.put(enumName, new java.util.HashSet<>());
+                    }
+                    if (!visitedEnumConstantsDumpId.containsKey(enumName)) {
+                        visitedEnumConstantsDumpId.put(enumName, new HashMap<>());
+                    }
+                    for (String visitedEnumConstant : otherVisitedEnumConstants) {
+                        if (!visitedEnumConstants.get(enumName).contains(visitedEnumConstant)) {
+                            visitedEnumConstants.get(enumName).add(visitedEnumConstant);
+                            visitedEnumConstantsDumpId.get(enumName).put(visitedEnumConstant,
+                                    otherObjectType.visitedEnumConstantsDumpId.get(enumName)
+                                            .get(visitedEnumConstant));
+                            log("new visited enum constant: " + visitedEnumConstant, itinerary,
+                                    otherObjectType.visitedEnumConstantsDumpId.get(enumName)
+                                            .get(visitedEnumConstant));
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
             for (Map.Entry<String, ClassInfo> entry : otherObjectType.classNames.entrySet()) {
                 String className = entry.getKey();
                 ClassInfo otherClassInfo = entry.getValue();

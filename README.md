@@ -44,6 +44,15 @@ public static Mutation makeCreateTableMutation(KSMetaData keyspace, CFMetaData t
 ```
 
 
+## Likely invariants
+
+Enable range check (max, min size of collection/map), set it to true.
+```java
+// SequenceType.java
+boolean enableRangeCheck = false;
+```
+
+
 ## Embed Cassandra with runtime jar
 Add the jar to `lib` folder
 
