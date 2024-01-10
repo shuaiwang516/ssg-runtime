@@ -2,6 +2,7 @@ package org.zlab.ocov.tracker.type;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.util.HashMap;
@@ -40,7 +41,8 @@ public class ObjectType extends TypeInfo {
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
+            EqualitySet equalitySet) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
@@ -90,7 +92,7 @@ public class ObjectType extends TypeInfo {
 
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
-            if (classNames.get(className).update(value, baseClassInfo, dumpId))
+            if (classNames.get(className).update(value, baseClassInfo, dumpId, equalitySet))
                 changed = true;
         } else {
             // Check whether this is a field that could be serialized
@@ -98,7 +100,7 @@ public class ObjectType extends TypeInfo {
                 // Runtime.log("New class " + className);
                 ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
                 newClassInfo.updateItinerary(itinerary);
-                newClassInfo.update(value, baseClassInfo, dumpId);
+                newClassInfo.update(value, baseClassInfo, dumpId, equalitySet);
                 classNames.put(className, newClassInfo);
                 classNamesDumpId.put(className, dumpId);
                 changed = true;

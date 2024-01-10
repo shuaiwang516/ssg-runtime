@@ -22,13 +22,22 @@ public class ObjectCoverage implements Serializable {
     public Map<String, ClassInfo> baseClassInfo;
     public Set<String> topObjects;
 
+    public EqualitySet equalitySet;
+
     public ObjectCoverage() {
         // for json
     }
 
     public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath) {
+        this(baseClassInfoPath, topObjectsPath, null);
+    }
+
+    public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath, Path comparableClassesPath) {
         baseClassInfo = readClassInfo(baseClassInfoPath);
         topObjects = readTopObjects(topObjectsPath);
+        if (comparableClassesPath != null && comparableClassesPath.toFile().exists()) {
+            equalitySet = constructEqualitySet(comparableClassesPath);
+        }
 
         // Get classinfo from base
         for (String className : topObjects) {
@@ -59,7 +68,7 @@ public class ObjectCoverage implements Serializable {
             return false;
         }
         // Runtime.log("[hklog] classInfo = " + className);
-        return classInfo.update(obj, baseClassInfo, dumpId);
+        return classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
     }
 
     public boolean merge(ObjectCoverage otherObjCoverage) {
@@ -70,6 +79,7 @@ public class ObjectCoverage implements Serializable {
         // The coverage's class info should be similar
         // Let's include all new here
         boolean newCoverage = false;
+        // Normal object coverage merge
         for (String className : otherObjCoverage.objCoverage.keySet()) {
             ClassInfo otherClassInfo = otherObjCoverage.objCoverage.get(className);
             if (otherClassInfo == null) {
@@ -87,6 +97,17 @@ public class ObjectCoverage implements Serializable {
                 if (classInfo.merge(otherClassInfo)) {
                     newCoverage = true;
                 }
+            }
+        }
+        // TODO: Equality set merge
+        if (equalitySet == null) {
+            if (otherObjCoverage.equalitySet != null) {
+                equalitySet = otherObjCoverage.equalitySet;
+                newCoverage = true;
+            }
+        } else {
+            if (equalitySet.merge(otherObjCoverage.equalitySet)) {
+                newCoverage = true;
             }
         }
         if (newCoverage) {
@@ -120,6 +141,11 @@ public class ObjectCoverage implements Serializable {
 
     public static Set<String> readTopObjects(Path file) {
         return Utils.loadSetFromFile(file.toString());
+    }
+
+    public static EqualitySet constructEqualitySet(Path file) {
+        Set<String> comparableClasses = Utils.loadSetFromFile(file.toString());
+        return new EqualitySet(comparableClasses);
     }
 
     public void initExample() {

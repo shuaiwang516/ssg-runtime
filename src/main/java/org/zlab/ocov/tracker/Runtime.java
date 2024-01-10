@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Runtime {
     /**
@@ -17,16 +19,20 @@ public class Runtime {
      */
     public static Path baseClassPath = Paths.get("/tmp/serializedFields_alg1.json");
     public static Path topObjectsPath = Paths.get("/tmp/topObjects.json");
+    public static Path comparableClassesPath = Paths.get("/tmp/comparableClasses.json");
     public static Path filePath = Paths.get("/tmp/coverage.log");
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static BufferedWriter writer;
     public static ObjectCoverage objectCoverage;
 
+    private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
     public static void init() {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
-            objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath);
+            objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath,
+                    comparableClassesPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (IOException e) {
@@ -78,9 +84,14 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static boolean update(Object obj, int dumpId) {
-        boolean val = objectCoverage.update(obj, dumpId);
-        // Runtime.log("Update coverage ret = " + val);
-        return val;
+        rwLock.readLock().lock();
+        try {
+            boolean val = objectCoverage.update(obj, dumpId);
+            // Runtime.log("Update coverage ret = " + val);
+            return val;
+        } finally {
+            rwLock.readLock().unlock();
+        }
     }
 
     private static final int PORT = 62000; // the port to listen on
@@ -107,8 +118,14 @@ public class Runtime {
                             while ((inputLine = in.readLine()) != null) {
                                 log("Received command: " + inputLine);
                                 // process the command and generate a response
-                                Object response = processCommand(inputLine);
-                                out.writeObject(response); // send the response to the client
+                                rwLock.writeLock().lock();
+                                Object response;
+                                try {
+                                    response = processCommand(inputLine);
+                                    out.writeObject(response); // send the response to the client
+                                } finally {
+                                    rwLock.writeLock().unlock();
+                                }
                                 System.out.println("Sent response: " + response);
                             }
                         } catch (IOException e) {

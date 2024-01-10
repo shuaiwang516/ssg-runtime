@@ -5,7 +5,9 @@ import org.zlab.ocov.tracker.type.TypeInfo;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ClassInfo implements Serializable {
     private static final long serialVersionUID = 20231215L;
@@ -30,7 +32,8 @@ public class ClassInfo implements Serializable {
     }
 
     // Additional Relationships
-    public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId) {
+    public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId,
+            EqualitySet equalitySet) {
         // Iterate all fields
         boolean isNew = false;
         try {
@@ -43,7 +46,8 @@ public class ClassInfo implements Serializable {
                 // + value);
                 // get field class name
                 String fieldName = field.getName();
-                String fieldClassName = field.getType().getName();
+                // String fieldClassName = field.getType().getName();
+
                 // if fieldClassName is visited, skip it to avoid stackoverflow
                 // if field is static and final, skip it: but still might change?
                 if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
@@ -55,7 +59,7 @@ public class ClassInfo implements Serializable {
                 // Runtime.log("[hklog] end fieldClassName = " + fieldClassName + ", fieldName =
                 // "
                 // + fieldName);
-                if (update(fieldName, value, baseClassInfo, dumpId)) {
+                if (update(fieldName, value, baseClassInfo, dumpId, equalitySet)) {
                     if (!isNew)
                         isNew = true;
                 }
@@ -68,7 +72,7 @@ public class ClassInfo implements Serializable {
     }
 
     private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo,
-            int id) {
+            int id, EqualitySet equalitySet) {
         if (!fields.containsKey(fieldName)) {
             // Only track target fields
             return false;
@@ -78,10 +82,26 @@ public class ClassInfo implements Serializable {
         if (typeInfo == null) {
             return false;
         }
-        return typeInfo.update(value, baseClassInfo, id);
+
+        // Equality check
+        if (equalitySet != null && value != null) {
+            String fieldClassName = value.getClass().getName();
+            if (equalitySet.comparableClasses.contains(fieldClassName)) {
+                // Comparable classes! Mark it
+                int hashCode = value.hashCode();
+                // get itinerary
+                String itinerary = typeInfo.itinerary;
+                // Add it to the equality set
+                Map<Integer, Set<String>> hashCodeMap = equalitySet.compClass2EqualitySet
+                        .computeIfAbsent(fieldClassName, k -> new HashMap<>());
+                Set<String> itinerarySet = hashCodeMap.computeIfAbsent(hashCode,
+                        k -> new HashSet<>());
+                itinerarySet.add(itinerary);
+            }
+        }
+        return typeInfo.update(value, baseClassInfo, id, equalitySet);
     }
 
-    // merge
     public boolean merge(ClassInfo otherClassInfo) {
         boolean newCoverage = false;
         for (String fieldName : otherClassInfo.fields.keySet()) {

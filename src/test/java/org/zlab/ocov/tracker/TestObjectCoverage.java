@@ -10,6 +10,8 @@ import org.zlab.ocov.tracker.type.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestObjectCoverage {
 
@@ -285,6 +287,28 @@ public class TestObjectCoverage {
         obj2.e = TestObjectGraphDumper.TargetEnum.A;
         assert (!coverage.update(obj2));
         assert !coverage1.merge(coverage);
+    }
+
+    @Test
+    public void testEquality() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        assert (coverage.update(obj1));
+        assert !(coverage.update(obj1));
+        assert coverage1.merge(coverage);
+
+        TestObjectGraphDumper.TargetClassEquality obj2 = new TestObjectGraphDumper.TargetClassEquality();
+        obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 1;
+        assert (coverage.update(obj2));
+        assert coverage1.merge(coverage);
     }
 
     // @Test

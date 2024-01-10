@@ -1,6 +1,7 @@
 package org.zlab.ocov.tracker.type;
 
 import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.io.Serializable;
@@ -25,7 +26,8 @@ public abstract class TypeInfo implements Serializable {
 
     // Update constraint information
     // NULL Value should be handled inside each type!
-    public abstract boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId);
+    public abstract boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
+            EqualitySet equalitySet);
 
     // Merge
     public abstract boolean merge(TypeInfo otherTypeInfo);
@@ -87,7 +89,7 @@ public abstract class TypeInfo implements Serializable {
     }
 
     public void log(String msg, String itinerary, int dumpId) {
-        Runtime.log(String.format("%s, template = %s, itinerary = %s, dumpId = %d", typeName, msg,
+        Runtime.log(String.format("<%s: template = %s> itinerary = %s, dumpId = %d", typeName, msg,
                 itinerary, dumpId));
     }
 

@@ -140,6 +140,53 @@ public class GenerateTestInput {
         Utils.saveSetToFile(topObjects, "input/topObjectsForEnum.json");
     }
 
+    @Test
+    public void createExampleInputForEquality() {
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEquality
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEquality",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEquality").put(
+                "targetClassEqualityA",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityA");
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEquality").put(
+                "targetClassEqualityC",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityC");
+
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityA
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityA",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityA").put(
+                "targetClassEqualityAA",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityAA");
+
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityAA
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityAA",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityAA")
+                .put("compClass", "org.zlab.ocov.dumper.TestObjectGraphDumper$CompClass");
+
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityC
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityC",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEqualityC")
+                .put("compClass", "org.zlab.ocov.dumper.TestObjectGraphDumper$CompClass");
+
+        // CompClass
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$CompClass", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$CompClass").put("a", "int");
+
+        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForEquality.json");
+
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassEquality");
+        Utils.saveSetToFile(topObjects, "input/topObjectsForEquality.json");
+
+        Set<String> comparableClasses = new HashSet<>();
+        comparableClasses.add("org.zlab.ocov.dumper.TestObjectGraphDumper$CompClass");
+        Utils.saveSetToFile(comparableClasses, "input/comparableClassesForEquality.json");
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

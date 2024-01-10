@@ -90,6 +90,49 @@ public class TestObjectGraphDumper {
         public TargetClassF1 f1 = new TargetClassF1();
     }
 
+    public static class TargetClassEquality {
+        public TargetClassEqualityA targetClassEqualityA = new TargetClassEqualityA();
+        public TargetClassEqualityC targetClassEqualityC = new TargetClassEqualityC();
+    }
+
+    public static class TargetClassEqualityA {
+        public TargetClassEqualityAA targetClassEqualityAA = new TargetClassEqualityAA();
+    }
+
+    public static class TargetClassEqualityAA {
+        public CompClass compClass = new CompClass(0);
+    }
+
+    public static class TargetClassEqualityC {
+        public CompClass compClass = new CompClass(1);
+    }
+
+    public static class CompClass {
+        // comparable class
+        public int a;
+
+        public CompClass(int a) {
+            this.a = a;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (obj instanceof CompClass) {
+                CompClass other = (CompClass) obj;
+                return a == other.a;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return a;
+        }
+    }
+
     @Test
     public void testDumper() {
         TargetClassA obj = new TargetClassA();

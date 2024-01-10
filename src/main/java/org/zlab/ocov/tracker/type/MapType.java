@@ -2,6 +2,7 @@ package org.zlab.ocov.tracker.type;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.EqualitySet;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,8 @@ public class MapType extends SequenceType {
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
+            EqualitySet equalitySet) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
@@ -54,7 +56,8 @@ public class MapType extends SequenceType {
                 }
                 String className = object.getClass().getName();
                 if (keyClassNames.containsKey(className)) {
-                    if (keyClassNames.get(className).update(object, baseClassInfo, dumpId))
+                    if (keyClassNames.get(className).update(object, baseClassInfo, dumpId,
+                            equalitySet))
                         changed = true;
                 } else {
                     // Check whether this is a field that could be serialized
@@ -63,7 +66,7 @@ public class MapType extends SequenceType {
                         ClassInfo newClassInfo = SerializationUtils
                                 .clone(baseClassInfo.get(className));
                         newClassInfo.updateItinerary(itinerary + ".map_keyItem");
-                        newClassInfo.update(object, baseClassInfo, dumpId);
+                        newClassInfo.update(object, baseClassInfo, dumpId, equalitySet);
                         keyClassNames.put(className, newClassInfo);
                         keyClassNamesDumpId.put(className, dumpId);
                         changed = true;
@@ -76,7 +79,8 @@ public class MapType extends SequenceType {
                 }
                 String className = object.getClass().getName();
                 if (valueClassNames.containsKey(className)) {
-                    if (valueClassNames.get(className).update(object, baseClassInfo, dumpId))
+                    if (valueClassNames.get(className).update(object, baseClassInfo, dumpId,
+                            equalitySet))
                         changed = true;
                 } else {
                     // Check whether this is a field that could be serialized
@@ -85,7 +89,7 @@ public class MapType extends SequenceType {
                         ClassInfo newClassInfo = SerializationUtils
                                 .clone(baseClassInfo.get(className));
                         newClassInfo.updateItinerary(itinerary + ".map_valueItem");
-                        newClassInfo.update(object, baseClassInfo, dumpId);
+                        newClassInfo.update(object, baseClassInfo, dumpId, equalitySet);
                         valueClassNames.put(className, newClassInfo);
                         valueClassNamesDumpId.put(className, dumpId);
                         changed = true;
