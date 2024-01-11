@@ -59,6 +59,9 @@ public class EqualitySet implements Serializable {
             } else {
                 compClass2EqualitySetDedup.put(compClass,
                         otherCompClass2EqualitySetDedup.get(compClass));
+                Runtime.log(String.format(
+                        "<Equality: incorporate sets for a new class> class = %s, oriset = %s",
+                        compClass, otherCompClass2EqualitySetDedup.get(compClass)));
                 changed = true;
             }
         }
