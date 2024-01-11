@@ -77,7 +77,8 @@ public class EqualitySet implements Serializable {
                 continue;
             }
 
-            boolean isSupersetFound = false;
+            // Here we use >, not >= for strict super set
+            boolean isStrictSupersetFound = false;
             boolean isSubsetFound = false;
             Set<Set<String>> setsToRemove = new HashSet<>();
 
@@ -88,11 +89,11 @@ public class EqualitySet implements Serializable {
                     Runtime.log(String.format(
                             "<Equality: a larger equality set> class = %s, oriset = %s, newset = %s",
                             className, setFromS1, setFromS2));
-                    isSupersetFound = true;
+                    isStrictSupersetFound = true;
                     isChanged = true;
                 }
                 // See if it's a subset set
-                if (setFromS1.containsAll(setFromS2) && !setFromS2.equals(setFromS1)) {
+                if (setFromS1.containsAll(setFromS2)) {
                     // log: a smaller equality set!
                     isSubsetFound = true;
                 }
@@ -101,7 +102,7 @@ public class EqualitySet implements Serializable {
             // Remove all subsets from s1
             s1.removeAll(setsToRemove);
 
-            if (isSupersetFound) {
+            if (isStrictSupersetFound) {
                 s1.add(setFromS2);
             } else {
                 if (!isSubsetFound) {
