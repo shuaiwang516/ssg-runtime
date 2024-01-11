@@ -78,6 +78,7 @@ public class EqualitySet implements Serializable {
             }
 
             boolean isSupersetFound = false;
+            boolean isSubsetFound = false;
             Set<Set<String>> setsToRemove = new HashSet<>();
 
             for (Set<String> setFromS1 : s1) {
@@ -90,27 +91,28 @@ public class EqualitySet implements Serializable {
                     isSupersetFound = true;
                     isChanged = true;
                 }
+                // See if it's a subset set
+                if (setFromS1.containsAll(setFromS2) && !setFromS2.equals(setFromS1)) {
+                    // log: a smaller equality set!
+                    isSubsetFound = true;
+                }
             }
 
             // Remove all subsets from s1
             s1.removeAll(setsToRemove);
-            // If the set from s2 is a superset, add it to s1
+
             if (isSupersetFound) {
                 s1.add(setFromS2);
+            } else {
+                if (!isSubsetFound) {
+                    // A distinguished set
+                    Runtime.log(String.format("<Equality: a new equality set> class = %s, set = %s",
+                            className, setFromS2));
+                    isChanged = true;
+                    s1.add(setFromS2);
+                }
             }
         }
-
-        // Add remaining sets from s2
-        for (Set<String> setFromS2 : s2) {
-            if (!setFromS2.isEmpty() && !s1.contains(setFromS2)) {
-                // log: a new equality set!
-                Runtime.log(String.format("<Equality: a new equality set> class = %s, set = %s",
-                        className, setFromS2));
-                isChanged = true;
-                s1.add(setFromS2);
-            }
-        }
-
         return isChanged;
     }
 
