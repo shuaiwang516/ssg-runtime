@@ -7,8 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+// import java.util.concurrent.locks.ReadWriteLock;
+// import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Runtime {
     /**
@@ -25,8 +25,9 @@ public class Runtime {
 
     public static BufferedWriter writer;
     public static ObjectCoverage objectCoverage;
+    private static final Object objectCoverageLock = new Object();
 
-    private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public static void init() {
         try {
@@ -84,14 +85,19 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static boolean update(Object obj, int dumpId) {
-        rwLock.readLock().lock();
-        try {
-            boolean val = objectCoverage.update(obj, dumpId);
-            // Runtime.log("Update coverage ret = " + val);
-            return val;
-        } finally {
-            rwLock.readLock().unlock();
+        synchronized (objectCoverageLock) {
+            // Ensure that objectCoverage is not being serialized while it's being updated
+            return objectCoverage.update(obj, dumpId);
         }
+
+        // rwLock.readLock().lock();
+        // try {
+        // boolean val = objectCoverage.update(obj, dumpId);
+        // // Runtime.log("Update coverage ret = " + val);
+        // return val;
+        // } finally {
+        // rwLock.readLock().unlock();
+        // }
     }
 
     private static final int PORT = 62000; // the port to listen on
@@ -118,14 +124,21 @@ public class Runtime {
                             while ((inputLine = in.readLine()) != null) {
                                 log("Received command: " + inputLine);
                                 // process the command and generate a response
-                                rwLock.writeLock().lock();
                                 Object response;
-                                try {
+
+                                synchronized (objectCoverageLock) {
                                     response = processCommand(inputLine);
-                                    out.writeObject(response); // send the response to the client
-                                } finally {
-                                    rwLock.writeLock().unlock();
+                                    // Serialize and send the response within the synchronized block
+                                    out.writeObject(response);
                                 }
+
+                                // rwLock.writeLock().lock();
+                                // try {
+                                // response = processCommand(inputLine);
+                                // out.writeObject(response); // send the response to the client
+                                // } finally {
+                                // rwLock.writeLock().unlock();
+                                // }
                                 System.out.println("Sent response: " + response);
                             }
                         } catch (IOException e) {
