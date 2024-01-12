@@ -85,6 +85,10 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static boolean update(Object obj, int dumpId) {
+        // Debug
+        // if (dumpId != 474) {
+        // return false;
+        // }
         synchronized (objectCoverageLock) {
             // Ensure that objectCoverage is not being serialized while it's being updated
             return objectCoverage.update(obj, dumpId);

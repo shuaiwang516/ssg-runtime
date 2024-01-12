@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker.type;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.Runtime;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,8 @@ public class MapType extends SequenceType {
                     continue;
                 }
                 String className = object.getClass().getName();
+                // Runtime.log("[hklog] map key processing: " + className + ", value = " +
+                // object);
                 if (keyClassNames.containsKey(className)) {
                     if (keyClassNames.get(className).update(object, baseClassInfo, dumpId,
                             equalitySet))

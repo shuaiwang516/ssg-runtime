@@ -15,12 +15,15 @@ public class ClassInfo implements Serializable {
     // Iterate all instances of this class, and update the constraint information
     public Map<String, TypeInfo> fields = new HashMap<>();
 
-    public ClassInfo() {
-        // for json
+    public String itinerary;
+
+    public ClassInfo(String itinerary) {
+        this.itinerary = itinerary;
     }
 
     // Update itinerary if necessary
     public void updateItinerary(String itineraryPrefix) {
+        itinerary = itineraryPrefix + "->" + itinerary;
         for (String fieldName : fields.keySet()) {
             TypeInfo typeInfo = fields.get(fieldName);
             if (typeInfo == null) {
@@ -31,46 +34,58 @@ public class ClassInfo implements Serializable {
         }
     }
 
-    // Additional Relationships
     public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId,
             EqualitySet equalitySet) {
-        // Iterate all fields
+        if (obj == null) {
+            return false;
+        }
         boolean isNew = false;
         try {
-            Field[] fields = obj.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
-                Object value = field.get(obj);
-                // Runtime.log("[hklog] processing field name = " + field.getName() + ", value =
-                // "
-                // + value);
-                // get field class name
-                String fieldName = field.getName();
-                // String fieldClassName = field.getType().getName();
-
-                // if fieldClassName is visited, skip it to avoid stackoverflow
-                // if field is static and final, skip it: but still might change?
-                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
-                        && java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
-                    // Runtime.log("[hklog] field is static and final, skip it");
-                    continue;
+            // Equality check
+            if (equalitySet != null) {
+                String fieldClassName = obj.getClass().getName();
+                if (equalitySet.comparableClasses.contains(fieldClassName)) {
+                    // Comparable classes! Mark it
+                    int hashCode = obj.hashCode();
+                    // get itinerary
+                    // Add it to the equality set
+                    Map<Integer, Set<String>> hashCodeMap = equalitySet.compClass2EqualitySet
+                            .computeIfAbsent(fieldClassName, k -> new HashMap<>());
+                    Set<String> itinerarySet = hashCodeMap.computeIfAbsent(hashCode,
+                            k -> new HashSet<>());
+                    itinerarySet.add(this.itinerary);
+                    // Runtime.log("[hklog] equality check: fieldClassName = " + fieldClassName
+                    // + ", hashCode = " + hashCode + ", itinerary = " + itinerary
+                    // + ", equalityset = " + itinerarySet);
                 }
-                // Log classname + name
-                // Runtime.log("[hklog] end fieldClassName = " + fieldClassName + ", fieldName =
-                // "
-                // + fieldName);
-                if (update(fieldName, value, baseClassInfo, dumpId, equalitySet)) {
-                    if (!isNew)
-                        isNew = true;
-                }
-                // Runtime.log(fieldName + ": " + value);
             }
+            Class<?> currentClass = obj.getClass();
+            while (currentClass != Object.class) { // Traverse up the class hierarchy
+                Field[] fields = currentClass.getDeclaredFields();
+                for (Field field : fields) {
+                    if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                            || !java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
+                        field.setAccessible(true);
+                        Object value = field.get(obj);
+
+                        String fieldName = field.getName();
+                        String objectClassName = obj.getClass().getName();
+                        // Runtime.log("[hklog] processing object classname = " + objectClassName
+                        // + ", field = " + field.getName() + ", value = " + value);
+
+                        if (update(fieldName, value, baseClassInfo, dumpId, equalitySet)) {
+                            isNew = true;
+                        }
+                    }
+                }
+                currentClass = currentClass.getSuperclass(); // Move to the superclass
+            }
+            // Runtime.log("");
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         return isNew;
     }
-
     private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo,
             int id, EqualitySet equalitySet) {
         if (!fields.containsKey(fieldName)) {
@@ -81,23 +96,6 @@ public class ClassInfo implements Serializable {
         // if typeInfo is null, skip it
         if (typeInfo == null) {
             return false;
-        }
-
-        // Equality check
-        if (equalitySet != null && value != null) {
-            String fieldClassName = value.getClass().getName();
-            if (equalitySet.comparableClasses.contains(fieldClassName)) {
-                // Comparable classes! Mark it
-                int hashCode = value.hashCode();
-                // get itinerary
-                String itinerary = typeInfo.itinerary;
-                // Add it to the equality set
-                Map<Integer, Set<String>> hashCodeMap = equalitySet.compClass2EqualitySet
-                        .computeIfAbsent(fieldClassName, k -> new HashMap<>());
-                Set<String> itinerarySet = hashCodeMap.computeIfAbsent(hashCode,
-                        k -> new HashSet<>());
-                itinerarySet.add(itinerary);
-            }
         }
         return typeInfo.update(value, baseClassInfo, id, equalitySet);
     }
