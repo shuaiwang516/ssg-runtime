@@ -23,6 +23,9 @@ public class ClassInfo implements Serializable {
 
     // Update itinerary if necessary
     public void updateItinerary(String itineraryPrefix) {
+        // Runtime.log("[hklog] ClassInfo1 itinerary = " + itinerary + " itineraryPrefix
+        // = "
+        // + itineraryPrefix);
         itinerary = itineraryPrefix + "->" + itinerary;
         for (String fieldName : fields.keySet()) {
             TypeInfo typeInfo = fields.get(fieldName);
@@ -32,6 +35,9 @@ public class ClassInfo implements Serializable {
             }
             typeInfo.updateItinerary(itineraryPrefix + "->");
         }
+        // Runtime.log("[hklog] ClassInfo2 itinerary = " + itinerary + " itineraryPrefix
+        // = "
+        // + itineraryPrefix);
     }
 
     public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId,

@@ -33,11 +33,17 @@ public class ObjectType extends TypeInfo {
 
     @Override
     public void updateItinerary(String itineraryPrefix) {
-        itinerary = itineraryPrefix + itineraryPrefix;
+        // Runtime.log("[hklog] ObjectType1 itinerary = " + itinerary + "
+        // itineraryPrefix = "
+        // + itineraryPrefix);
+        itinerary = itineraryPrefix + itinerary;
         // Update itinerary for all classInfo
         for (String className : classNames.keySet()) {
             classNames.get(className).updateItinerary(itineraryPrefix);
         }
+        // Runtime.log("[hklog] ObjectType2 itinerary = " + itinerary + "
+        // itineraryPrefix = "
+        // + itineraryPrefix);
     }
 
     @Override
