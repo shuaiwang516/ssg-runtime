@@ -68,7 +68,13 @@ public class ObjectCoverage implements Serializable {
             return false;
         }
         // Runtime.log("[hklog] classInfo = " + className);
-        return classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
+        if (equalitySet != null) {
+            equalitySet.cleanSameObjectGraph();
+        }
+        boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
+        if (equalitySet != null)
+            equalitySet.mergeSameObjectGraph(dumpId);
+        return ret;
     }
 
     public boolean merge(ObjectCoverage otherObjCoverage) {
@@ -99,10 +105,9 @@ public class ObjectCoverage implements Serializable {
                 }
             }
         }
-        // TODO: Equality set merge
         if (equalitySet == null) {
             if (otherObjCoverage.equalitySet != null) {
-                equalitySet = otherObjCoverage.equalitySet;
+                equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
                 newCoverage = true;
             }
         } else {

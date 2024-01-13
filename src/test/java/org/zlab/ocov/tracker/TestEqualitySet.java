@@ -101,26 +101,26 @@ public class TestEqualitySet {
         s21.add("b");
         s21.add("c");
 
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s11);
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(2, s12);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s11);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(2,
+                s12);
         assert equalitySet.merge(equalitySet1);
 
         // a,b,c
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s21);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s21);
         assert equalitySet.merge(equalitySet1);
 
         // a, b
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s11);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s11);
         assert !equalitySet.merge(equalitySet1);
     }
 
@@ -176,33 +176,33 @@ public class TestEqualitySet {
         s21.add("b");
         s21.add("c");
 
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s11);
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(2, s12);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s11);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(2,
+                s12);
         assert equalitySet.merge(equalitySet1);
 
         // a,b,c
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s21);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s21);
         assert equalitySet.merge(equalitySet1);
 
         // a, b
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s11);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s11);
         assert !equalitySet.merge(equalitySet1);
 
         // a,b,c
-        equalitySet1.compClass2EqualitySet.put("org.apache.cassandra.serializers.SetSerializer",
+        equalitySet1.equalSetDiffObj.put("org.apache.cassandra.serializers.SetSerializer",
                 new HashMap<>());
-        equalitySet1.compClass2EqualitySet.get("org.apache.cassandra.serializers.SetSerializer")
-                .put(1, s21);
+        equalitySet1.equalSetDiffObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+                s21);
         assert !equalitySet.merge(equalitySet1);
 
     }

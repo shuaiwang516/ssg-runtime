@@ -100,11 +100,11 @@ public class TestObjectGraphDumper {
     }
 
     public static class TargetClassEqualityAA {
-        public CompClass compClass = new CompClass(0);
+        public CompClass compClass = new CompClass(2);
     }
 
     public static class TargetClassEqualityC {
-        public CompClass compClass = new CompClass(1);
+        public CompClass compClass = new CompClass(3);
     }
 
     public static class CompClass {

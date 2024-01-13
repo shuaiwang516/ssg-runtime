@@ -291,6 +291,8 @@ public class TestObjectCoverage {
 
     @Test
     public void testEquality() {
+        // FIXME: what's the return value of update()??? This is not clear for equality
+        // update.
         Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
@@ -306,9 +308,101 @@ public class TestObjectCoverage {
         assert coverage1.merge(coverage);
 
         TestObjectGraphDumper.TargetClassEquality obj2 = new TestObjectGraphDumper.TargetClassEquality();
-        obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 1;
-        assert (coverage.update(obj2));
+        obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
+        coverage.update(obj2);
         assert coverage1.merge(coverage);
+    }
+
+    @Test
+    public void testEqualityForSameObjectGraph() {
+        /**
+         * Conditions Same object graph equality Cond1: Should be captured by equality
+         * across multiple object graphs obj1.a obj2.b
+         *
+         * Cond2: Should be captured by equality within the same object graph obj3.a
+         * obj4.b
+         */
+        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // obj1--->compClass == obj2--->compClass
+
+        // 2, 3
+        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage);
+
+        // 4, 5
+        TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
+        obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
+        obj5.targetClassEqualityC.compClass.a = 5;
+        coverage.update(obj5);
+        assert !coverage1.merge(coverage);
+
+        // 10, 2
+        TestObjectGraphDumper.TargetClassEquality obj2 = new TestObjectGraphDumper.TargetClassEquality();
+        obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 10;
+        obj2.targetClassEqualityC.compClass.a = 2;
+        coverage.update(obj2);
+        assert coverage1.merge(coverage);
+
+        // 4, 5
+        TestObjectGraphDumper.TargetClassEquality obj3 = new TestObjectGraphDumper.TargetClassEquality();
+        obj3.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
+        obj3.targetClassEqualityC.compClass.a = 5;
+        coverage.update(obj3);
+        assert !coverage1.merge(coverage);
+
+        // obj3--->compClass == obj3--->compClass
+        TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
+        obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
+        coverage.update(obj4);
+        assert coverage1.merge(coverage);
+
+        assert !coverage1.merge(coverage);
+
+        // Serialize coverage1 to a file and deserialize it back using GSON
+        RuntimeTypeAdapterFactory<TypeInfo> typeFactory = RuntimeTypeAdapterFactory
+                .of(TypeInfo.class, "type") // "type" is a field in JSON that tells us what the
+                // actual type is
+                .registerSubtype(ArrayType.class, "array")
+                .registerSubtype(BooleanType.class, "boolean")
+                .registerSubtype(CollectionType.class, "collection")
+                .registerSubtype(DoubleType.class, "double")
+                .registerSubtype(FloatType.class, "float")
+                .registerSubtype(IntegerType.class, "integer")
+                .registerSubtype(LongType.class, "long").registerSubtype(ObjectType.class, "object")
+                .registerSubtype(ShortType.class, "short")
+                .registerSubtype(StringType.class, "string");
+
+        Gson gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory).create();
+        String jsonStr = gson.toJson(coverage1);
+        System.out.println(jsonStr);
+
+        ObjectCoverage coverage2 = gson.fromJson(jsonStr, ObjectCoverage.class);
+        assert !coverage2.merge(coverage1);
+    }
+
+    @Test
+    public void testLog() {
+        Set<EqualitySet.SetMapping> sets = new HashSet<>();
+        Set<String> v1 = new HashSet<>();
+        v1.add("a");
+
+        Set<String> v2 = new HashSet<>();
+        v2.add("b");
+
+        sets.add(new EqualitySet.SetMapping(v1, 1));
+        sets.add(new EqualitySet.SetMapping(v2, 2));
+
+        String log = "EqualitySet: " + sets;
+        System.out.println(log);
     }
 
     // @Test

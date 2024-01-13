@@ -50,20 +50,7 @@ public class ClassInfo implements Serializable {
             // Equality check
             if (equalitySet != null) {
                 String fieldClassName = obj.getClass().getName();
-                if (equalitySet.comparableClasses.contains(fieldClassName)) {
-                    // Comparable classes! Mark it
-                    int hashCode = obj.hashCode();
-                    // get itinerary
-                    // Add it to the equality set
-                    Map<Integer, Set<String>> hashCodeMap = equalitySet.compClass2EqualitySet
-                            .computeIfAbsent(fieldClassName, k -> new HashMap<>());
-                    Set<String> itinerarySet = hashCodeMap.computeIfAbsent(hashCode,
-                            k -> new HashSet<>());
-                    itinerarySet.add(this.itinerary);
-                    // Runtime.log("[hklog] equality check: fieldClassName = " + fieldClassName
-                    // + ", hashCode = " + hashCode + ", itinerary = " + itinerary
-                    // + ", equalityset = " + itinerarySet);
-                }
+                equalitySet.update(obj, fieldClassName, itinerary);
             }
             Class<?> currentClass = obj.getClass();
             while (currentClass != Object.class) { // Traverse up the class hierarchy
