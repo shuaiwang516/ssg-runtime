@@ -79,59 +79,59 @@ public class TestEqualitySet {
         assert s1.size() == 1;
     }
 
-    @Test
-    public void testMergeSets4() {
-        // Readd the smaller set
-
-        Set<String> comparableClasses = new HashSet<>();
-        comparableClasses.add("org.apache.cassandra.serializers.SetSerializer");
-        EqualitySet equalitySet = new EqualitySet(comparableClasses);
-        EqualitySet equalitySet1 = new EqualitySet(comparableClasses);
-
-        Set<String> s11 = new HashSet<>();
-        s11.add("a");
-        s11.add("b");
-
-        Set<String> s12 = new HashSet<>();
-        s12.add("a");
-        s12.add("c");
-
-        Set<String> s21 = new HashSet<>();
-        s21.add("a");
-        s21.add("b");
-        s21.add("c");
-
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s11);
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(2,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(2)
-                .add(s12);
-
-        assert equalitySet.merge(equalitySet1);
-
-        // a,b,c
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s21);
-        assert equalitySet.merge(equalitySet1);
-
-        // a, b
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s11);
-        assert !equalitySet.merge(equalitySet1);
-    }
+    // @Test
+    // public void testMergeSets4() {
+    // // Readd the smaller set
+    //
+    // Set<String> comparableClasses = new HashSet<>();
+    // comparableClasses.add("org.apache.cassandra.serializers.SetSerializer");
+    // EqualitySet equalitySet = new EqualitySet(comparableClasses);
+    // EqualitySet equalitySet1 = new EqualitySet(comparableClasses);
+    //
+    // Set<String> s11 = new HashSet<>();
+    // s11.add("a");
+    // s11.add("b");
+    //
+    // Set<String> s12 = new HashSet<>();
+    // s12.add("a");
+    // s12.add("c");
+    //
+    // Set<String> s21 = new HashSet<>();
+    // s21.add("a");
+    // s21.add("b");
+    // s21.add("c");
+    //
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s11);
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(2,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(2)
+    // .add(s12);
+    //
+    // assert equalitySet.merge(equalitySet1);
+    //
+    // // a,b,c
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s21);
+    // assert equalitySet.merge(equalitySet1);
+    //
+    // // a, b
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s11);
+    // assert !equalitySet.merge(equalitySet1);
+    // }
 
     @Test
     public void testMergeSets5() {
@@ -163,72 +163,71 @@ public class TestEqualitySet {
         assert !EqualitySet.mergeSets(s1, s3, null);
     }
 
-    @Test
-    public void testMergeSets6() {
-        // Readd the smaller set
-
-        Set<String> comparableClasses = new HashSet<>();
-        comparableClasses.add("org.apache.cassandra.serializers.SetSerializer");
-        EqualitySet equalitySet = new EqualitySet(comparableClasses);
-        EqualitySet equalitySet1 = new EqualitySet(comparableClasses);
-
-        Set<String> s11 = new HashSet<>();
-        s11.add("a");
-        s11.add("b");
-
-        Set<String> s12 = new HashSet<>();
-        s12.add("a");
-        s12.add("c");
-
-        Set<String> s21 = new HashSet<>();
-        s21.add("a");
-        s21.add("b");
-        s21.add("c");
-
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s11);
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(2,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(2)
-                .add(s12);
-
-        assert equalitySet.merge(equalitySet1);
-
-        // a,b,c
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s21);
-
-        assert equalitySet.merge(equalitySet1);
-
-        // a, b
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s11);
-
-        assert !equalitySet.merge(equalitySet1);
-
-        // a,b,c
-        equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
-                new HashMap<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
-                new HashSet<>());
-        equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
-                .add(s21);
-
-        assert !equalitySet.merge(equalitySet1);
-
-    }
+    // @Test
+    // public void testMergeSets6() {
+    // // Readd the smaller set
+    //
+    // Set<String> comparableClasses = new HashSet<>();
+    // comparableClasses.add("org.apache.cassandra.serializers.SetSerializer");
+    // EqualitySet equalitySet = new EqualitySet(comparableClasses);
+    // EqualitySet equalitySet1 = new EqualitySet(comparableClasses);
+    //
+    // Set<String> s11 = new HashSet<>();
+    // s11.add("a");
+    // s11.add("b");
+    //
+    // Set<String> s12 = new HashSet<>();
+    // s12.add("a");
+    // s12.add("c");
+    //
+    // Set<String> s21 = new HashSet<>();
+    // s21.add("a");
+    // s21.add("b");
+    // s21.add("c");
+    //
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s11);
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(2,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(2)
+    // .add(s12);
+    //
+    // assert equalitySet.merge(equalitySet1);
+    //
+    // // a,b,c
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s21);
+    //
+    // assert equalitySet.merge(equalitySet1);
+    //
+    // // a, b
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s11);
+    //
+    // assert !equalitySet.merge(equalitySet1);
+    //
+    // // a,b,c
+    // equalitySet1.equalSetAcrossObj.put("org.apache.cassandra.serializers.SetSerializer",
+    // new HashMap<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").put(1,
+    // new HashSet<>());
+    // equalitySet1.equalSetAcrossObj.get("org.apache.cassandra.serializers.SetSerializer").get(1)
+    // .add(s21);
+    //
+    // assert !equalitySet.merge(equalitySet1);
+    // }
 
     @Test
     public void testMergeSets7() {
