@@ -389,6 +389,49 @@ public class TestObjectCoverage {
         assert !coverage2.merge(coverage1);
     }
 
+    // @Test
+    public void testEqualityAcrossObjectGraph() {
+        // FIXME!
+
+        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // 2,3
+        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage);
+
+        // 6,6
+        TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
+        obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
+        obj4.targetClassEqualityC.compClass.a = 6;
+        coverage.update(obj4);
+        assert coverage1.merge(coverage);
+
+        /**
+         * Across: compClass -> {6: {iti1, iti2}} What should be? compClass -> {6:
+         * {{iti1}, {iti2}}} Map<String, Map<Integer, Set<String>>> => Map<String,
+         * Set<Set<String>>>
+         *
+         * Also merge for every update? Merge only once? For every update, we record the
+         * itinerary of the corresponding class. When update finish, we merge it into
+         * (1) same and (2) across.
+         */
+
+        // 5,2
+        TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
+        obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
+        obj5.targetClassEqualityC.compClass.a = 2;
+        coverage.update(obj5);
+        assert coverage1.merge(coverage);
+    }
+
     @Test
     public void testLog() {
         Set<EqualitySet.SetMapping> sets = new HashSet<>();

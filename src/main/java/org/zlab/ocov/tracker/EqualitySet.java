@@ -1,7 +1,5 @@
 package org.zlab.ocov.tracker;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import java.io.Serializable;
 import java.util.*;
 
