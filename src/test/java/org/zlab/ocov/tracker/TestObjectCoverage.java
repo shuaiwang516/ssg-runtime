@@ -389,10 +389,9 @@ public class TestObjectCoverage {
         assert !coverage2.merge(coverage1);
     }
 
-    // @Test
+    @Test
     public void testEqualityAcrossObjectGraph() {
         // FIXME!
-
         Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");

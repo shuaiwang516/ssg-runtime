@@ -69,7 +69,7 @@ public class ObjectCoverage implements Serializable {
         }
         // Runtime.log("[hklog] classInfo = " + className);
         if (equalitySet != null) {
-            equalitySet.cleanSameObjectGraph();
+            equalitySet.clear();
         }
         boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
         if (equalitySet != null)
