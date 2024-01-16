@@ -128,21 +128,14 @@ public class Runtime {
                             while ((inputLine = in.readLine()) != null) {
                                 log("Received command: " + inputLine);
                                 // process the command and generate a response
-                                Object response;
+                                ObjectCoverage response;
 
                                 synchronized (objectCoverageLock) {
                                     response = processCommand(inputLine);
                                     // Serialize and send the response within the synchronized block
                                     out.writeObject(response);
+                                    response.clear();
                                 }
-
-                                // rwLock.writeLock().lock();
-                                // try {
-                                // response = processCommand(inputLine);
-                                // out.writeObject(response); // send the response to the client
-                                // } finally {
-                                // rwLock.writeLock().unlock();
-                                // }
                                 System.out.println("Sent response: " + response);
                             }
                         } catch (IOException e) {
@@ -163,8 +156,9 @@ public class Runtime {
         serverThread.start();
     }
 
-    private static Object processCommand(String command) {
+    private static ObjectCoverage processCommand(String command) {
         // only return the violations
+        // visited objects are cleared
         return objectCoverage;
     }
 

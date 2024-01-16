@@ -76,8 +76,14 @@ public class ObjectCoverage implements Serializable {
 
         boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
         if (equalitySet != null)
-            equalitySet.mergeSameObjectGraph(dumpId);
+            equalitySet.dumpSameObjectGraph(dumpId);
         return ret;
+    }
+
+    public void clear() {
+        // try to separate format coverage across tests
+        visitedObjects.clear();
+        equalitySet.clear();
     }
 
     public boolean merge(ObjectCoverage otherObjCoverage) {

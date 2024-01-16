@@ -348,12 +348,15 @@ public class TestObjectCoverage {
         coverage.update(obj1);
         assert coverage1.merge(coverage);
 
+        // 2, 3
+        TestObjectGraphDumper.TargetClassEquality obj6 = new TestObjectGraphDumper.TargetClassEquality();
+        coverage.update(obj6);
+
         // 4, 5
         TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
         obj5.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj5);
-        assert !coverage1.merge(coverage);
 
         // 10, 2
         TestObjectGraphDumper.TargetClassEquality obj2 = new TestObjectGraphDumper.TargetClassEquality();
@@ -414,7 +417,6 @@ public class TestObjectCoverage {
         // 2,3
         TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
         coverage.update(obj1);
-        assert coverage1.merge(coverage);
 
         // 6,6
         TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
@@ -422,6 +424,9 @@ public class TestObjectCoverage {
         obj4.targetClassEqualityC.compClass.a = 6;
         coverage.update(obj4);
         assert coverage1.merge(coverage);
+
+        coverage.update(obj1);
+        coverage.update(obj4);
 
         /**
          * Across: compClass -> {6: {iti1, iti2}} What should be? compClass -> {6:
