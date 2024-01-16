@@ -33,11 +33,13 @@ public class EqualitySet implements Serializable {
     public void update(Object obj, String className, String itinerary) {
         if (comparableClasses.contains(className)) {
             int hashCode = obj.hashCode();
-            Map<Integer, Set<String>> hashCodeMap0 = equalSetAcrossOrSameObj
-                    .computeIfAbsent(className, k -> new HashMap<>());
-            Set<String> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
-                    k -> new HashSet<>());
-            itinerarySet0.add(itinerary);
+            if (!enableAcrossEquality) {
+                Map<Integer, Set<String>> hashCodeMap0 = equalSetAcrossOrSameObj
+                        .computeIfAbsent(className, k -> new HashMap<>());
+                Set<String> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
+                        k -> new HashSet<>());
+                itinerarySet0.add(itinerary);
+            }
 
             Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
                     k -> new HashMap<>());

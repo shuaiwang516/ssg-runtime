@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +17,8 @@ public class ObjectCoverage implements Serializable {
 
     // Only contain the top level objects: class name -> class info
     public Map<String, ClassInfo> objCoverage = new HashMap<>();
+
+    public Set<Integer> visitedObjects = new HashSet<>();
 
     // contains all target class info, clone one from this if we need
     // a new ClassInfo
@@ -63,10 +66,14 @@ public class ObjectCoverage implements Serializable {
         String className = obj.getClass().getName();
         // get class info
         ClassInfo classInfo = objCoverage.get(className);
-        if (classInfo == null) {
-            // Runtime.log("[hklog] classInfo is null for " + className);
+        if (classInfo == null)
             return false;
-        }
+
+        Integer objId = System.identityHashCode(obj);
+        if (visitedObjects.contains(objId))
+            return false;
+        visitedObjects.add(objId);
+
         boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
         if (equalitySet != null)
             equalitySet.mergeSameObjectGraph(dumpId);
