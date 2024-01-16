@@ -17,6 +17,9 @@ public class EqualitySet implements Serializable {
 
     public List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
 
+    public Map<String, Map<Integer, Set<String>>> equalSetSameItineraryAcrossObj = new HashMap<>();
+    public Map<String, Set<String>> equalSetSameItineraryAcrossObjDedup = new HashMap<>();
+
     static final String logPrefixAcrossObject = "Equality: across object graphs";
     static final String logPrefixSameObject = "Equality: same object graph";
 
@@ -31,15 +34,16 @@ public class EqualitySet implements Serializable {
     }
 
     public void clear() {
-        // FIXME: Should we clear everything?
         if (enableAcrossEquality)
             itinerarySingleTopObjects.clear();
-        else {
+        else
             equalSetAcrossOrSameObj.clear();
-        }
         equalSetSameObj.clear();
         equalSetSameObjDedup.clear();
         equalSetAcrossObjDedup.clear();
+
+        equalSetSameItineraryAcrossObj.clear();
+        equalSetSameItineraryAcrossObjDedup.clear();
     }
 
     public void update(Object obj, String className, String itinerary) {
@@ -69,7 +73,46 @@ public class EqualitySet implements Serializable {
             if (enableAcrossEquality)
                 itinerarySingleTopObjects.add(new ItinerarySingleTopObject(equalSetSameObj));
 
+            // update equalSetSameItineraryAcrossObj
+            updateEqualSetSameItineraryAcrossObjDedup(equalSetSameObj);
+
             equalSetSameObj = new HashMap<>();
+        }
+    }
+
+    // Multi occurrence with the same itinerary
+    /**
+     * equalSetSameObj for each object, merge them into
+     * equalSetSameItineraryAcrossObj - Check whether the iti is already included in
+     * equalSetSameItineraryAcrossObjDedup - If not, check whether it's already
+     * included in equalSetSameItineraryAcrossObj - If yes, add the iti to the set
+     * In the end, we maintain Map<String, Set<String> dedup
+     */
+    public void updateEqualSetSameItineraryAcrossObjDedup(
+            Map<String, Map<Integer, Set<String>>> equalSetSameObj) {
+        for (String compClass : equalSetSameObj.keySet()) {
+            Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.get(compClass);
+            Map<Integer, Set<String>> hashCodeMap2 = equalSetSameItineraryAcrossObj
+                    .computeIfAbsent(compClass, k -> new HashMap<>());
+
+            Set<String> dupSet = equalSetSameItineraryAcrossObjDedup.computeIfAbsent(compClass,
+                    k -> new HashSet<>());
+
+            for (Integer hashCode : hashCodeMap1.keySet()) {
+                Set<String> itinerarySet1 = hashCodeMap1.get(hashCode);
+                for (String itinerary : itinerarySet1) {
+                    if (dupSet.contains(itinerary)) {
+                        continue;
+                    }
+                    if (hashCodeMap2.containsKey(hashCode)
+                            && hashCodeMap2.get(hashCode).contains(itinerary)) {
+                        equalSetSameItineraryAcrossObjDedup
+                                .computeIfAbsent(compClass, k -> new HashSet<>()).add(itinerary);
+                    } else {
+                        hashCodeMap2.computeIfAbsent(hashCode, k -> new HashSet<>()).add(itinerary);
+                    }
+                }
+            }
         }
     }
 
@@ -98,6 +141,11 @@ public class EqualitySet implements Serializable {
                 true, logPrefixSameObject)) {
             changed = true;
         }
+
+        if (mergeEqualityWithSameItinerary(equalSetSameItineraryAcrossObjDedup,
+                other.equalSetSameItineraryAcrossObjDedup)) {
+            changed = true;
+        }
         return changed;
     }
 
@@ -115,8 +163,8 @@ public class EqualitySet implements Serializable {
                 equalSetDedup1.put(compClass, deepCopy(equalSetDedup2.get(compClass)));
                 if (useLog) {
                     Runtime.log(String.format(
-                            "<Equality: incorporate sets for a new class> class = %s, set = %s",
-                            compClass, equalSetDedup2.get(compClass)));
+                            "<Equality: new set, diff itinerary> class = %s, set = %s", compClass,
+                            equalSetDedup2.get(compClass)));
                 }
                 changed = true;
             }
@@ -145,8 +193,8 @@ public class EqualitySet implements Serializable {
                 equalSetDedup1.put(compClass, tmpMap);
                 if (useLog) {
                     Runtime.log(String.format(
-                            "<Equality: incorporate sets for a new class> class = %s, set = %s",
-                            compClass, equalSetDedup2.get(compClass)));
+                            "<Equality: new set, diff itinerary> class = %s, set = %s", compClass,
+                            equalSetDedup2.get(compClass)));
                 }
                 changed = true;
             }
@@ -167,6 +215,45 @@ public class EqualitySet implements Serializable {
         }
         return mergeCompClass2EqualityDedupWithDumpId(equalSetDedup1, equalSetDedup2WithDumpId,
                 useLog, logPrefix);
+    }
+
+    public static boolean mergeEqualityWithSameItinerary(Map<String, Set<String>> equalSetDedup1,
+            Map<String, Set<String>> equalSetDedup2) {
+        // merge 2 into 1
+        boolean changed = false;
+
+        for (String compClass : equalSetDedup2.keySet()) {
+            if (equalSetDedup1.containsKey(compClass)) {
+                Set<String> itinerarySet1 = equalSetDedup1.get(compClass);
+                Set<String> itinerarySet2 = equalSetDedup2.get(compClass);
+                if (itinerarySet1.containsAll(itinerarySet2)) {
+                    // 2 is a subset of 1
+                    continue;
+                }
+                if (itinerarySet2.containsAll(itinerarySet1)) {
+                    // 1 is a subset of 2
+                    equalSetDedup1.put(compClass, itinerarySet2);
+                    changed = true;
+                    continue;
+                }
+                // 1 and 2 are not subsets of each other
+                // merge 2 into 1
+                itinerarySet1.addAll(itinerarySet2);
+                Runtime.log(
+                        String.format("<Equality: larger set, same itinerary> class = %s, set = %s",
+                                compClass, itinerarySet1));
+                changed = true;
+            } else {
+                if (!equalSetDedup2.get(compClass).isEmpty()) {
+                    equalSetDedup1.put(compClass, new HashSet<>(equalSetDedup2.get(compClass)));
+                    Runtime.log(String.format(
+                            "<Equality: new set, same itinerary> class = %s, set = %s", compClass,
+                            equalSetDedup2.get(compClass)));
+                    changed = true;
+                }
+            }
+        }
+        return changed;
     }
 
     public static boolean mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className) {
@@ -194,10 +281,9 @@ public class EqualitySet implements Serializable {
             for (Set<String> setFromS1 : s1) {
                 if (setFromS2.containsAll(setFromS1) && !setFromS2.equals(setFromS1)) {
                     setsToRemove.add(setFromS1);
-                    // log: a larger equality set!
                     if (useLog) {
                         Runtime.log(String.format(
-                                "<%s: a larger equality set> class = %s, oriset = %s, newset = %s",
+                                "<%s: larger set, diff itinerary> class = %s, oriset = %s, newset = %s",
                                 logPrefix, className, setFromS1, setFromS2));
                     }
                     isStrictSupersetFound = true;
@@ -219,8 +305,9 @@ public class EqualitySet implements Serializable {
                 if (!isSubsetFound) {
                     // A distinguished set
                     if (useLog) {
-                        Runtime.log(String.format("<%s: a new equality set> class = %s, set = %s",
-                                logPrefix, className, setFromS2));
+                        Runtime.log(
+                                String.format("<%s: new set, diff itinerary> class = %s, set = %s",
+                                        logPrefix, className, setFromS2));
                     }
                     isChanged = true;
                     s1.add(setFromS2);
@@ -253,10 +340,9 @@ public class EqualitySet implements Serializable {
                 if (setFromS2.keySet.containsAll(setFromS1.keySet)
                         && !setFromS2.equals(setFromS1)) {
                     setsToRemove.add(setFromS1);
-                    // log: a larger equality set!
                     if (useLog) {
                         Runtime.log(String.format(
-                                "<%s: a larger equality set> class = %s, oriset = %s, newset = %s, dumpId = %d",
+                                "<%s: larger set, diff itinerary> class = %s, oriset = %s, newset = %s, dumpId = %d",
                                 logPrefix, className, setFromS1, setFromS2, dumpId));
                     }
                     isStrictSupersetFound = true;
@@ -279,7 +365,7 @@ public class EqualitySet implements Serializable {
                     // A distinguished set
                     if (useLog) {
                         Runtime.log(String.format(
-                                "<%s: a new equality set> class = %s, set = %s, dumpId = %d",
+                                "<%s: new set, diff itinerary> class = %s, set = %s, dumpId = %d",
                                 logPrefix, className, setFromS2, dumpId));
                     }
                     isChanged = true;

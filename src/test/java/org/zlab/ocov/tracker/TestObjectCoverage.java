@@ -447,6 +447,38 @@ public class TestObjectCoverage {
     }
 
     @Test
+    public void testEqualitySameItineraryAcrossObjectGraph() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // 2,3
+        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage);
+
+        // 6,4
+        TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
+        obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
+        obj4.targetClassEqualityC.compClass.a = 4;
+        coverage.update(obj4);
+
+        assert !coverage1.merge(coverage);
+
+        // 9, 4
+        TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
+        obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 9;
+        obj5.targetClassEqualityC.compClass.a = 4;
+        coverage.update(obj5);
+        assert coverage1.merge(coverage);
+    }
+
+    @Test
     public void testLog() {
         Set<EqualitySet.SetMapping> sets = new HashSet<>();
         Set<String> v1 = new HashSet<>();
