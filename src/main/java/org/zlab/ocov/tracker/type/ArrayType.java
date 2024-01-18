@@ -2,6 +2,7 @@ package org.zlab.ocov.tracker.type;
 
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
@@ -20,7 +21,7 @@ public class ArrayType extends SequenceType {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet) {
+            EqualitySet equalitySet, IsSerialize isSerialized) {
         // value should be array type, update its size
         if (value == null) {
             if (!beenNullOnce) {

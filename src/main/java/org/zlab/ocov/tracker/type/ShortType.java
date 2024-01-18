@@ -17,8 +17,7 @@ public class ShortType extends ScalaType {
     }
 
     @Override
-    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet) {
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;

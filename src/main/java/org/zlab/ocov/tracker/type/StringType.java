@@ -2,6 +2,7 @@ package org.zlab.ocov.tracker.type;
 
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public class StringType extends TypeInfo {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet) {
+            EqualitySet equalitySet, IsSerialize isSerialize) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;

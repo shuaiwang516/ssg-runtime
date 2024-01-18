@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker.type;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.util.HashMap;
@@ -29,7 +30,7 @@ public class CollectionType extends SequenceType {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet) {
+            EqualitySet equalitySet, IsSerialize isSerialized) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
@@ -49,8 +50,8 @@ public class CollectionType extends SequenceType {
                 }
                 String className = object.getClass().getName();
                 if (classNames.containsKey(className)) {
-                    if (classNames.get(className).update(object, baseClassInfo, dumpId,
-                            equalitySet))
+                    if (classNames.get(className).update(object, baseClassInfo, dumpId, equalitySet,
+                            isSerialized))
                         changed = true;
                 } else {
                     // Check whether this is a field that could be serialized
@@ -59,7 +60,8 @@ public class CollectionType extends SequenceType {
                         ClassInfo newClassInfo = SerializationUtils
                                 .clone(baseClassInfo.get(className));
                         newClassInfo.updateItinerary(itinerary + ".collection_item");
-                        newClassInfo.update(object, baseClassInfo, dumpId, equalitySet);
+                        newClassInfo.update(object, baseClassInfo, dumpId, equalitySet,
+                                isSerialized);
                         classNames.put(className, newClassInfo);
                         classNamesDumpId.put(className, dumpId);
                         changed = true;

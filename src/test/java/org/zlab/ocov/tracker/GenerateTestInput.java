@@ -187,6 +187,48 @@ public class GenerateTestInput {
         Utils.saveSetToFile(comparableClasses, "input/comparableClassesForEquality.json");
     }
 
+    @Test
+    public void createExampleInputForIsSerialized() {
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum").put("e",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetEnum");
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum").put("f1",
+                "org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1");
+        // org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassF1").put("f1",
+                "int");
+
+        // baseClassInfo
+        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForIsSerialized.json");
+
+        // top objects
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum");
+        Utils.saveSetToFile(topObjects, "input/topObjectsForIsSerialized.json");
+
+        // comparable classes
+        Set<String> comparableClasses = new HashSet<>();
+        Utils.saveSetToFile(comparableClasses, "input/comparableClassesForIsSerialized.json");
+
+        // modified fields
+        Map<String, Set<String>> modifiedFields = new HashMap<>();
+        modifiedFields.put("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum",
+                new HashSet<>());
+        modifiedFields.get("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetClassForEnum")
+                .add("f1");
+        Utils.saveModifiedFields(modifiedFields, "input/modifiedFieldsForIsSerialized.json");
+
+        // enum
+        Set<String> modifiedEnums = new HashSet<>();
+        modifiedEnums.add("org.zlab.ocov.dumper.TestObjectGraphDumper$TargetEnum");
+        Utils.saveSetToFile(modifiedEnums, "input/modifiedEnumsForIsSerialized.json");
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

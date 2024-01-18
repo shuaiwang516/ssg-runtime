@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker.type;
 import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.Runtime;
 
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class ObjectType extends TypeInfo {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet) {
+            EqualitySet equalitySet, IsSerialize isSerialized) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
@@ -60,6 +61,7 @@ public class ObjectType extends TypeInfo {
 
         boolean changed = false;
         if (value.getClass().isEnum()) {
+            // Object Enum Tracking
             if (!beenEnumOnce) {
                 beenEnumOnce = true;
             }
@@ -94,11 +96,17 @@ public class ObjectType extends TypeInfo {
                 // A new constant is reached
                 changed = true;
             }
+
+            // isSerialized Enum Tracking
+            if (isSerialized != null) {
+                isSerialized.updateVisitedEnums(enumName, value.toString());
+            }
         }
 
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
-            if (classNames.get(className).update(value, baseClassInfo, dumpId, equalitySet))
+            if (classNames.get(className).update(value, baseClassInfo, dumpId, equalitySet,
+                    isSerialized))
                 changed = true;
         } else {
             // Check whether this is a field that could be serialized
@@ -106,7 +114,7 @@ public class ObjectType extends TypeInfo {
                 // Runtime.log("New class " + className);
                 ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
                 newClassInfo.updateItinerary(itinerary);
-                newClassInfo.update(value, baseClassInfo, dumpId, equalitySet);
+                newClassInfo.update(value, baseClassInfo, dumpId, equalitySet, isSerialized);
                 classNames.put(className, newClassInfo);
                 classNamesDumpId.put(className, dumpId);
                 changed = true;

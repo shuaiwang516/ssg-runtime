@@ -26,20 +26,30 @@ public class ObjectCoverage implements Serializable {
     public Set<String> topObjects;
 
     public EqualitySet equalitySet;
+    public IsSerialize isSerialized;
 
     public ObjectCoverage() {
         // for json
     }
 
     public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath) {
-        this(baseClassInfoPath, topObjectsPath, null);
+        this(baseClassInfoPath, topObjectsPath, null, null, null);
     }
 
     public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath, Path comparableClassesPath) {
+        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null);
+    }
+
+    public ObjectCoverage(Path baseClassInfoPath, Path topObjectsPath, Path comparableClassesPath,
+            Path modifiedFieldsPath, Path modifiedEnumsPath) {
         baseClassInfo = readClassInfo(baseClassInfoPath);
         topObjects = readTopObjects(topObjectsPath);
         if (comparableClassesPath != null && comparableClassesPath.toFile().exists()) {
             equalitySet = constructEqualitySet(comparableClassesPath);
+        }
+        if (modifiedFieldsPath != null && modifiedFieldsPath.toFile().exists()
+                && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()) {
+            isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
         }
 
         // Get classinfo from base
@@ -74,7 +84,7 @@ public class ObjectCoverage implements Serializable {
             return false;
         visitedObjects.add(objId);
 
-        boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet);
+        boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet, isSerialized);
         if (equalitySet != null)
             equalitySet.dumpSameObjectGraph(dumpId);
         return ret;
@@ -115,12 +125,23 @@ public class ObjectCoverage implements Serializable {
             }
         }
         if (equalitySet == null) {
+            // Avoid providing the information for upfuzz
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
                 newCoverage = true;
             }
         } else {
             if (equalitySet.merge(otherObjCoverage.equalitySet)) {
+                newCoverage = true;
+            }
+        }
+        if (isSerialized == null) {
+            if (otherObjCoverage.isSerialized != null) {
+                isSerialized = SerializationUtils.clone(otherObjCoverage.isSerialized);
+                newCoverage = true;
+            }
+        } else {
+            if (isSerialized.merge(otherObjCoverage.isSerialized)) {
                 newCoverage = true;
             }
         }
@@ -160,6 +181,14 @@ public class ObjectCoverage implements Serializable {
     public static EqualitySet constructEqualitySet(Path file) {
         Set<String> comparableClasses = Utils.loadSetFromFile(file.toString());
         return new EqualitySet(comparableClasses);
+    }
+
+    public static IsSerialize constructIsSerialize(Path modifiedFieldsPath,
+            Path modifiedEnumsPath) {
+        Map<String, Set<String>> modifiedFields = Utils
+                .loadModifiedFields(modifiedFieldsPath.toString());
+        Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath.toString());
+        return new IsSerialize(modifiedFields, modifiedEnums);
     }
 
     public void initExample() {

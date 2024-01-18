@@ -1,5 +1,11 @@
 package org.zlab.ocov.tracker.type;
 
+import org.zlab.ocov.tracker.ClassInfo;
+import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.IsSerialize;
+
+import java.util.Map;
+
 public abstract class ScalaType extends TypeInfo {
 
     int dumpIdMaxSize = -1;
@@ -60,6 +66,14 @@ public abstract class ScalaType extends TypeInfo {
             changed = true;
         }
         return changed;
+    }
+
+    public abstract boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId);
+
+    @Override
+    public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
+            EqualitySet equalitySet, IsSerialize isSerialized) {
+        return update(value, baseClassInfo, dumpId);
     }
 
 }

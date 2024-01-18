@@ -494,6 +494,42 @@ public class TestObjectCoverage {
         System.out.println(log);
     }
 
+    @Test
+    public void testIsSerialized() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForIsSerialized.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForIsSerialized.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForIsSerialized.json");
+        Path modifiedFieldsPath = Paths.get("input/modifiedFieldsForIsSerialized.json");
+        Path modifiedEnumsPath = Paths.get("input/modifiedEnumsForIsSerialized.json");
+
+        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
+        /**
+         * Check whether isSerialized will alert us if we meet a new class being
+         * serialized or a new enum constant being serialized
+         *
+         * Let's test the new class first,
+         *
+         * manually create a Map<String, Set<String>> as modifiedFields.json and test it
+         * Later, we create a Set<String> to test enums
+         */
+        TestObjectGraphDumper.TargetClassForEnum obj1 = new TestObjectGraphDumper.TargetClassForEnum();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage);
+
+        TestObjectGraphDumper.TargetClassForEnum obj2 = new TestObjectGraphDumper.TargetClassForEnum();
+        obj2.e = TestObjectGraphDumper.TargetEnum.A;
+        coverage.update(obj2);
+        assert coverage1.merge(coverage);
+
+        TestObjectGraphDumper.TargetClassForEnum obj3 = new TestObjectGraphDumper.TargetClassForEnum();
+        obj3.e = TestObjectGraphDumper.TargetEnum.A;
+        coverage.update(obj3);
+        assert !coverage1.merge(coverage);
+    }
+
     // @Test
     public void testJson() {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");

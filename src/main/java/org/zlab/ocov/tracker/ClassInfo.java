@@ -41,16 +41,21 @@ public class ClassInfo implements Serializable {
     }
 
     public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet) {
+            EqualitySet equalitySet, IsSerialize isSerialized) {
         if (obj == null) {
             return false;
         }
         boolean isNew = false;
         try {
-            // Equality check
+            // Equality likely invariants
             if (equalitySet != null) {
                 String fieldClassName = obj.getClass().getName();
                 equalitySet.update(obj, fieldClassName, itinerary);
+            }
+            // IsSerialize likely invariants
+            if (isSerialized != null) {
+                String fieldClassName = obj.getClass().getName();
+                isSerialized.updateVisitedClasses(fieldClassName);
             }
             Class<?> currentClass = obj.getClass();
             while (currentClass != Object.class) { // Traverse up the class hierarchy
@@ -65,8 +70,8 @@ public class ClassInfo implements Serializable {
                         String objectClassName = obj.getClass().getName();
                         // Runtime.log("[hklog] processing object classname = " + objectClassName
                         // + ", field = " + field.getName() + ", value = " + value);
-
-                        if (update(fieldName, value, baseClassInfo, dumpId, equalitySet)) {
+                        if (update(fieldName, value, baseClassInfo, dumpId, equalitySet,
+                                isSerialized)) {
                             isNew = true;
                         }
                     }
@@ -80,7 +85,7 @@ public class ClassInfo implements Serializable {
         return isNew;
     }
     private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo,
-            int id, EqualitySet equalitySet) {
+            int id, EqualitySet equalitySet, IsSerialize isSerialized) {
         if (!fields.containsKey(fieldName)) {
             // Only track target fields
             return false;
@@ -90,7 +95,7 @@ public class ClassInfo implements Serializable {
         if (typeInfo == null) {
             return false;
         }
-        return typeInfo.update(value, baseClassInfo, id, equalitySet);
+        return typeInfo.update(value, baseClassInfo, id, equalitySet, isSerialized);
     }
 
     public boolean merge(ClassInfo otherClassInfo) {

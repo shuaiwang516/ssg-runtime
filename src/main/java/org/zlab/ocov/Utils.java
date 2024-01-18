@@ -1,9 +1,11 @@
 package org.zlab.ocov;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,6 +49,30 @@ public class Utils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void saveModifiedFields(Map<String, Set<String>> serializedFields,
+            String filename) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(new File(filename), serializedFields);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Map<String, Set<String>> loadModifiedFields(String filename) {
+        // Read the map from the JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Map<String, Set<String>> mapFromFile = objectMapper.readValue(new File(filename),
+                    new TypeReference<Map<String, Set<String>>>() {
+                    });
+            return mapFromFile;
+        } catch (IOException e) {
+            System.err.println("Exception happen when loading output from " + new File(filename));
+            throw new RuntimeException(e);
+        }
     }
 
     public static boolean isPrimitiveType(String type) {
