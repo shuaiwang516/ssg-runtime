@@ -17,6 +17,9 @@ public class EqualitySet implements Serializable {
 
     public List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
 
+    // FIXME: need to avoid equality within the same object graph
+    // E.g. within the same object graph, there's a list with the same itinerary and
+    // the same hashcode
     public Map<String, Map<Integer, Set<String>>> equalSetSameItineraryAcrossObj = new HashMap<>();
     public Map<String, Set<String>> equalSetSameItineraryAcrossObjDedup = new HashMap<>();
 
