@@ -28,6 +28,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'com.google.code.gson:gson-extras:2.8.5'
     implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+    implementation 'org.jgrapht:jgrapht-core:1.4.0' // Use the latest version
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
