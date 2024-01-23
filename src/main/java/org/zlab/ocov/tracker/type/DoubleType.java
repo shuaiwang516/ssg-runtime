@@ -3,14 +3,12 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.Runtime;
+import org.zlab.ocov.tracker.inv.unary.LogInfo;
 
 import java.util.Map;
 
 public class DoubleType extends ScalaType {
     private static final long serialVersionUID = 20231215L;
-
-    double max = Double.MIN_VALUE;
-    double min = Double.MAX_VALUE;
 
     // describe some characteristics
     public DoubleType(String itinerary) {
@@ -19,54 +17,16 @@ public class DoubleType extends ScalaType {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId) {
-        if (value == null) {
-            if (!beenNullOnce) {
-                beenNullOnce = true;
-                dumpIdNullOnce = dumpId;
-                return true;
-            }
-            return false;
-        }
+        if (value == null)
+            return nullOnce.add(value, new LogInfo(dumpId));
+
         if (value instanceof Double) {
             double v = (Double) value;
             boolean changed = false;
-            if (v == -1) {
-                if (!beenMinusOneOnce) {
-                    beenMinusOneOnce = true;
-                    dumpIdMinusOneOnce = dumpId;
-                    changed = true;
-                }
-            } else if (v == 0) {
-                if (!beenZeroOnce) {
-                    beenZeroOnce = true;
-                    dumpIdZeroOnce = dumpId;
-                    changed = true;
-                }
-            } else if (v == 1) {
-                if (!beenOneOnce) {
-                    beenOneOnce = true;
-                    dumpIdOneOnce = dumpId;
-                    changed = true;
-                }
-            } else {
-                if (!beenRestConditionOnce) {
-                    beenRestConditionOnce = true;
-                    dumpIdRestConditionOnce = dumpId;
-                    changed = true;
-                }
-            }
-
-            if (enableRangeCheck) {
-                if (v > max) {
-                    max = v;
-                    dumpIdMaxSize = dumpId;
-                    changed = true;
-                }
-                if (v < min) {
-                    min = v;
-                    dumpIdMinSize = dumpId;
-                    changed = true;
-                }
+            LogInfo logInfo = new LogInfo(dumpId);
+            if (negativeOneOnce.add(v, logInfo) || zeroOnce.add(v, logInfo)
+                    || oneOnce.add(v, logInfo) || restOnce.add(v, logInfo)) {
+                changed = true;
             }
             return changed;
         }
@@ -80,20 +40,6 @@ public class DoubleType extends ScalaType {
             boolean changed = false;
             if (merge(otherType))
                 changed = true;
-            if (enableRangeCheck) {
-                if (otherType.max > max) {
-                    max = otherType.max;
-                    dumpIdMaxSize = otherType.dumpIdMaxSize;
-                    log("itineraryMaxSize", itinerary, dumpIdMaxSize);
-                    changed = true;
-                }
-                if (otherType.min < min) {
-                    min = otherType.min;
-                    dumpIdMinSize = otherType.dumpIdMinSize;
-                    log("itineraryMinSize", itinerary, dumpIdMinSize);
-                    changed = true;
-                }
-            }
             return changed;
         }
         throw new RuntimeException(String.format("Not an %s but claimed to be", typeName));

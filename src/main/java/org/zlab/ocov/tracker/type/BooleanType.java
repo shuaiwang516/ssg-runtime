@@ -3,20 +3,19 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
+import org.zlab.ocov.tracker.inv.unary.FalseOnce;
+import org.zlab.ocov.tracker.inv.unary.LogInfo;
+import org.zlab.ocov.tracker.inv.unary.NullOnce;
+import org.zlab.ocov.tracker.inv.unary.TrueOnce;
 
 import java.util.Map;
 
 public class BooleanType extends TypeInfo {
     private static final long serialVersionUID = 20231215L;
 
-    boolean beenNullOnce = false;
-    int dumpIdNullOnce = -1;
-
-    boolean beenTrueOnce = false;
-    int dumpIdTrueOnce = -1;
-
-    boolean beenFalseOnce = false;
-    int dumpIdFalseOnce = -1;
+    NullOnce nullOnce = new NullOnce();
+    TrueOnce trueOnce = new TrueOnce();
+    FalseOnce falseOnce = new FalseOnce();
 
     // describe some characteristics
     public BooleanType(String itinerary) {
@@ -31,29 +30,14 @@ public class BooleanType extends TypeInfo {
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
             EqualitySet equalitySet, IsSerialize isSerialized) {
-        if (value == null) {
-            if (!beenNullOnce) {
-                beenNullOnce = true;
-                dumpIdNullOnce = dumpId;
-                return true;
-            }
-            return false;
-        }
+        if (value == null)
+            return nullOnce.add(value, new LogInfo(dumpId));
+
         if (value instanceof Boolean) {
-            boolean v = (Boolean) value;
             boolean changed = false;
-            if (v) {
-                if (!beenTrueOnce) {
-                    beenTrueOnce = true;
-                    dumpIdTrueOnce = dumpId;
-                    changed = true;
-                }
-            } else {
-                if (!beenFalseOnce) {
-                    beenFalseOnce = true;
-                    dumpIdFalseOnce = dumpId;
-                    changed = true;
-                }
+            LogInfo logInfo = new LogInfo(dumpId);
+            if (trueOnce.add(value, logInfo) || falseOnce.add(value, logInfo)) {
+                changed = true;
             }
             return changed;
         }
@@ -65,22 +49,17 @@ public class BooleanType extends TypeInfo {
         if (otherTypeInfo instanceof BooleanType) {
             BooleanType otherBooleanType = (BooleanType) otherTypeInfo;
             boolean changed = false;
-            if (otherBooleanType.beenNullOnce && !beenNullOnce) {
-                beenNullOnce = true;
-                dumpIdNullOnce = otherBooleanType.dumpIdNullOnce;
-                log("itineraryNullOnce", itinerary, dumpIdNullOnce);
+
+            if (nullOnce.merge(otherBooleanType.nullOnce)) {
+                log("itineraryNullOnce", itinerary, nullOnce.dumpId);
                 changed = true;
             }
-            if (otherBooleanType.beenTrueOnce && !beenTrueOnce) {
-                beenTrueOnce = true;
-                dumpIdTrueOnce = otherBooleanType.dumpIdTrueOnce;
-                log("itineraryTrueOnce", itinerary, dumpIdTrueOnce);
+            if (trueOnce.merge(otherBooleanType.trueOnce)) {
+                log("itineraryTrueOnce", itinerary, trueOnce.dumpId);
                 changed = true;
             }
-            if (otherBooleanType.beenFalseOnce && !beenFalseOnce) {
-                beenFalseOnce = true;
-                dumpIdFalseOnce = otherBooleanType.dumpIdFalseOnce;
-                log("itineraryFalseOnce", itinerary, dumpIdFalseOnce);
+            if (falseOnce.merge(otherBooleanType.falseOnce)) {
+                log("itineraryFalseOnce", itinerary, falseOnce.dumpId);
                 changed = true;
             }
             return changed;

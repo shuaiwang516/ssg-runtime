@@ -3,29 +3,29 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
+import org.zlab.ocov.tracker.inv.unary.*;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class ScalaType extends TypeInfo {
 
-    int dumpIdMaxSize = -1;
-    int dumpIdMinSize = -1;
-
-    boolean beenNullOnce = false;
-    int dumpIdNullOnce = -1;
-    boolean beenMinusOneOnce = false;
-    int dumpIdMinusOneOnce = -1;
-    boolean beenZeroOnce = false;
-    int dumpIdZeroOnce = -1;
-    boolean beenOneOnce = false;
-    int dumpIdOneOnce = -1;
-    boolean beenRestConditionOnce = false;
-    int dumpIdRestConditionOnce = -1;
+    NullOnce nullOnce = new NullOnce();
+    NegativeOneOnce negativeOneOnce = new NegativeOneOnce();
+    ZeroOnce zeroOnce = new ZeroOnce();
+    OneOnce oneOnce = new OneOnce();
+    RestOnce restOnce;
 
     boolean enableRangeCheck = false;
 
     public ScalaType(String name, String itinerary) {
         super(name, itinerary);
+        Set<Number> targetValues = new HashSet<>();
+        targetValues.add(-1);
+        targetValues.add(0);
+        targetValues.add(1);
+        restOnce = new RestOnce(targetValues);
     }
 
     @Override
@@ -35,34 +35,24 @@ public abstract class ScalaType extends TypeInfo {
 
     public boolean merge(ScalaType otherType) {
         boolean changed = false;
-        if (otherType.beenNullOnce && !beenNullOnce) {
-            beenNullOnce = true;
-            dumpIdNullOnce = otherType.dumpIdNullOnce;
-            log("beenNullOnce", itinerary, dumpIdNullOnce);
+        if (nullOnce.merge(otherType.nullOnce)) {
+            log("itineraryNullOnce", itinerary, nullOnce.dumpId);
             changed = true;
         }
-        if (otherType.beenMinusOneOnce && !beenMinusOneOnce) {
-            beenMinusOneOnce = true;
-            dumpIdMinusOneOnce = otherType.dumpIdMinusOneOnce;
-            log("itineraryMinusOneOnce", itinerary, dumpIdMinusOneOnce);
+        if (negativeOneOnce.merge(otherType.negativeOneOnce)) {
+            log("itineraryNegativeOneOnce", itinerary, negativeOneOnce.dumpId);
             changed = true;
         }
-        if (otherType.beenZeroOnce && !beenZeroOnce) {
-            beenZeroOnce = true;
-            dumpIdZeroOnce = otherType.dumpIdZeroOnce;
-            log("itineraryZeroOnce", itinerary, dumpIdZeroOnce);
+        if (zeroOnce.merge(otherType.zeroOnce)) {
+            log("itineraryZeroOnce", itinerary, zeroOnce.dumpId);
             changed = true;
         }
-        if (otherType.beenOneOnce && !beenOneOnce) {
-            beenOneOnce = true;
-            dumpIdOneOnce = otherType.dumpIdOneOnce;
-            log("itineraryOneOnce", itinerary, dumpIdOneOnce);
+        if (oneOnce.merge(otherType.oneOnce)) {
+            log("itineraryOneOnce", itinerary, oneOnce.dumpId);
             changed = true;
         }
-        if (otherType.beenRestConditionOnce && !beenRestConditionOnce) {
-            beenRestConditionOnce = true;
-            dumpIdRestConditionOnce = otherType.dumpIdRestConditionOnce;
-            log("itineraryRestConditionOnce", itinerary, dumpIdRestConditionOnce);
+        if (restOnce.merge(otherType.restOnce)) {
+            log("itineraryRestConditionOnce", itinerary, restOnce.dumpId);
             changed = true;
         }
         return changed;

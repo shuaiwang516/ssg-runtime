@@ -4,7 +4,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
-import org.zlab.ocov.tracker.Runtime;
+import org.zlab.ocov.tracker.inv.unary.LogInfo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,14 +31,9 @@ public class CollectionType extends SequenceType {
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
             EqualitySet equalitySet, IsSerialize isSerialized) {
-        if (value == null) {
-            if (!beenNullOnce) {
-                beenNullOnce = true;
-                dumpIdNullOnce = dumpId;
-                return true;
-            }
-            return false;
-        }
+        if (value == null)
+            return nullOnce.add(value, new LogInfo(dumpId));
+
         if (value instanceof java.util.Collection) {
             boolean changed = false;
             // Recursively check the objects inside this collection
