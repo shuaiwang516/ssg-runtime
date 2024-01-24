@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.zlab.ocov.dumper.TestObjectGraphDumper;
 import org.zlab.ocov.tracker.type.*;
 
 import java.nio.file.Path;
@@ -32,17 +31,17 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj1 = new TestObjectGraph.TargetClassA();
         assert (coverage.update(obj1));
 
-        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj2 = new TestObjectGraph.TargetClassA();
         assert (!coverage.update(obj2));
 
-        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj3 = new TestObjectGraph.TargetClassA();
         obj3.a = -1;
         assert (coverage.update(obj3));
 
-        TestObjectGraphDumper.TargetClassA obj4 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj4 = new TestObjectGraph.TargetClassA();
         obj4.c = -1;
         assert (!coverage.update(obj4));
     }
@@ -60,20 +59,20 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj1 = new TestObjectGraph.TargetClassA();
         assert (coverage.update(obj1));
 
-        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj2 = new TestObjectGraph.TargetClassA();
         assert (!coverage.update(obj2));
 
-        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj3 = new TestObjectGraph.TargetClassA();
         obj3.bObj.i = 1;
         assert (coverage.update(obj3));
 
-        TestObjectGraphDumper.TargetClassD obj4 = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraph.TargetClassD obj4 = new TestObjectGraph.TargetClassD();
         assert (coverage.update(obj4));
 
-        TestObjectGraphDumper.TargetClassD obj5 = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraph.TargetClassD obj5 = new TestObjectGraph.TargetClassD();
         obj5.bObj.i = 1;
         assert (coverage.update(obj5));
     }
@@ -91,17 +90,17 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassA obj1 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj1 = new TestObjectGraph.TargetClassA();
         assert (coverage.update(obj1));
 
-        TestObjectGraphDumper.TargetClassA obj2 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj2 = new TestObjectGraph.TargetClassA();
         assert (!coverage.update(obj2));
 
-        TestObjectGraphDumper.TargetClassA obj3 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj3 = new TestObjectGraph.TargetClassA();
         obj3.bObj.ids.clear();
         assert (coverage.update(obj3));
 
-        TestObjectGraphDumper.TargetClassA obj4 = new TestObjectGraphDumper.TargetClassA();
+        TestObjectGraph.TargetClassA obj4 = new TestObjectGraph.TargetClassA();
         obj4.bObj.ids.add(2);
         // assert (coverage.update(obj4));
         // assert (!coverage.update(obj4));
@@ -126,8 +125,8 @@ public class TestObjectCoverage {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassD obj = new TestObjectGraphDumper.TargetClassD();
-        TestObjectGraphDumper.TargetClassD obj2 = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraph.TargetClassD obj = new TestObjectGraph.TargetClassD();
+        TestObjectGraph.TargetClassD obj2 = new TestObjectGraph.TargetClassD();
         obj.dObj = obj2;
         assert (coverage.update(obj));
     }
@@ -137,12 +136,12 @@ public class TestObjectCoverage {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassD obj1 = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraph.TargetClassD obj1 = new TestObjectGraph.TargetClassD();
         assert (coverage1.update(obj1));
 
         ObjectCoverage coverage2 = new ObjectCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraphDumper.TargetClassD obj2 = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraph.TargetClassD obj2 = new TestObjectGraph.TargetClassD();
         obj2.a = 0;
         assert (coverage2.update(obj2));
 
@@ -161,30 +160,30 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects1.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassE obj1 = new TestObjectGraphDumper.TargetClassE();
+        TestObjectGraph.TargetClassE obj1 = new TestObjectGraph.TargetClassE();
         assert (coverage.update(obj1));
 
-        TestObjectGraphDumper.TargetClassE obj2 = new TestObjectGraphDumper.TargetClassE();
-        obj2.fList.add(new TestObjectGraphDumper.TargetClassF1());
+        TestObjectGraph.TargetClassE obj2 = new TestObjectGraph.TargetClassE();
+        obj2.fList.add(new TestObjectGraph.TargetClassF1());
         assert (coverage.update(obj2));
 
-        TestObjectGraphDumper.TargetClassE obj3 = new TestObjectGraphDumper.TargetClassE();
-        obj3.fList.add(new TestObjectGraphDumper.TargetClassF2());
+        TestObjectGraph.TargetClassE obj3 = new TestObjectGraph.TargetClassE();
+        obj3.fList.add(new TestObjectGraph.TargetClassF2());
         assert (coverage.update(obj3));
         assert (!coverage.update(obj3));
 
-        TestObjectGraphDumper.TargetClassE obj4 = new TestObjectGraphDumper.TargetClassE();
-        obj4.fList.add(new TestObjectGraphDumper.TargetClassF2());
-        obj4.fList.add(new TestObjectGraphDumper.TargetClassF2());
+        TestObjectGraph.TargetClassE obj4 = new TestObjectGraph.TargetClassE();
+        obj4.fList.add(new TestObjectGraph.TargetClassF2());
+        obj4.fList.add(new TestObjectGraph.TargetClassF2());
         assert (coverage.update(obj4));
 
-        TestObjectGraphDumper.TargetClassE obj5 = new TestObjectGraphDumper.TargetClassE();
-        TestObjectGraphDumper.TargetClassF1 f1 = new TestObjectGraphDumper.TargetClassF1();
+        TestObjectGraph.TargetClassE obj5 = new TestObjectGraph.TargetClassE();
+        TestObjectGraph.TargetClassF1 f1 = new TestObjectGraph.TargetClassF1();
         obj5.fList.add(f1);
         assert (!coverage.update(obj5));
 
-        TestObjectGraphDumper.TargetClassE obj6 = new TestObjectGraphDumper.TargetClassE();
-        TestObjectGraphDumper.TargetClassF1 f2 = new TestObjectGraphDumper.TargetClassF1();
+        TestObjectGraph.TargetClassE obj6 = new TestObjectGraph.TargetClassE();
+        TestObjectGraph.TargetClassF1 f2 = new TestObjectGraph.TargetClassF1();
         obj6.fList.add(f2);
         f2.f1 = 0;
         assert (coverage.update(obj6));
@@ -207,12 +206,12 @@ public class TestObjectCoverage {
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraphDumper.TargetClassE obj2 = new TestObjectGraphDumper.TargetClassE();
-        obj2.fList.add(new TestObjectGraphDumper.TargetClassF1());
+        TestObjectGraph.TargetClassE obj2 = new TestObjectGraph.TargetClassE();
+        obj2.fList.add(new TestObjectGraph.TargetClassF1());
         assert (coverage.update(obj2));
 
-        TestObjectGraphDumper.TargetClassE obj3 = new TestObjectGraphDumper.TargetClassE();
-        obj3.fList.add(new TestObjectGraphDumper.TargetClassF2());
+        TestObjectGraph.TargetClassE obj3 = new TestObjectGraph.TargetClassE();
+        obj3.fList.add(new TestObjectGraph.TargetClassF2());
         assert (coverage.update(obj3));
 
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
@@ -231,13 +230,13 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects1.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassE obj2 = new TestObjectGraphDumper.TargetClassE();
-        obj2.fList.add(new TestObjectGraphDumper.TargetClassF1());
+        TestObjectGraph.TargetClassE obj2 = new TestObjectGraph.TargetClassE();
+        obj2.fList.add(new TestObjectGraph.TargetClassF1());
         assert (coverage.update(obj2));
 
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassE obj3 = new TestObjectGraphDumper.TargetClassE();
-        TestObjectGraphDumper.TargetClassF1 tmpF1 = new TestObjectGraphDumper.TargetClassF1();
+        TestObjectGraph.TargetClassE obj3 = new TestObjectGraph.TargetClassE();
+        TestObjectGraph.TargetClassF1 tmpF1 = new TestObjectGraph.TargetClassF1();
         tmpF1.f1 = 0;
         obj3.fList.add(tmpF1);
         assert (coverage1.update(obj3));
@@ -256,14 +255,14 @@ public class TestObjectCoverage {
         Path topObjectsPath = Paths.get("input/topObjects2.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassWithMap obj1 = new TestObjectGraphDumper.TargetClassWithMap();
+        TestObjectGraph.TargetClassWithMap obj1 = new TestObjectGraph.TargetClassWithMap();
         assert (coverage.update(obj1));
 
-        TestObjectGraphDumper.TargetClassWithMap obj2 = new TestObjectGraphDumper.TargetClassWithMap();
+        TestObjectGraph.TargetClassWithMap obj2 = new TestObjectGraph.TargetClassWithMap();
         assert (!coverage.update(obj2));
 
-        TestObjectGraphDumper.TargetClassWithMap obj3 = new TestObjectGraphDumper.TargetClassWithMap();
-        obj3.map.put(1, new TestObjectGraphDumper.TargetClassF1());
+        TestObjectGraph.TargetClassWithMap obj3 = new TestObjectGraph.TargetClassWithMap();
+        obj3.map.put(1, new TestObjectGraph.TargetClassF1());
         assert (coverage.update(obj3));
 
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
@@ -279,22 +278,22 @@ public class TestObjectCoverage {
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraphDumper.TargetClassForEnum obj1 = new TestObjectGraphDumper.TargetClassForEnum();
+        TestObjectGraph.TargetClassForEnum obj1 = new TestObjectGraph.TargetClassForEnum();
         assert (coverage.update(obj1));
 
-        TestObjectGraphDumper.TargetClassForEnum obj2 = new TestObjectGraphDumper.TargetClassForEnum();
-        obj2.e = TestObjectGraphDumper.TargetEnum.A;
+        TestObjectGraph.TargetClassForEnum obj2 = new TestObjectGraph.TargetClassForEnum();
+        obj2.e = TestObjectGraph.TargetEnum.A;
         assert (coverage.update(obj2));
         assert coverage1.merge(coverage);
 
-        TestObjectGraphDumper.TargetClassForEnum obj3 = new TestObjectGraphDumper.TargetClassForEnum();
-        obj3.e = TestObjectGraphDumper.TargetEnum.B;
+        TestObjectGraph.TargetClassForEnum obj3 = new TestObjectGraph.TargetClassForEnum();
+        obj3.e = TestObjectGraph.TargetEnum.B;
         assert (coverage.update(obj3));
         assert coverage1.merge(coverage);
         assert !coverage1.merge(coverage);
 
-        TestObjectGraphDumper.TargetClassForEnum obj4 = new TestObjectGraphDumper.TargetClassForEnum();
-        obj4.e = TestObjectGraphDumper.TargetEnum.A;
+        TestObjectGraph.TargetClassForEnum obj4 = new TestObjectGraph.TargetClassForEnum();
+        obj4.e = TestObjectGraph.TargetEnum.A;
         assert (!coverage.update(obj4));
         assert !coverage1.merge(coverage);
     }
@@ -312,12 +311,12 @@ public class TestObjectCoverage {
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath,
                 comparableClassesPath);
 
-        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
         assert (coverage.update(obj1));
         assert !(coverage.update(obj1));
         assert coverage1.merge(coverage);
 
-        TestObjectGraphDumper.TargetClassEquality obj2 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj2 = new TestObjectGraph.TargetClassEquality();
         obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj2);
         assert coverage1.merge(coverage);
@@ -344,36 +343,36 @@ public class TestObjectCoverage {
         // obj1--->compClass == obj2--->compClass
 
         // 2, 3
-        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
         coverage.update(obj1);
         assert coverage1.merge(coverage);
 
         // 2, 3
-        TestObjectGraphDumper.TargetClassEquality obj6 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj6 = new TestObjectGraph.TargetClassEquality();
         coverage.update(obj6);
 
         // 4, 5
-        TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
         obj5.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj5);
 
         // 10, 2
-        TestObjectGraphDumper.TargetClassEquality obj2 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj2 = new TestObjectGraph.TargetClassEquality();
         obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 10;
         obj2.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj2);
         assert coverage1.merge(coverage);
 
         // 4, 5
-        TestObjectGraphDumper.TargetClassEquality obj3 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj3 = new TestObjectGraph.TargetClassEquality();
         obj3.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
         obj3.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj3);
         assert !coverage1.merge(coverage);
 
         // obj3--->compClass == obj3--->compClass
-        TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj4);
         assert coverage1.merge(coverage);
@@ -415,11 +414,11 @@ public class TestObjectCoverage {
                 comparableClassesPath);
 
         // 2,3
-        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
         coverage.update(obj1);
 
         // 6,6
-        TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
         obj4.targetClassEqualityC.compClass.a = 6;
         coverage.update(obj4);
@@ -439,7 +438,7 @@ public class TestObjectCoverage {
          */
 
         // 5,2
-        TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
         obj5.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj5);
@@ -458,12 +457,12 @@ public class TestObjectCoverage {
                 comparableClassesPath);
 
         // 2,3
-        TestObjectGraphDumper.TargetClassEquality obj1 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
         coverage.update(obj1);
         assert coverage1.merge(coverage);
 
         // 6,4
-        TestObjectGraphDumper.TargetClassEquality obj4 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
         obj4.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj4);
@@ -471,7 +470,7 @@ public class TestObjectCoverage {
         assert !coverage1.merge(coverage);
 
         // 9, 4
-        TestObjectGraphDumper.TargetClassEquality obj5 = new TestObjectGraphDumper.TargetClassEquality();
+        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 9;
         obj5.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj5);
@@ -515,17 +514,17 @@ public class TestObjectCoverage {
          * manually create a Map<String, Set<String>> as modifiedFields.json and test it
          * Later, we create a Set<String> to test enums
          */
-        TestObjectGraphDumper.TargetClassForEnum obj1 = new TestObjectGraphDumper.TargetClassForEnum();
+        TestObjectGraph.TargetClassForEnum obj1 = new TestObjectGraph.TargetClassForEnum();
         coverage.update(obj1);
         assert coverage1.merge(coverage);
 
-        TestObjectGraphDumper.TargetClassForEnum obj2 = new TestObjectGraphDumper.TargetClassForEnum();
-        obj2.e = TestObjectGraphDumper.TargetEnum.A;
+        TestObjectGraph.TargetClassForEnum obj2 = new TestObjectGraph.TargetClassForEnum();
+        obj2.e = TestObjectGraph.TargetEnum.A;
         coverage.update(obj2);
         assert coverage1.merge(coverage);
 
-        TestObjectGraphDumper.TargetClassForEnum obj3 = new TestObjectGraphDumper.TargetClassForEnum();
-        obj3.e = TestObjectGraphDumper.TargetEnum.A;
+        TestObjectGraph.TargetClassForEnum obj3 = new TestObjectGraph.TargetClassForEnum();
+        obj3.e = TestObjectGraph.TargetEnum.A;
         coverage.update(obj3);
         assert !coverage1.merge(coverage);
     }
@@ -535,7 +534,7 @@ public class TestObjectCoverage {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraphDumper.TargetClassD obj1 = new TestObjectGraphDumper.TargetClassD();
+        TestObjectGraph.TargetClassD obj1 = new TestObjectGraph.TargetClassD();
         assert (coverage1.update(obj1));
 
         RuntimeTypeAdapterFactory<TypeInfo> typeFactory = RuntimeTypeAdapterFactory

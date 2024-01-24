@@ -2,6 +2,8 @@ package org.zlab.ocov.tracker;
 
 import org.zlab.ocov.Utils;
 import org.apache.commons.lang3.SerializationUtils;
+import org.zlab.ocov.tracker.graph.ObjectGraph;
+import org.zlab.ocov.tracker.graph.ObjectGraphDumper;
 import org.zlab.ocov.tracker.type.TypeInfo;
 
 import java.io.Serializable;
@@ -28,6 +30,9 @@ public class ObjectCoverage implements Serializable {
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
 
+    // Graph Implementation
+    ObjectGraphDumper objectGraphDumper;
+
     public ObjectCoverage() {
         // for json
     }
@@ -52,7 +57,10 @@ public class ObjectCoverage implements Serializable {
             isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
         }
 
-        // Get classinfo from base
+        // Graph Implementation
+        objectGraphDumper = constructObjectGraphDumper(baseClassInfoPath, comparableClassesPath);
+
+        // Get classInfo
         for (String className : topObjects) {
             ClassInfo classInfo = baseClassInfo.get(className);
             if (classInfo != null) {
@@ -71,12 +79,24 @@ public class ObjectCoverage implements Serializable {
         return update(obj, -1);
     }
 
+    public boolean record(Object obj, int dumpId) {
+        // get object class name
+        if (obj == null)
+            return false;
+
+        // Graph Implementation
+        ObjectGraph objectGraph = objectGraphDumper.dump(obj);
+
+        // Invariant Inferring
+        // TODO: Update the existing graph patterns.
+        return false;
+    }
+
     public boolean update(Object obj, int dumpId) {
         // get object class name
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
-        // get class info
         ClassInfo classInfo = objCoverage.get(className);
         if (classInfo == null)
             return false;
@@ -191,6 +211,20 @@ public class ObjectCoverage implements Serializable {
                 .loadModifiedFields(modifiedFieldsPath.toString());
         Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath.toString());
         return new IsSerialize(modifiedFields, modifiedEnums);
+    }
+
+    public static ObjectGraphDumper constructObjectGraphDumper(Path baseClassInfoPath,
+            Path comparableClassesPath) {
+        Map<String, Map<String, String>> classInfo = Utils
+                .loadMapFromFile(baseClassInfoPath.toString());
+        Set<String> comparableClasses;
+        if (comparableClassesPath != null && comparableClassesPath.toFile().exists()) {
+            comparableClasses = Utils.loadSetFromFile(comparableClassesPath.toString());
+            return new ObjectGraphDumper(classInfo, comparableClasses);
+
+        } else {
+            return new ObjectGraphDumper(classInfo);
+        }
     }
 
     public void initExample() {

@@ -1,4 +1,4 @@
-package org.zlab.ocov.dumper;
+package org.zlab.ocov.tracker;
 
 import org.junit.jupiter.api.Test;
 
@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class TestObjectGraphDumper {
+public class TestObjectGraph {
 
     public static class TargetClassA {
         // Define some fields here for testing
@@ -130,16 +130,6 @@ public class TestObjectGraphDumper {
         @Override
         public int hashCode() {
             return a;
-        }
-    }
-
-    @Test
-    public void testDumper() {
-        TargetClassA obj = new TargetClassA();
-        try {
-            new ObjectGraphDumper().dump(obj);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
         }
     }
 
