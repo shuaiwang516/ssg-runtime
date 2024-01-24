@@ -73,6 +73,8 @@ public class ObjectCoverage implements Serializable {
 
     public boolean update(Object obj, int dumpId) {
         // get object class name
+        if (obj == null)
+            return false;
         String className = obj.getClass().getName();
         // get class info
         ClassInfo classInfo = objCoverage.get(className);
