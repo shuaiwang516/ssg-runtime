@@ -10,6 +10,7 @@ import org.zlab.ocov.tracker.type.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class TestObjectCoverage {
@@ -555,6 +556,11 @@ public class TestObjectCoverage {
         System.out.println(jsonStr);
 
         ObjectCoverage coverage2 = gson.fromJson(jsonStr, ObjectCoverage.class);
+    }
+
+    @Test
+    public void test() {
+
     }
 
 }

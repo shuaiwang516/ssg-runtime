@@ -144,7 +144,6 @@ public class ObjectType extends TypeInfo {
                 for (Map.Entry<String, Set<String>> entry : otherObjectType.enumConstants
                         .entrySet()) {
                     String enumName = entry.getKey();
-                    Set<String> otherEnumConstants = entry.getValue();
                     if (!enumConstants.containsKey(enumName)) {
                         enumConstants.put(enumName, new java.util.HashSet<>());
 

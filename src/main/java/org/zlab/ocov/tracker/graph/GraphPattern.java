@@ -1,34 +1,163 @@
 package org.zlab.ocov.tracker.graph;
 
+import org.apache.commons.lang3.SerializationUtils;
+import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
+import org.zlab.ocov.Utils;
+import org.zlab.ocov.tracker.graph.label.LabelConstraint;
+import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
+import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.*;
 
 public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    // FIXME: make it final?
-    private Vertex root;
-    private DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graphPattern = new DirectedMultigraph<>(
-            GraphPattern.Edge.class);
+    protected final Vertex root;
+    protected final DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
 
-    /**
-     * Similar to the TypeInfo in previous implementation, we could do a
-     * transformation.
-     */
     public static class Vertex implements Serializable {
         private static final long serialVersionUID = 20231215L;
 
-        private String type;
-        private List<LabelConstraint> labelConstraints;
-        private List<StructureConstraint> structureConstraints;
+        boolean isObjectType;
 
-        public Vertex() {
+        String type;
+        List<LabelConstraint> labelConstraints;
+        List<StructureConstraint> structureConstraints;
+
+        public Vertex(String type, boolean isObjectType, List<LabelConstraint> labelConstraints,
+                List<StructureConstraint> structureConstraints) {
+            this.type = type;
+            this.isObjectType = isObjectType;
+            this.labelConstraints = labelConstraints;
+            this.structureConstraints = structureConstraints;
         }
 
-        public boolean update(ObjectGraph.Vertex vertex) {
-            return false;
+        public boolean update(ObjectGraph.Vertex vertex, ObjectGraph objectGraph,
+                GraphPattern graphPattern, Map<String, GraphPattern> graphPatternMap,
+                LogInfo logInfo) {
+            // update label constraints
+            boolean labelConstraintsChange = false;
+            for (LabelConstraint labelConstraint : labelConstraints) {
+                if (labelConstraint.update(vertex, logInfo)) {
+                    labelConstraintsChange = true;
+                }
+            }
+            // update structure constraints
+            boolean structureConstraintsChange = false;
+            for (StructureConstraint structureConstraint : structureConstraints) {
+                if (structureConstraint.update(vertex, objectGraph, logInfo)) {
+                    structureConstraintsChange = true;
+                }
+            }
+            boolean subGraphPatternChange = false;
+            if (isObjectType) {
+                boolean found = false;
+                Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
+                for (GraphPattern.Edge edge : outgoingEdges) {
+                    GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(edge);
+                    if (target.type.equals(vertex.type)) {
+                        found = true;
+                        subGraphPatternChange = target.update(vertex, objectGraph, graphPattern,
+                                graphPatternMap, logInfo);
+                    }
+                }
+                if (!found) {
+                    // If not found, create a new one
+                    if (graphPatternMap.containsKey(vertex.type)) {
+                        // Include the subgraph's edges and vertices
+                        GraphPattern subGraphPattern = SerializationUtils
+                                .clone(graphPatternMap.get(vertex.type));
+                        for (Vertex v1 : subGraphPattern.graph.vertexSet()) {
+                            graphPattern.graph.addVertex(v1);
+                        }
+                        for (Edge edge : subGraphPattern.graph.edgeSet()) {
+                            graphPattern.graph.addEdge(subGraphPattern.graph.getEdgeSource(edge),
+                                    subGraphPattern.graph.getEdgeTarget(edge), edge);
+                        }
+                        // Connect two graphs
+                        GraphPattern.Edge newEdge = new GraphPattern.Edge(vertex.type);
+                        graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
+                        subGraphPattern.root.update(vertex, objectGraph, graphPattern,
+                                graphPatternMap, logInfo);
+                        subGraphPatternChange = true;
+                    }
+                }
+            } else {
+                for (ObjectGraph.Edge edge : objectGraph.graph.outgoingEdgesOf(vertex)) {
+                    // check whether the edge is in the graphPattern
+                    Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
+                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                        if (patternEdge.name.equals(edge.name)) {
+                            GraphPattern.Vertex target = graphPattern.graph
+                                    .getEdgeTarget(patternEdge);
+                            if (target.update(objectGraph.graph.getEdgeTarget(edge), objectGraph,
+                                    graphPattern, graphPatternMap, logInfo)) {
+                                subGraphPatternChange = true;
+                            }
+                            // there should only be one edge with the same name
+                            break;
+                        }
+                    }
+                }
+            }
+            return labelConstraintsChange || structureConstraintsChange || subGraphPatternChange;
+        }
+
+        public boolean merge(Vertex otherVertex, GraphPattern otherGraphPattern,
+                GraphPattern graphPattern) {
+            boolean changed = false;
+            // merge label constraints
+            assert labelConstraints.size() == otherVertex.labelConstraints.size();
+            for (int i = 0; i < labelConstraints.size(); i++) {
+                if (labelConstraints.get(i).merge(otherVertex.labelConstraints.get(i))) {
+                    changed = true;
+                }
+            }
+            // merge structure constraints
+            assert structureConstraints.size() == otherVertex.structureConstraints.size();
+            for (int i = 0; i < structureConstraints.size(); i++) {
+                if (structureConstraints.get(i).merge(otherVertex.structureConstraints.get(i))) {
+                    changed = true;
+                }
+            }
+            for (GraphPattern.Edge edge : otherGraphPattern.graph.outgoingEdgesOf(otherVertex)) {
+                // check whether the edge is in the graphPattern
+                boolean found = false;
+                for (GraphPattern.Edge patternEdge : graphPattern.graph.outgoingEdgesOf(this)) {
+                    if (patternEdge.name.equals(edge.name)) {
+                        GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(patternEdge);
+                        if (target.merge(otherGraphPattern.graph.getEdgeTarget(edge),
+                                otherGraphPattern, graphPattern)) {
+                            changed = true;
+                        }
+                        // there should only be one edge with the same name
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    GraphPattern.Vertex newVertex = SerializationUtils
+                            .clone(otherGraphPattern.graph.getEdgeTarget(edge));
+                    graphPattern.graph.addVertex(newVertex);
+                    graphPattern.graph.addEdge(this, newVertex, edge);
+                    newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge), otherGraphPattern,
+                            graphPattern);
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        @Override
+        public String toString() {
+            return "Vertex{" + "type=" + type + ", isObjectType=" + isObjectType
+                    + ", labelConstraints=" + labelConstraints + ", structureConstraints="
+                    + structureConstraints + '}';
         }
     }
 
@@ -40,35 +169,268 @@ public class GraphPattern implements Serializable {
         public Edge(String name) {
             this.name = name;
         }
+
+        @Override
+        public String toString() {
+            return "Edge{" + "name='" + name + "'" + '}';
+        }
     }
 
-    public GraphPattern() {
-        /**
-         * Construct the basic graph pattern according to the base type
-         */
+    public GraphPattern(String type) {
+        root = createBaseVertex(type);
+        graph = new DirectedMultigraph<>(GraphPattern.Edge.class);
+        graph.addVertex(root);
     }
 
-    public boolean update(ObjectGraph objectGraph) {
-        /**
-         * Traverse the object graph and update the graph pattern - new node, edge could
-         * be inserted.
-         */
-        update(objectGraph, objectGraph.getRoot(), root);
-        return false;
+    public boolean update(ObjectGraph objectGraph, Map<String, GraphPattern> graphPatternMap,
+            LogInfo logInfo) {
+        return update(objectGraph, objectGraph.getRoot(), root, graphPatternMap, logInfo);
     }
 
     public boolean update(ObjectGraph objectGraph, ObjectGraph.Vertex objVertex,
-            Vertex patternVertex) {
-        /**
-         * Traverse the object graph and update the graph pattern - new node, edge could
-         * be inserted.
-         */
-        return false;
+            Vertex patternVertex, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo) {
+        return patternVertex.update(objVertex, objectGraph, this, graphPatternMap, logInfo);
     }
 
     public boolean merge(GraphPattern other) {
-        // TODO
+        return root.merge(other.root, other, this);
+    }
+
+    public static Vertex createBaseVertex(String typeName) {
+        List<LabelConstraint> valueConstraints = new LinkedList<>();
+        List<StructureConstraint> structureConstraints = new LinkedList<>();
+        return new Vertex(typeName, false, valueConstraints, structureConstraints);
+    }
+
+    public static Vertex createVertex(String typeName) {
+        boolean isObjectType = false;
+
+        List<LabelConstraint> valueConstraints = new LinkedList<>();
+        List<StructureConstraint> structureConstraints = new LinkedList<>();
+
+        List<UnaryInvariant> labelInvs = new LinkedList<>();
+        labelInvs.add(new NullOnce());
+
+        if (isScala(typeName)) {
+            labelInvs.addAll(getScalaValueInvariants());
+        } else if (typeName.equals("boolean") || typeName.equals("java.lang.Boolean")) {
+            labelInvs.add(new TrueOnce());
+            labelInvs.add(new FalseOnce());
+        } else if (typeName.equals("char") || typeName.equals("java.lang.Character")) {
+            // Empty
+        } else if (typeName.equals("byte") || typeName.equals("java.lang.Byte")) {
+            // Empty
+        } else if (typeName.equals("java.lang.String")) {
+            labelInvs.add(new EmptyStringOnce());
+            labelInvs.add(new OneCharStringOnce());
+
+            Set<Integer> targetValues = new HashSet<>();
+            targetValues.add(0);
+            targetValues.add(1);
+            labelInvs.add(new RestStringSizeOnce(targetValues));
+        } else if (isCollection(typeName)) {
+            List<UnaryInvariant> invs = getCollectionSizeInvariants();
+            StructureConstraint structureConstraint = new OutDegreeConstraint(invs,
+                    "collection_item");
+            structureConstraints.add(structureConstraint);
+        } else if (isMap(typeName)) {
+            // keys
+            List<UnaryInvariant> keyInvs = getCollectionSizeInvariants();
+            StructureConstraint structureConstraint = new OutDegreeConstraint(keyInvs,
+                    "map_keyItem");
+            structureConstraints.add(structureConstraint);
+            // values
+            List<UnaryInvariant> valInvs = getCollectionSizeInvariants();
+            structureConstraint = new OutDegreeConstraint(valInvs, "map_valueItem");
+            structureConstraints.add(structureConstraint);
+        } else if (isArray(typeName)) {
+            // array_item
+            List<UnaryInvariant> invs = getCollectionSizeInvariants();
+            StructureConstraint structureConstraint = new OutDegreeConstraint(invs, "array_item");
+            structureConstraints.add(structureConstraint);
+        } else {
+            // object type
+            labelInvs.add(new EnumConstant());
+            isObjectType = true;
+
+        }
+        valueConstraints.add(new ValueConstraint(labelInvs));
+        return new Vertex(typeName, isObjectType, valueConstraints, structureConstraints);
+    }
+
+    public static List<UnaryInvariant> getScalaValueInvariants() {
+        List<UnaryInvariant> invariants = new LinkedList<>();
+        invariants.add(new NegativeOneOnce());
+        invariants.add(new ZeroOnce());
+        invariants.add(new OneOnce());
+
+        Set<Number> targetValues = new HashSet<>();
+        targetValues.add(-1);
+        targetValues.add(0);
+        targetValues.add(1);
+        invariants.add(new RestOnce(targetValues));
+        return invariants;
+    }
+
+    public static List<UnaryInvariant> getCollectionSizeInvariants() {
+        List<UnaryInvariant> invariants = new LinkedList<>();
+        invariants.add(new ZeroOnce());
+        invariants.add(new OneOnce());
+
+        Set<Number> targetValues = new HashSet<>();
+        targetValues.add(0);
+        targetValues.add(1);
+        invariants.add(new RestOnce(targetValues));
+        return invariants;
+    }
+
+    public static boolean isCollection(String typeName) {
+        if (typeName.equals("java.util.List") || typeName.equals("java.util.ArrayList")
+                || typeName.equals("java.util.LinkedList") || typeName.equals("java.util.Vector")
+                || typeName.equals("java.util.Stack") || typeName.equals("java.util.Queue")
+                || typeName.equals("java.util.PriorityQueue")) {
+            return true;
+        } else if (typeName.equals("java.util.Set") || typeName.equals("java.util.HashSet")
+                || typeName.equals("java.util.TreeSet")
+                || typeName.equals("java.util.LinkedHashSet")
+                || typeName.equals("java.util.EnumSet")
+                || typeName.equals("java.util.concurrent.CopyOnWriteArraySet")) {
+            return true;
+        } else if (typeName.equals("java.util.SortedSet")
+                || typeName.equals("java.util.NavigableSet")
+                || typeName.equals("java.util.concurrent.ConcurrentSkipListSet")) {
+            return true;
+        }
         return false;
     }
 
+    public static boolean isMap(String typeName) {
+        return typeName.equals("java.util.Map") || typeName.equals("java.util.HashMap")
+                || typeName.equals("java.util.TreeMap") || typeName.equals("java.util.Hashtable")
+                || typeName.equals("java.util.LinkedHashMap")
+                || typeName.equals("java.util.WeakHashMap")
+                || typeName.equals("java.util.IdentityHashMap")
+                || typeName.equals("java.util.EnumMap")
+                || typeName.equals("java.util.ConcurrentHashMap")
+                || typeName.equals("java.util.ConcurrentSkipListMap");
+    }
+
+    public static boolean isArray(String typeName) {
+        return (typeName.contains("[]"));
+    }
+
+    public static boolean isScala(String typeName) {
+        // char and byte are not included
+        return typeName.equals("int") || typeName.equals("java.lang.Integer")
+                || typeName.equals("long") || typeName.equals("java.lang.Long")
+                || typeName.equals("double") || typeName.equals("java.lang.Double")
+                || typeName.equals("float") || typeName.equals("java.lang.Float")
+                || typeName.equals("short") || typeName.equals("java.lang.Short");
+    }
+
+    public static Map<String, Map<String, String>> readClassInfo(Path filePath) {
+        return Utils.loadMapFromFile(filePath.toString());
+    }
+
+    public static Map<String, GraphPattern> createGraphPatterns(
+            Map<String, Map<String, String>> classInfoOri) {
+        assert classInfoOri != null;
+        Map<String, GraphPattern> graphPatterns = new HashMap<>();
+        for (String className : classInfoOri.keySet()) {
+            GraphPattern graphPattern = new GraphPattern(className);
+            for (String fieldName : classInfoOri.get(className).keySet()) {
+                String fieldType = classInfoOri.get(className).get(fieldName);
+                // Create the vertex and edge
+                Edge edge = new Edge(fieldName);
+                Vertex vertex = createVertex(fieldType);
+                graphPattern.graph.addVertex(vertex);
+                graphPattern.graph.addEdge(graphPattern.root, vertex, edge);
+                if (Utils.isPrimitiveType(fieldType)) {
+                    // Do nothing
+                } else if (isCollection(fieldType)) {
+                    Vertex collectionItemVertex = createVertex("ObjectPlaceHolder");
+                    graphPattern.graph.addVertex(collectionItemVertex);
+                    graphPattern.graph.addEdge(vertex, collectionItemVertex,
+                            new Edge("collection_item"));
+                } else if (isMap(fieldType)) {
+                    Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder");
+                    graphPattern.graph.addVertex(mapKeyItemVertex);
+                    graphPattern.graph.addEdge(vertex, mapKeyItemVertex, new Edge("map_keyItem"));
+
+                    Vertex mapValueItemVertex = createVertex("ObjectPlaceHolder");
+                    graphPattern.graph.addVertex(mapValueItemVertex);
+                    graphPattern.graph.addEdge(vertex, mapValueItemVertex,
+                            new Edge("map_valueItem"));
+                } else if (isArray(fieldType)) {
+                    Vertex arrayItemVertex = createVertex("ObjectPlaceHolder");
+                    graphPattern.graph.addVertex(arrayItemVertex);
+                    graphPattern.graph.addEdge(vertex, arrayItemVertex, new Edge("array_item"));
+                }
+            }
+            graphPatterns.put(className, graphPattern);
+        }
+        return graphPatterns;
+    }
+
+    public void print() {
+        printGraph(root, graph);
+    }
+
+    public static void printGraph(Vertex startVertex, Graph<Vertex, Edge> graph) {
+        printGraphDFS(startVertex, graph, new HashSet<>(), 0);
+    }
+
+    private static void printGraphDFS(Vertex currentVertex, Graph<Vertex, Edge> graph,
+            Set<Vertex> visited, int depth) {
+        // if (visited.contains(currentVertex)) {
+        // return;
+        // }
+        printWithIndent(currentVertex, depth);
+
+        visited.add(currentVertex);
+
+        // avoid print multi-edge between 2 nodes
+        Set<String> visitedEdgeNames = new HashSet<>();
+        Set<Vertex> visitedVertices = new HashSet<>();
+        // If name is the same and the target vertex is the same, skip it
+        for (Edge edge : graph.outgoingEdgesOf(currentVertex)) {
+            Vertex target = graph.getEdgeTarget(edge);
+            if (visitedEdgeNames.contains(edge.name) && visitedVertices.contains(target)) {
+                continue;
+            }
+            printWithIndent(edge, depth + 1); // Print the edge with an indent
+            printGraphDFS(target, graph, visited, depth + 2); // Increase the indent for the child
+            // node
+            visitedEdgeNames.add(edge.name);
+            visitedVertices.add(target);
+        }
+    }
+
+    public static void reversePrintGraph(Vertex startVertex, Graph<Vertex, Edge> graph) {
+        reversePrintGraphDFS(startVertex, graph, new HashSet<>(), 0);
+    }
+
+    private static void reversePrintGraphDFS(Vertex currentVertex, Graph<Vertex, Edge> graph,
+            Set<Vertex> visited, int depth) {
+        // if (visited.contains(currentVertex)) {
+        // return;
+        // }
+        printWithIndent(currentVertex, depth);
+
+        visited.add(currentVertex);
+
+        for (Edge edge : graph.incomingEdgesOf(currentVertex)) {
+            Vertex target = graph.getEdgeSource(edge);
+            printWithIndent(edge, depth + 1); // Print the edge with an indent
+            reversePrintGraphDFS(target, graph, visited, depth + 2); // Increase the indent for the
+            // child node
+        }
+    }
+
+    private static void printWithIndent(Object obj, int indentLevel) {
+        for (int i = 0; i < indentLevel; i++) {
+            System.out.print("  "); // Two spaces for each level of indentation
+        }
+        System.out.println(obj);
+    }
 }

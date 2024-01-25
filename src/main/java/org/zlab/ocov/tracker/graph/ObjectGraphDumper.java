@@ -68,8 +68,9 @@ public class ObjectGraphDumper implements Serializable {
                                 curVertex = new ObjectGraph.Vertex(curClassName, getValue(curObj),
                                         System.identityHashCode(curObj));
                             }
-                            objectGraph.addVertex(curVertex);
-                            objectGraph.addEdge(vertex, curVertex, new ObjectGraph.Edge(fieldName));
+                            objectGraph.graph.addVertex(curVertex);
+                            objectGraph.graph.addEdge(vertex, curVertex,
+                                    new ObjectGraph.Edge(fieldName));
                             processObject(objectGraph, curObj, curClassName, curVertex);
                         }
                     }
@@ -85,8 +86,9 @@ public class ObjectGraphDumper implements Serializable {
                     String curClassName = item.getClass().getName();
                     ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
                             getValue(item), System.identityHashCode(item));
-                    objectGraph.addVertex(curVertex);
-                    objectGraph.addEdge(vertex, curVertex, new ObjectGraph.Edge("collection_item"));
+                    objectGraph.graph.addVertex(curVertex);
+                    objectGraph.graph.addEdge(vertex, curVertex,
+                            new ObjectGraph.Edge("collection_item"));
                     processObject(objectGraph, item, curClassName, curVertex);
                 }
             } else if (obj instanceof Map) {
@@ -97,8 +99,9 @@ public class ObjectGraphDumper implements Serializable {
                     String curClassName = item.getClass().getName();
                     ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
                             getValue(item), System.identityHashCode(item));
-                    objectGraph.addVertex(curVertex);
-                    objectGraph.addEdge(vertex, curVertex, new ObjectGraph.Edge("map_keyItem"));
+                    objectGraph.graph.addVertex(curVertex);
+                    objectGraph.graph.addEdge(vertex, curVertex,
+                            new ObjectGraph.Edge("map_keyItem"));
                     processObject(objectGraph, item, curClassName, curVertex);
                 }
                 for (Object item : ((java.util.Map) obj).values()) {
@@ -108,8 +111,9 @@ public class ObjectGraphDumper implements Serializable {
                     String curClassName = item.getClass().getName();
                     ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
                             getValue(item), System.identityHashCode(item));
-                    objectGraph.addVertex(curVertex);
-                    objectGraph.addEdge(vertex, curVertex, new ObjectGraph.Edge("map_valueItem"));
+                    objectGraph.graph.addVertex(curVertex);
+                    objectGraph.graph.addEdge(vertex, curVertex,
+                            new ObjectGraph.Edge("map_valueItem"));
                     processObject(objectGraph, item, curClassName, curVertex);
                 }
             } else if (obj.getClass().isArray()) {
@@ -120,8 +124,9 @@ public class ObjectGraphDumper implements Serializable {
                     String curClassName = item.getClass().getName();
                     ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
                             getValue(item), System.identityHashCode(item));
-                    objectGraph.addVertex(curVertex);
-                    objectGraph.addEdge(vertex, curVertex, new ObjectGraph.Edge("array_item"));
+                    objectGraph.graph.addVertex(curVertex);
+                    objectGraph.graph.addEdge(vertex, curVertex,
+                            new ObjectGraph.Edge("array_item"));
                     processObject(objectGraph, item, curClassName, curVertex);
                 }
             }

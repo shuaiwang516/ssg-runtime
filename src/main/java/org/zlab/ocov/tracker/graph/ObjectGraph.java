@@ -11,33 +11,29 @@ import java.util.Set;
 public class ObjectGraph implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    private final Vertex root;
-    public DirectedMultigraph<Vertex, Edge> objectGraph;
+    public final Vertex root;
+    public final DirectedMultigraph<Vertex, Edge> graph;
 
     public ObjectGraph(Vertex root) {
         this.root = root;
-        objectGraph = new DirectedMultigraph<>(Edge.class);
-        objectGraph.addVertex(root);
+        graph = new DirectedMultigraph<>(Edge.class);
+        graph.addVertex(root);
     }
 
     public Vertex getRoot() {
         return root;
     }
 
-    public void addVertex(Vertex vertex) {
-        objectGraph.addVertex(vertex);
-    }
-
-    public void addEdge(Vertex source, Vertex target, Edge edge) {
-        objectGraph.addEdge(source, target, edge);
-    }
-
     public static class Edge implements Serializable {
-        private static final long serialVersionUID = 20231215L;
+        public static final long serialVersionUID = 20231215L;
         public final String name;
 
         public Edge(String name) {
             this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
 
         @Override
@@ -89,14 +85,14 @@ public class ObjectGraph implements Serializable {
     public void print() {
         // get root node of objectGraph
         Set<Vertex> rootNodes = new HashSet<>();
-        for (Vertex vertex : objectGraph.vertexSet()) {
-            if (objectGraph.inDegreeOf(vertex) == 0) {
+        for (Vertex vertex : graph.vertexSet()) {
+            if (graph.inDegreeOf(vertex) == 0) {
                 rootNodes.add(vertex);
             }
         }
 
         for (Vertex rootNode : rootNodes) {
-            printGraph(rootNode, objectGraph);
+            printGraph(rootNode, graph);
         }
 
     }
