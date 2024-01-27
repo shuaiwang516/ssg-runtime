@@ -21,7 +21,7 @@ public class TestObjectCoverage {
     }
 
     @Test
-    public void testObjectCoverageUpdater() {
+    public void testBasic() {
         /**
          * Test condition: if there are 2 differences, both of them have a field with
          * classC. We want to track them differently since they might manifest
@@ -48,38 +48,39 @@ public class TestObjectCoverage {
     }
 
     @Test
-    public void testSubObjectUpdater() {
-        /**
-         * Test condition: if there are 2 differences, both of them have a field with
-         * classC. We want to track them differently since they might manifest
-         * differently.
-         */
+    public void testSubObject() {
         // obj1 and obj2 share same format, obj3 is different
-
         Path bassClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
 
         ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
+        ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
+
         TestObjectGraph.TargetClassA obj1 = new TestObjectGraph.TargetClassA();
         assert (coverage.update(obj1));
+        assert coverage1.merge(coverage);
 
         TestObjectGraph.TargetClassA obj2 = new TestObjectGraph.TargetClassA();
         assert (!coverage.update(obj2));
+        assert !coverage1.merge(coverage);
 
         TestObjectGraph.TargetClassA obj3 = new TestObjectGraph.TargetClassA();
         obj3.bObj.i = 1;
         assert (coverage.update(obj3));
+        assert coverage1.merge(coverage);
 
         TestObjectGraph.TargetClassD obj4 = new TestObjectGraph.TargetClassD();
         assert (coverage.update(obj4));
+        assert coverage1.merge(coverage);
 
         TestObjectGraph.TargetClassD obj5 = new TestObjectGraph.TargetClassD();
         obj5.bObj.i = 1;
         assert (coverage.update(obj5));
+        assert coverage1.merge(coverage);
     }
 
     @Test
-    public void testCollectionCoverageUpdater() {
+    public void testCollectionCoverage() {
         /**
          * Test condition: if there are 2 differences, both of them have a field with
          * classC. We want to track them differently since they might manifest
@@ -108,32 +109,7 @@ public class TestObjectCoverage {
     }
 
     @Test
-    public void testTmp() {
-        int[] a = new int[10];
-        f(a);
-    }
-
-    public void f(Object o) {
-        if (o instanceof Object[]) {
-            System.out.println("yes1");
-        } else if (o instanceof int[]) {
-            System.out.println("yes2");
-        }
-    }
-
-    @Test
-    public void testRecursiveTracking() {
-        Path bassClassPath = Paths.get("input/baseClassInfo.json");
-        Path topObjectsPath = Paths.get("input/topObjects.json");
-        ObjectCoverage coverage = new ObjectCoverage(bassClassPath, topObjectsPath);
-        TestObjectGraph.TargetClassD obj = new TestObjectGraph.TargetClassD();
-        TestObjectGraph.TargetClassD obj2 = new TestObjectGraph.TargetClassD();
-        obj.dObj = obj2;
-        assert (coverage.update(obj));
-    }
-
-    @Test
-    public void testCoverageMerging() {
+    public void testCoverageMerge() {
         Path bassClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
         ObjectCoverage coverage1 = new ObjectCoverage(bassClassPath, topObjectsPath);
@@ -145,13 +121,11 @@ public class TestObjectCoverage {
         TestObjectGraph.TargetClassD obj2 = new TestObjectGraph.TargetClassD();
         obj2.a = 0;
         assert (coverage2.update(obj2));
-
         assert (coverage1.merge(coverage2));
-
     }
 
     @Test
-    public void testCollectionItemObjectCoverage() {
+    public void testCollectionItem1() {
         /**
          * Suppose a collection will be serialized, the size of it is always2. However,
          * its object type is changed, we should also capture it and report a new format
@@ -196,7 +170,7 @@ public class TestObjectCoverage {
     }
 
     @Test
-    public void testCollectionItemMerge() {
+    public void testCollectionItem2() {
         /**
          * Suppose a collection will be serialized, the size of it is always2. However,
          * its object type is changed, we should also capture it and report a new format
@@ -221,7 +195,7 @@ public class TestObjectCoverage {
     }
 
     @Test
-    public void testCollectionRecursiveMerge() {
+    public void testCollectionRecursive() {
         /**
          * Suppose a collection will be serialized, it always contains a single object.
          * If this object's field contains a new format, it should also report a new

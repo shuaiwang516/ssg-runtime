@@ -28,9 +28,8 @@ public class ObjectGraphDumper implements Serializable {
      * Given an object, dump the object graph into ObjectGraph
      */
     public ObjectGraph dump(Object obj) {
-        if (obj == null)
+        if (obj == null || !classInfo.containsKey(obj.getClass().getName()))
             return null;
-
         ObjectGraph.Vertex vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),
                 System.identityHashCode(obj));
         ObjectGraph objectGraph = new ObjectGraph(vertex);

@@ -38,6 +38,7 @@ public class Utils {
             mapper.writeValue(new File(filename), map);
         } catch (IOException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -47,8 +48,8 @@ public class Utils {
             return mapper.readValue(new File(filename), Set.class);
         } catch (IOException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     public static void saveModifiedFields(Map<String, Set<String>> serializedFields,
