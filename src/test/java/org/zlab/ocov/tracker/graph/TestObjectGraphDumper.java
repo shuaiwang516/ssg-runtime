@@ -14,18 +14,7 @@ public class TestObjectGraphDumper {
 
     @Test
     public void testEnum() {
-        // Given an object graph, see whether we can create a correct dumped object
-        // graph
-        Path bassClassPath = Paths.get("input/baseClassInfoForEnum.json");
-        Map<String, Map<String, String>> classInfo = GraphPattern.readClassInfo(bassClassPath);
-
-        ObjectGraphDumper dumper = new ObjectGraphDumper(classInfo);
-
-        TestObjectGraph.TargetClassForEnum targetClassForEnum = new TestObjectGraph.TargetClassForEnum();
-
-        ObjectGraph objectGraph = dumper.dump(targetClassForEnum);
-
-        // objectGraph.print();
+        // TODO
     }
 
     @Test

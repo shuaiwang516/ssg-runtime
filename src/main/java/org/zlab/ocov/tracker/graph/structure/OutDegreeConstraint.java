@@ -1,5 +1,6 @@
 package org.zlab.ocov.tracker.graph.structure;
 
+import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
 import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;
@@ -8,11 +9,8 @@ import java.util.List;
 
 public class OutDegreeConstraint extends StructureConstraint {
 
-    private final String edgeLabel;
-
     public OutDegreeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
-        super(unaryInvariants);
-        this.edgeLabel = edgeLabel;
+        super(unaryInvariants, edgeLabel);
     }
 
     @Override
@@ -23,16 +21,12 @@ public class OutDegreeConstraint extends StructureConstraint {
                 count++;
             }
         }
-        boolean result = false;
+        boolean changed = false;
         for (UnaryInvariant invariant : unaryInvariants) {
             if (invariant.add(count, logInfo))
-                result = true;
+                changed = true;
         }
-        return false;
+        return changed;
     }
 
-    @Override
-    public boolean merge(StructureConstraint otherConstraint) {
-        return false;
-    }
 }

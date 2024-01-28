@@ -10,6 +10,7 @@ import java.util.List;
 public abstract class LabelConstraint implements Serializable {
 
     final List<UnaryInvariant> unaryInvariants;
+    String itinerary;
 
     public LabelConstraint(List<UnaryInvariant> unaryInvariants) {
         this.unaryInvariants = unaryInvariants;
@@ -17,6 +18,6 @@ public abstract class LabelConstraint implements Serializable {
 
     public abstract boolean update(ObjectGraph.Vertex vertex, LogInfo logInfo);
 
-    public abstract boolean merge(LabelConstraint otherConstraint);
+    public abstract boolean merge(LabelConstraint otherConstraint, String itinerary);
 
 }

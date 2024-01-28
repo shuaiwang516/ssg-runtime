@@ -351,7 +351,6 @@ public class TestObjectCoverage {
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj4);
         assert coverage1.merge(coverage);
-
         assert !coverage1.merge(coverage);
 
         // Serialize coverage1 to a file and deserialize it back using GSON

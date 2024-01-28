@@ -14,8 +14,8 @@ public class EnumConstant extends UnaryInvariant {
 
     @Override
     public boolean merge(Invariant other) {
-        boolean changed = false;
         if (other instanceof EnumConstant) {
+            boolean changed = false;
             EnumConstant otherEnumConstant = (EnumConstant) other;
             for (String className : otherEnumConstant.enumConstants.keySet()) {
                 if (!enumConstants.containsKey(className)) {
@@ -32,7 +32,7 @@ public class EnumConstant extends UnaryInvariant {
             }
             return changed;
         }
-        return changed;
+        return false;
     }
 
     @Override
@@ -52,5 +52,20 @@ public class EnumConstant extends UnaryInvariant {
             }
         }
         return changed;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("<%s> dumpId = %s", typeName, dumpId));
+        sb.append(" (");
+        for (String className : enumConstants.keySet()) {
+            sb.append(className);
+            sb.append(": ");
+            sb.append(enumConstants.get(className));
+            sb.append(", ");
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }

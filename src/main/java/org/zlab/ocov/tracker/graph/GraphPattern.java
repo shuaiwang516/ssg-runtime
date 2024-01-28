@@ -4,6 +4,8 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
+import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
 import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
@@ -17,8 +19,11 @@ import java.util.*;
 public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    protected final Vertex root;
-    protected final DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
+    // Control the boundary check
+    public static boolean enableSequenceBoundaryCheck = false;
+
+    protected Vertex root;
+    protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
 
     public static class Vertex implements Serializable {
         private static final long serialVersionUID = 20231215L;
@@ -26,33 +31,41 @@ public class GraphPattern implements Serializable {
         boolean isObjectType;
 
         String type;
+        String itinerary;
         List<LabelConstraint> labelConstraints;
         List<StructureConstraint> structureConstraints;
 
-        public Vertex(String type, boolean isObjectType, List<LabelConstraint> labelConstraints,
+        public Vertex(String type, String itinerary, boolean isObjectType,
+                List<LabelConstraint> labelConstraints,
                 List<StructureConstraint> structureConstraints) {
             this.type = type;
+            this.itinerary = itinerary;
             this.isObjectType = isObjectType;
             this.labelConstraints = labelConstraints;
             this.structureConstraints = structureConstraints;
         }
 
+        public void updateItinerary(String itineraryPrefix, GraphPattern graphPattern) {
+            itinerary = itineraryPrefix + "->" + itinerary;
+            for (GraphPattern.Edge edge : graphPattern.graph.outgoingEdgesOf(this))
+                graphPattern.graph.getEdgeTarget(edge).updateItinerary(itineraryPrefix,
+                        graphPattern);
+        }
+
         public boolean update(ObjectGraph.Vertex vertex, ObjectGraph objectGraph,
                 GraphPattern graphPattern, Map<String, GraphPattern> graphPatternMap,
-                LogInfo logInfo) {
-            // update label constraints
+                LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized) {
+            // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
-                if (labelConstraint.update(vertex, logInfo)) {
+                if (labelConstraint.update(vertex, logInfo))
                     labelConstraintsChange = true;
-                }
             }
-            // update structure constraints
+            // Update structure constraints
             boolean structureConstraintsChange = false;
             for (StructureConstraint structureConstraint : structureConstraints) {
-                if (structureConstraint.update(vertex, objectGraph, logInfo)) {
+                if (structureConstraint.update(vertex, objectGraph, logInfo))
                     structureConstraintsChange = true;
-                }
             }
             boolean subGraphPatternChange = false;
             if (isObjectType) {
@@ -63,7 +76,7 @@ public class GraphPattern implements Serializable {
                     if (target.type.equals(vertex.type)) {
                         found = true;
                         subGraphPatternChange = target.update(vertex, objectGraph, graphPattern,
-                                graphPatternMap, logInfo);
+                                graphPatternMap, logInfo, equalitySet, isSerialized);
                     }
                 }
                 if (!found) {
@@ -72,22 +85,28 @@ public class GraphPattern implements Serializable {
                         // Include the subgraph's edges and vertices
                         GraphPattern subGraphPattern = SerializationUtils
                                 .clone(graphPatternMap.get(vertex.type));
-                        for (Vertex v1 : subGraphPattern.graph.vertexSet()) {
+
+                        subGraphPattern.root.updateItinerary(itinerary, subGraphPattern);
+
+                        for (Vertex v1 : subGraphPattern.graph.vertexSet())
                             graphPattern.graph.addVertex(v1);
-                        }
-                        for (Edge edge : subGraphPattern.graph.edgeSet()) {
+                        for (Edge edge : subGraphPattern.graph.edgeSet())
                             graphPattern.graph.addEdge(subGraphPattern.graph.getEdgeSource(edge),
                                     subGraphPattern.graph.getEdgeTarget(edge), edge);
-                        }
+
                         // Connect two graphs
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(vertex.type);
                         graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
                         subGraphPattern.root.update(vertex, objectGraph, graphPattern,
-                                graphPatternMap, logInfo);
+                                graphPatternMap, logInfo, equalitySet, isSerialized);
                         subGraphPatternChange = true;
                     }
                 }
             } else {
+                // The current object vertex won't be iterated again, process it
+                if (equalitySet != null)
+                    equalitySet.update(vertex, type, itinerary);
+
                 for (ObjectGraph.Edge edge : objectGraph.graph.outgoingEdgesOf(vertex)) {
                     // check whether the edge is in the graphPattern
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
@@ -96,7 +115,8 @@ public class GraphPattern implements Serializable {
                             GraphPattern.Vertex target = graphPattern.graph
                                     .getEdgeTarget(patternEdge);
                             if (target.update(objectGraph.graph.getEdgeTarget(edge), objectGraph,
-                                    graphPattern, graphPatternMap, logInfo)) {
+                                    graphPattern, graphPatternMap, logInfo, equalitySet,
+                                    isSerialized)) {
                                 subGraphPatternChange = true;
                             }
                             // there should only be one edge with the same name
@@ -114,14 +134,14 @@ public class GraphPattern implements Serializable {
             // merge label constraints
             assert labelConstraints.size() == otherVertex.labelConstraints.size();
             for (int i = 0; i < labelConstraints.size(); i++) {
-                if (labelConstraints.get(i).merge(otherVertex.labelConstraints.get(i))) {
+                if (labelConstraints.get(i).merge(otherVertex.labelConstraints.get(i), itinerary))
                     changed = true;
-                }
             }
             // merge structure constraints
             assert structureConstraints.size() == otherVertex.structureConstraints.size();
             for (int i = 0; i < structureConstraints.size(); i++) {
-                if (structureConstraints.get(i).merge(otherVertex.structureConstraints.get(i))) {
+                if (structureConstraints.get(i).merge(otherVertex.structureConstraints.get(i),
+                        itinerary)) {
                     changed = true;
                 }
             }
@@ -155,9 +175,9 @@ public class GraphPattern implements Serializable {
 
         @Override
         public String toString() {
-            return "Vertex{" + "type=" + type + ", isObjectType=" + isObjectType
+            return "Vertex{" + "type='" + type + "'" + ", itinerary='" + itinerary + "'"
                     + ", labelConstraints=" + labelConstraints + ", structureConstraints="
-                    + structureConstraints + '}';
+                    + structureConstraints + "}";
         }
     }
 
@@ -176,6 +196,9 @@ public class GraphPattern implements Serializable {
         }
     }
 
+    public GraphPattern() {
+    }
+
     public GraphPattern(String type) {
         root = createBaseVertex(type);
         graph = new DirectedMultigraph<>(GraphPattern.Edge.class);
@@ -183,26 +206,26 @@ public class GraphPattern implements Serializable {
     }
 
     public boolean update(ObjectGraph objectGraph, Map<String, GraphPattern> graphPatternMap,
-            LogInfo logInfo) {
-        return update(objectGraph, objectGraph.getRoot(), root, graphPatternMap, logInfo);
-    }
-
-    public boolean update(ObjectGraph objectGraph, ObjectGraph.Vertex objVertex,
-            Vertex patternVertex, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo) {
-        return patternVertex.update(objVertex, objectGraph, this, graphPatternMap, logInfo);
+            LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized) {
+        return root.update(objectGraph.root, objectGraph, this, graphPatternMap, logInfo,
+                equalitySet, isSerialized);
     }
 
     public boolean merge(GraphPattern other) {
         return root.merge(other.root, other, this);
     }
 
+    public void print() {
+        printGraph(root, graph);
+    }
+
     public static Vertex createBaseVertex(String typeName) {
         List<LabelConstraint> valueConstraints = new LinkedList<>();
         List<StructureConstraint> structureConstraints = new LinkedList<>();
-        return new Vertex(typeName, false, valueConstraints, structureConstraints);
+        return new Vertex(typeName, typeName, false, valueConstraints, structureConstraints);
     }
 
-    public static Vertex createVertex(String typeName) {
+    public static Vertex createVertex(String typeName, String itinerary) {
         boolean isObjectType = false;
 
         List<LabelConstraint> valueConstraints = new LinkedList<>();
@@ -255,7 +278,8 @@ public class GraphPattern implements Serializable {
 
         }
         valueConstraints.add(new ValueConstraint(labelInvs));
-        return new Vertex(typeName, isObjectType, valueConstraints, structureConstraints);
+        return new Vertex(typeName, itinerary, isObjectType, valueConstraints,
+                structureConstraints);
     }
 
     public static List<UnaryInvariant> getScalaValueInvariants() {
@@ -281,6 +305,11 @@ public class GraphPattern implements Serializable {
         targetValues.add(0);
         targetValues.add(1);
         invariants.add(new RestOnce(targetValues));
+
+        if (enableSequenceBoundaryCheck) {
+            invariants.add(new IntegerLowerBound());
+            invariants.add(new IntegerUpperBound());
+        }
         return invariants;
     }
 
@@ -328,10 +357,6 @@ public class GraphPattern implements Serializable {
                 || typeName.equals("short") || typeName.equals("java.lang.Short");
     }
 
-    public static Map<String, Map<String, String>> readClassInfo(Path filePath) {
-        return Utils.loadMapFromFile(filePath.toString());
-    }
-
     public static Map<String, GraphPattern> createGraphPatterns(
             Map<String, Map<String, String>> classInfoOri) {
         assert classInfoOri != null;
@@ -342,27 +367,34 @@ public class GraphPattern implements Serializable {
                 String fieldType = classInfoOri.get(className).get(fieldName);
                 // Create the vertex and edge
                 Edge edge = new Edge(fieldName);
-                Vertex vertex = createVertex(fieldType);
+
+                String itinerary = className + "." + fieldName;
+
+                Vertex vertex = createVertex(fieldType, itinerary);
                 graphPattern.graph.addVertex(vertex);
                 graphPattern.graph.addEdge(graphPattern.root, vertex, edge);
                 if (Utils.isPrimitiveType(fieldType)) {
                     // Do nothing
                 } else if (isCollection(fieldType)) {
-                    Vertex collectionItemVertex = createVertex("ObjectPlaceHolder");
+                    Vertex collectionItemVertex = createVertex("ObjectPlaceHolder",
+                            itinerary + ".collection_item");
                     graphPattern.graph.addVertex(collectionItemVertex);
                     graphPattern.graph.addEdge(vertex, collectionItemVertex,
                             new Edge("collection_item"));
                 } else if (isMap(fieldType)) {
-                    Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder");
+                    Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder",
+                            itinerary + ".map_keyItem");
                     graphPattern.graph.addVertex(mapKeyItemVertex);
                     graphPattern.graph.addEdge(vertex, mapKeyItemVertex, new Edge("map_keyItem"));
 
-                    Vertex mapValueItemVertex = createVertex("ObjectPlaceHolder");
+                    Vertex mapValueItemVertex = createVertex("ObjectPlaceHolder",
+                            itinerary + ".map_valueItem");
                     graphPattern.graph.addVertex(mapValueItemVertex);
                     graphPattern.graph.addEdge(vertex, mapValueItemVertex,
                             new Edge("map_valueItem"));
                 } else if (isArray(fieldType)) {
-                    Vertex arrayItemVertex = createVertex("ObjectPlaceHolder");
+                    Vertex arrayItemVertex = createVertex("ObjectPlaceHolder",
+                            itinerary + ".array_item");
                     graphPattern.graph.addVertex(arrayItemVertex);
                     graphPattern.graph.addEdge(vertex, arrayItemVertex, new Edge("array_item"));
                 }
@@ -370,10 +402,6 @@ public class GraphPattern implements Serializable {
             graphPatterns.put(className, graphPattern);
         }
         return graphPatterns;
-    }
-
-    public void print() {
-        printGraph(root, graph);
     }
 
     public static void printGraph(Vertex startVertex, Graph<Vertex, Edge> graph) {

@@ -47,8 +47,8 @@ public class ObjectGraphCoverage implements Serializable {
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath) {
-        Map<String, Map<String, String>> classInfoOri = GraphPattern
-                .readClassInfo(baseClassInfoPath);
+        Map<String, Map<String, String>> classInfoOri = Utils
+                .loadMapFromFile(baseClassInfoPath.toString());
         baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
         topObjects = Utils.loadSetFromFile(topObjectsPath.toString());
         Set<String> comparableClasses = null;
@@ -86,7 +86,6 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public boolean update(Object obj, int dumpId) {
-        // get object class name
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
@@ -94,20 +93,19 @@ public class ObjectGraphCoverage implements Serializable {
         if (classInfo == null)
             return false;
 
-        // dump it
         ObjectGraph objectGraph = objectGraphDumper.dump(obj);
         LogInfo logInfo = new LogInfo(dumpId);
-        boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo);
+
+        // FIXME: update isSerialized
+        boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet, null);
 
         Integer objId = System.identityHashCode(obj);
         if (visitedObjects.contains(objId))
             return false;
         visitedObjects.add(objId);
 
-        // Equality is not counted for now
-
-        // if (equalitySet != null)
-        // equalitySet.dumpSameObjectGraph(dumpId);
+        if (equalitySet != null)
+            equalitySet.dumpSameObjectGraph(dumpId);
         return ret;
     }
 

@@ -141,11 +141,12 @@ public class ObjectGraphDumper implements Serializable {
     public Object getValue(Object obj) {
         // check whether it's a primitive type
         Class<?> className = obj.getClass();
-        if (isPrimitive(className.getName()) || className.isEnum()) {
+        String classNameStr = className.getName();
+        if (isPrimitive(classNameStr) || className.isEnum()) {
             // Directly return this object
             return obj;
         } else {
-            if (comparableClasses.contains(className.toString())) {
+            if (comparableClasses.contains(classNameStr)) {
                 return obj.hashCode();
             }
             // we don't care other values

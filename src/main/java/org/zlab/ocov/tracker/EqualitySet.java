@@ -1,5 +1,7 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.tracker.graph.ObjectGraph;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -47,6 +49,26 @@ public class EqualitySet implements Serializable {
 
         equalSetSameItineraryAcrossObj.clear();
         equalSetSameItineraryAcrossObjDedup.clear();
+    }
+
+    public void update(ObjectGraph.Vertex vertex, String className, String itinerary) {
+        if (comparableClasses.contains(className)) {
+            assert vertex.value instanceof Integer;
+            int hashCode = (int) vertex.value;
+            if (!enableAcrossEquality) {
+                Map<Integer, Set<String>> hashCodeMap0 = equalSetAcrossOrSameObj
+                        .computeIfAbsent(className, k -> new HashMap<>());
+                Set<String> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
+                        k -> new HashSet<>());
+                itinerarySet0.add(itinerary);
+            }
+
+            Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
+                    k -> new HashMap<>());
+            Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode,
+                    k -> new HashSet<>());
+            itinerarySet1.add(itinerary);
+        }
     }
 
     public void update(Object obj, String className, String itinerary) {

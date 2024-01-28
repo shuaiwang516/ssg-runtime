@@ -8,11 +8,8 @@ import java.util.List;
 
 public class InDegreeConstraint extends StructureConstraint {
 
-    private final String edgeLabel;
-
     public InDegreeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
-        super(unaryInvariants);
-        this.edgeLabel = edgeLabel;
+        super(unaryInvariants, edgeLabel);
     }
 
     @Override
@@ -31,20 +28,4 @@ public class InDegreeConstraint extends StructureConstraint {
         return result;
     }
 
-    @Override
-    public boolean merge(StructureConstraint otherConstraint) {
-
-        if (otherConstraint instanceof InDegreeConstraint) {
-            boolean result = false;
-            InDegreeConstraint other = (InDegreeConstraint) otherConstraint;
-            // the two likely invariants should be in the same order
-            assert unaryInvariants.size() == other.unaryInvariants.size();
-            for (int i = 0; i < unaryInvariants.size(); i++) {
-                if (unaryInvariants.get(i).merge(other.unaryInvariants.get(i)))
-                    result = true;
-            }
-            return result;
-        }
-        return false;
-    }
 }
