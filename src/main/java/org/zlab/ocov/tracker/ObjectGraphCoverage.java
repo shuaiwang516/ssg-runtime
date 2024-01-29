@@ -96,8 +96,8 @@ public class ObjectGraphCoverage implements Serializable {
         ObjectGraph objectGraph = objectGraphDumper.dump(obj);
         LogInfo logInfo = new LogInfo(dumpId);
 
-        // FIXME: update isSerialized
-        boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet, null);
+        boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet,
+                isSerialized);
 
         Integer objId = System.identityHashCode(obj);
         if (visitedObjects.contains(objId))

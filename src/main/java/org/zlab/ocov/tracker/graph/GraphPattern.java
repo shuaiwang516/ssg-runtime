@@ -110,7 +110,11 @@ public class GraphPattern implements Serializable {
                 // The current object vertex won't be iterated again, process it
                 if (equalitySet != null)
                     equalitySet.update(vertex, type, itinerary);
-
+                if (isSerialized != null) {
+                    if (vertex.value != null && vertex.value.getClass().isEnum())
+                        isSerialized.updateVisitedEnums(vertex.value.getClass().getName(),
+                                vertex.value.toString());
+                }
                 for (ObjectGraph.Edge edge : objectGraph.graph.outgoingEdgesOf(vertex)) {
                     // check whether the edge is in the graphPattern
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);

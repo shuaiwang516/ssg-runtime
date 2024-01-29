@@ -7,6 +7,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.TestObjectGraph;
@@ -306,6 +307,42 @@ public class TestObjectGraphCoverage {
         obj5.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj5);
         assert coverage1.merge(coverage);
+    }
+
+    @Test
+    public void testIsSerialized() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForIsSerialized.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForIsSerialized.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForIsSerialized.json");
+        Path modifiedFieldsPath = Paths.get("input/modifiedFieldsForIsSerialized.json");
+        Path modifiedEnumsPath = Paths.get("input/modifiedEnumsForIsSerialized.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
+        /**
+         * Check whether isSerialized will alert us if we meet a new class being
+         * serialized or a new enum constant being serialized
+         *
+         * Let's test the new class first,
+         *
+         * manually create a Map<String, Set<String>> as modifiedFields.json and test it
+         * Later, we create a Set<String> to test enums
+         */
+        TestObjectGraph.TargetClassForEnum obj1 = new TestObjectGraph.TargetClassForEnum();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage);
+
+        TestObjectGraph.TargetClassForEnum obj2 = new TestObjectGraph.TargetClassForEnum();
+        obj2.e = TestObjectGraph.TargetEnum.A;
+        coverage.update(obj2);
+        assert coverage1.merge(coverage);
+
+        TestObjectGraph.TargetClassForEnum obj3 = new TestObjectGraph.TargetClassForEnum();
+        obj3.e = TestObjectGraph.TargetEnum.A;
+        coverage.update(obj3);
+        assert !coverage1.merge(coverage);
     }
 
     @Test
