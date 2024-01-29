@@ -30,8 +30,8 @@ public class GraphPattern implements Serializable {
 
         boolean isObjectType;
 
-        String type;
-        String itinerary;
+        final String type;
+        final String itinerary;
         List<LabelConstraint> labelConstraints;
         List<StructureConstraint> structureConstraints;
 
@@ -45,11 +45,9 @@ public class GraphPattern implements Serializable {
             this.structureConstraints = structureConstraints;
         }
 
-        public void updateItinerary(String itineraryPrefix, GraphPattern graphPattern) {
-            itinerary = itineraryPrefix + "->" + itinerary;
-            for (GraphPattern.Edge edge : graphPattern.graph.outgoingEdgesOf(this))
-                graphPattern.graph.getEdgeTarget(edge).updateItinerary(itineraryPrefix,
-                        graphPattern);
+        public static Vertex cloneWithNewItineraryPrefix(Vertex v, String itineraryPrefix) {
+            return new Vertex(v.type, itineraryPrefix + "->" + v.itinerary, v.isObjectType,
+                    new LinkedList<>(v.labelConstraints), new LinkedList<>(v.structureConstraints));
         }
 
         public boolean update(ObjectGraph.Vertex vertex, ObjectGraph objectGraph,
@@ -86,18 +84,24 @@ public class GraphPattern implements Serializable {
                         GraphPattern subGraphPattern = SerializationUtils
                                 .clone(graphPatternMap.get(vertex.type));
 
-                        subGraphPattern.root.updateItinerary(itinerary, subGraphPattern);
-
                         for (Vertex v1 : subGraphPattern.graph.vertexSet())
-                            graphPattern.graph.addVertex(v1);
+                            graphPattern.graph
+                                    .addVertex(cloneWithNewItineraryPrefix(v1, itinerary));
                         for (Edge edge : subGraphPattern.graph.edgeSet())
-                            graphPattern.graph.addEdge(subGraphPattern.graph.getEdgeSource(edge),
-                                    subGraphPattern.graph.getEdgeTarget(edge), edge);
+                            graphPattern.graph.addEdge(
+                                    cloneWithNewItineraryPrefix(
+                                            subGraphPattern.graph.getEdgeSource(edge), itinerary),
+                                    cloneWithNewItineraryPrefix(
+                                            subGraphPattern.graph.getEdgeTarget(edge), itinerary),
+                                    edge);
 
                         // Connect two graphs
+                        Vertex subGraphPatternRoot = cloneWithNewItineraryPrefix(
+                                subGraphPattern.root, itinerary);
+
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(vertex.type);
-                        graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
-                        subGraphPattern.root.update(vertex, objectGraph, graphPattern,
+                        graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
+                        subGraphPatternRoot.update(vertex, objectGraph, graphPattern,
                                 graphPatternMap, logInfo, equalitySet, isSerialized);
                         subGraphPatternChange = true;
                     }
@@ -178,6 +182,20 @@ public class GraphPattern implements Serializable {
             return "Vertex{" + "type='" + type + "'" + ", itinerary='" + itinerary + "'"
                     + ", labelConstraints=" + labelConstraints + ", structureConstraints="
                     + structureConstraints + "}";
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Vertex)) {
+                return false;
+            }
+            Vertex other = (Vertex) obj;
+            return type.equals(other.type) && itinerary.equals(other.itinerary);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, itinerary);
         }
     }
 
