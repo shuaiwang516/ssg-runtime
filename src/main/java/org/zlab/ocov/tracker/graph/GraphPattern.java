@@ -233,6 +233,12 @@ public class GraphPattern implements Serializable {
                 equalitySet, isSerialized);
     }
 
+    public boolean update(Object object, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
+            EqualitySet equalitySet, IsSerialize isSerialized) {
+        // TODO: avoid dumping the object graph (save one time overhead!)
+        return false;
+    }
+
     public boolean merge(GraphPattern other) {
         return root.merge(other.root, other, this);
     }
