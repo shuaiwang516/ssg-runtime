@@ -13,6 +13,7 @@ import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -136,6 +137,96 @@ public class GraphPattern implements Serializable {
             return labelConstraintsChange || structureConstraintsChange || subGraphPatternChange;
         }
 
+        public boolean update(Object object, GraphPattern graphPattern,
+                Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
+                IsSerialize isSerialized) {
+            // Update label constraints
+            boolean labelConstraintsChange = false;
+            for (LabelConstraint labelConstraint : labelConstraints) {
+                if (labelConstraint.update(object, logInfo))
+                    labelConstraintsChange = true;
+            }
+            // Update structure constraints
+            boolean structureConstraintsChange = false;
+            for (StructureConstraint structureConstraint : structureConstraints) {
+                if (structureConstraint.update(object, logInfo))
+                    structureConstraintsChange = true;
+            }
+            boolean subGraphPatternChange = false;
+
+            String objectType = object.getClass().getName();
+            if (isObjectType) {
+                boolean found = false;
+                Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
+                for (GraphPattern.Edge edge : outgoingEdges) {
+                    GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(edge);
+                    if (target.type.equals(objectType)) {
+                        found = true;
+                        subGraphPatternChange = target.update(object, graphPattern, graphPatternMap,
+                                logInfo, equalitySet, isSerialized);
+                    }
+                }
+                if (!found) {
+                    // If not found, create a new one
+                    if (graphPatternMap.containsKey(objectType)) {
+                        // Include the subgraph's edges and vertices
+                        GraphPattern subGraphPattern = SerializationUtils
+                                .clone(graphPatternMap.get(objectType));
+
+                        for (Vertex v1 : subGraphPattern.graph.vertexSet())
+                            graphPattern.graph
+                                    .addVertex(cloneWithNewItineraryPrefix(v1, itinerary));
+                        for (Edge edge : subGraphPattern.graph.edgeSet())
+                            graphPattern.graph.addEdge(
+                                    cloneWithNewItineraryPrefix(
+                                            subGraphPattern.graph.getEdgeSource(edge), itinerary),
+                                    cloneWithNewItineraryPrefix(
+                                            subGraphPattern.graph.getEdgeTarget(edge), itinerary),
+                                    edge);
+
+                        // Connect two graphs
+                        Vertex subGraphPatternRoot = cloneWithNewItineraryPrefix(
+                                subGraphPattern.root, itinerary);
+
+                        GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
+                        graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
+                        subGraphPatternRoot.update(object, graphPattern, graphPatternMap, logInfo,
+                                equalitySet, isSerialized);
+                        subGraphPatternChange = true;
+                    }
+                }
+            } else {
+                // The current object vertex won't be iterated again, process it
+                if (equalitySet != null)
+                    equalitySet.update(object, objectType, itinerary);
+                if (isSerialized != null) {
+                    if (object.getClass().isEnum())
+                        isSerialized.updateVisitedEnums(objectType, object.toString());
+                }
+                // TODO fix this
+
+                // for (ObjectGraph.Edge edge : objectGraph.graph.outgoingEdgesOf(vertex)) {
+                // // check whether the edge is in the graphPattern
+                // Set<GraphPattern.Edge> outgoingEdges =
+                // graphPattern.graph.outgoingEdgesOf(this);
+                // for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                // if (patternEdge.name.equals(edge.name)) {
+                // GraphPattern.Vertex target = graphPattern.graph
+                // .getEdgeTarget(patternEdge);
+                // if (target.update(objectGraph.graph.getEdgeTarget(edge), objectGraph,
+                // graphPattern, graphPatternMap, logInfo, equalitySet,
+                // isSerialized)) {
+                // subGraphPatternChange = true;
+                // }
+                // // there should only be one edge with the same name
+                // break;
+                // }
+                // }
+                // }
+            }
+            return labelConstraintsChange || structureConstraintsChange || subGraphPatternChange;
+        }
+
         public boolean merge(Vertex otherVertex, GraphPattern otherGraphPattern,
                 GraphPattern graphPattern) {
             boolean changed = false;
@@ -233,7 +324,7 @@ public class GraphPattern implements Serializable {
                 equalitySet, isSerialized);
     }
 
-    public boolean update(Object object, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
+    public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
             EqualitySet equalitySet, IsSerialize isSerialized) {
         // TODO: avoid dumping the object graph (save one time overhead!)
         return false;

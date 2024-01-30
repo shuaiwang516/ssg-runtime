@@ -24,6 +24,16 @@ public class ValueConstraint extends LabelConstraint {
     }
 
     @Override
+    public boolean update(Object object, LogInfo logInfo) {
+        boolean changed = false;
+        for (UnaryInvariant invariant : unaryInvariants) {
+            if (invariant.add(object, logInfo))
+                changed = true;
+        }
+        return changed;
+    }
+
+    @Override
     public boolean merge(LabelConstraint otherConstraint, String itinerary) {
         boolean changed = false;
         if (otherConstraint instanceof ValueConstraint) {

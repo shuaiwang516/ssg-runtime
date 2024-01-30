@@ -18,6 +18,8 @@ public abstract class LabelConstraint implements Serializable {
 
     public abstract boolean update(ObjectGraph.Vertex vertex, LogInfo logInfo);
 
+    public abstract boolean update(Object object, LogInfo logInfo);
+
     public abstract boolean merge(LabelConstraint otherConstraint, String itinerary);
 
 }

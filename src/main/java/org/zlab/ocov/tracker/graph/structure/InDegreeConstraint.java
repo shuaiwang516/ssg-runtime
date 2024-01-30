@@ -28,4 +28,9 @@ public class InDegreeConstraint extends StructureConstraint {
         return result;
     }
 
+    @Override
+    public boolean update(Object object, LogInfo logInfo) {
+        return false;
+    }
+
 }

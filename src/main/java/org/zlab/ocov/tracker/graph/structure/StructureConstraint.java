@@ -20,6 +20,8 @@ public abstract class StructureConstraint implements Serializable {
 
     public abstract boolean update(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo);
 
+    public abstract boolean update(Object object, LogInfo logInfo);
+
     public boolean merge(StructureConstraint otherConstraint, String itinerary) {
         if (otherConstraint instanceof OutDegreeConstraint) {
             boolean changed = false;
