@@ -1,6 +1,7 @@
 package org.zlab.ocov.tracker.graph;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashSet;
@@ -116,7 +117,9 @@ public class ObjectGraphDumper implements Serializable {
                     processObject(objectGraph, item, curClassName, curVertex);
                 }
             } else if (obj.getClass().isArray()) {
-                for (Object item : (Object[]) obj) {
+                int length = Array.getLength(obj);
+                for (int i = 0; i < length; i++) {
+                    Object item = Array.get(obj, i);
                     if (item == null) {
                         continue;
                     }
@@ -126,7 +129,9 @@ public class ObjectGraphDumper implements Serializable {
                     objectGraph.graph.addVertex(curVertex);
                     objectGraph.graph.addEdge(vertex, curVertex,
                             new ObjectGraph.Edge("array_item"));
-                    processObject(objectGraph, item, curClassName, curVertex);
+                    if (!item.getClass().isPrimitive()) {
+                        processObject(objectGraph, item, curClassName, curVertex);
+                    }
                 }
             }
         } catch (IllegalAccessException e) {

@@ -483,4 +483,5 @@ public class GraphPattern implements Serializable {
         }
         System.out.println(obj);
     }
+
 }
