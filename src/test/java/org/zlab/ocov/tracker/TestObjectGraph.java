@@ -133,6 +133,17 @@ public class TestObjectGraph {
         }
     }
 
+    public static class TargetClassWithSizeBase {
+        TargetClassWithSizeA a = new TargetClassWithSizeA();
+    }
+
+    public static class TargetClassWithSizeA {
+        int size = 100;
+        int size() {
+            return size;
+        }
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

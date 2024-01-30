@@ -346,6 +346,24 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
+    public void testSizeCompute() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForSizeCompute.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForSizeCompute.json");
+
+        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(bassClassPath,
+                topObjectsPath);
+        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
+                topObjectsPath);
+
+        TestObjectGraph.TargetClassWithSizeBase targetClassWithSizeBase = new TestObjectGraph.TargetClassWithSizeBase();
+
+        assert objectGraphCoverage.update(targetClassWithSizeBase);
+        assert !objectGraphCoverage.update(targetClassWithSizeBase);
+        assert objectGraphCoverage1.merge(objectGraphCoverage);
+        assert !objectGraphCoverage1.merge(objectGraphCoverage);
+    }
+
+    @Test
     public void test() {
         DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph = new DirectedMultigraph<>(
                 GraphPattern.Edge.class);

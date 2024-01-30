@@ -205,6 +205,35 @@ public class GenerateTestInput {
         Utils.saveSetToFile(modifiedEnums, "input/modifiedEnumsForIsSerialized.json");
     }
 
+    @Test
+    public void createExampleInputForSizeCompute() {
+        String baseFilePath = "input/baseClassInfoForSizeCompute.json";
+        String topFilePath = "input/topObjectsForSizeCompute.json";
+        String comparableFilePath = "input/comparableClassesForSizeCompute.json";
+
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase").put("a",
+                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA");
+
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA").put("size",
+                "int");
+
+        // baseClassInfo
+        Utils.saveMapToFile(baseClassInfo, baseFilePath);
+        // top objects
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase");
+        Utils.saveSetToFile(topObjects, topFilePath);
+        // comparable classes
+        Set<String> comparableClasses = new HashSet<>();
+        Utils.saveSetToFile(comparableClasses, comparableFilePath);
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

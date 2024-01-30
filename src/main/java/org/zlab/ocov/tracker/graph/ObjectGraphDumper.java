@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker.graph;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -10,6 +11,8 @@ import java.util.Set;
 
 public class ObjectGraphDumper implements Serializable {
     private static final long serialVersionUID = 20231215L;
+
+    public final boolean computeSize = true;
 
     private final Map<String, Map<String, String>> classInfo;
     private final Set<String> comparableClasses;
@@ -26,15 +29,21 @@ public class ObjectGraphDumper implements Serializable {
     }
 
     /**
-     * Given an object, dump the object graph into ObjectGraph
+     * Given an object, traverse its reference graph and dump into ObjectGraph
      */
     public ObjectGraph dump(Object obj) {
         if (obj == null || !classInfo.containsKey(obj.getClass().getName()))
             return null;
-        ObjectGraph.Vertex vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),
-                System.identityHashCode(obj));
-        ObjectGraph objectGraph = new ObjectGraph(vertex);
 
+        ObjectGraph.Vertex vertex;
+        if (computeSize) {
+            vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),
+                    System.identityHashCode(obj), invokeSizeMethodIfExists(obj));
+        } else {
+            vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),
+                    System.identityHashCode(obj));
+        }
+        ObjectGraph objectGraph = new ObjectGraph(vertex);
         String className = obj.getClass().getName();
         processObject(objectGraph, obj, className, vertex);
         return objectGraph;
@@ -49,7 +58,7 @@ public class ObjectGraphDumper implements Serializable {
         try {
             // process all fields
             Class<?> currentClass = obj.getClass();
-            while (currentClass != Object.class) { // Traverse up the class hierarchy
+            while (currentClass != Object.class) {
                 Field[] fields = currentClass.getDeclaredFields();
                 for (Field field : fields) {
                     if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())
@@ -65,8 +74,14 @@ public class ObjectGraphDumper implements Serializable {
                                 curClassName = "null";
                             } else {
                                 curClassName = curObj.getClass().getName();
-                                curVertex = new ObjectGraph.Vertex(curClassName, getValue(curObj),
-                                        System.identityHashCode(curObj));
+                                if (computeSize) {
+                                    curVertex = new ObjectGraph.Vertex(curClassName,
+                                            getValue(curObj), System.identityHashCode(curObj),
+                                            invokeSizeMethodIfExists(curObj));
+                                } else {
+                                    curVertex = new ObjectGraph.Vertex(curClassName,
+                                            getValue(curObj), System.identityHashCode(curObj));
+                                }
                             }
                             objectGraph.graph.addVertex(curVertex);
                             objectGraph.graph.addEdge(vertex, curVertex,
@@ -84,8 +99,14 @@ public class ObjectGraphDumper implements Serializable {
                         continue;
                     }
                     String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
-                            getValue(item), System.identityHashCode(item));
+                    ObjectGraph.Vertex curVertex;
+                    if (computeSize) {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
+                    } else {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item));
+                    }
                     objectGraph.graph.addVertex(curVertex);
                     objectGraph.graph.addEdge(vertex, curVertex,
                             new ObjectGraph.Edge("collection_item"));
@@ -97,8 +118,14 @@ public class ObjectGraphDumper implements Serializable {
                         continue;
                     }
                     String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
-                            getValue(item), System.identityHashCode(item));
+                    ObjectGraph.Vertex curVertex;
+                    if (computeSize) {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
+                    } else {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item));
+                    }
                     objectGraph.graph.addVertex(curVertex);
                     objectGraph.graph.addEdge(vertex, curVertex,
                             new ObjectGraph.Edge("map_keyItem"));
@@ -109,8 +136,14 @@ public class ObjectGraphDumper implements Serializable {
                         continue;
                     }
                     String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
-                            getValue(item), System.identityHashCode(item));
+                    ObjectGraph.Vertex curVertex;
+                    if (computeSize) {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
+                    } else {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item));
+                    }
                     objectGraph.graph.addVertex(curVertex);
                     objectGraph.graph.addEdge(vertex, curVertex,
                             new ObjectGraph.Edge("map_valueItem"));
@@ -124,8 +157,14 @@ public class ObjectGraphDumper implements Serializable {
                         continue;
                     }
                     String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex = new ObjectGraph.Vertex(curClassName,
-                            getValue(item), System.identityHashCode(item));
+                    ObjectGraph.Vertex curVertex;
+                    if (computeSize) {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
+                    } else {
+                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
+                                System.identityHashCode(item));
+                    }
                     objectGraph.graph.addVertex(curVertex);
                     objectGraph.graph.addEdge(vertex, curVertex,
                             new ObjectGraph.Edge("array_item"));
@@ -169,6 +208,26 @@ public class ObjectGraphDumper implements Serializable {
                 || className.equals("java.lang.Boolean") || className.equals("java.lang.Character")
                 || className.equals("java.lang.Byte") || className.equals("java.lang.Short")
                 || className.equals("java.lang.String");
+    }
+
+    public static Integer invokeSizeMethodIfExists(Object obj) {
+        try {
+            Class<?> clazz = obj.getClass();
+            while (clazz != null) {
+                for (Method method : clazz.getDeclaredMethods()) {
+                    if ((method.getName().equals("size") || method.getName().equals("Size"))
+                            && method.getParameterTypes().length == 0
+                            && method.getReturnType() == int.class) {
+                        method.setAccessible(true);
+                        return (Integer) method.invoke(obj);
+                    }
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (Exception e) {
+            // e.printStackTrace();
+        }
+        return null;
     }
 
 }

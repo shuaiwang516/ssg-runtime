@@ -53,10 +53,24 @@ public class ObjectGraph implements Serializable {
         public Object value;
         public int identifyHash;
 
+        public Integer size = null;
+        public Integer fakeHashCodeForComparator = null;
+
         public Vertex(String type, Object value, int identifyHash) {
+            this(type, value, identifyHash, null);
+        }
+
+        public Vertex(String type, Object value, int identifyHash, Integer size) {
+            this(type, value, identifyHash, size, null);
+        }
+
+        public Vertex(String type, Object value, int identifyHash, Integer size,
+                Integer fakeHashCodeForComparator) {
             this.type = type;
             this.value = value;
             this.identifyHash = identifyHash;
+            this.size = size;
+            this.fakeHashCodeForComparator = fakeHashCodeForComparator;
         }
 
         @Override
