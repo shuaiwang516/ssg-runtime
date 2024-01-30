@@ -25,7 +25,7 @@ public class Runtime {
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static BufferedWriter writer;
-    public static ObjectCoverage objectCoverage;
+    public static ObjectGraphCoverage objectCoverage;
     private static final Object objectCoverageLock = new Object();
 
     // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
@@ -33,7 +33,7 @@ public class Runtime {
     public static void init() {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
-            objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath,
+            objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
@@ -45,7 +45,7 @@ public class Runtime {
     public static void init(Path baseClassPath, Path topObjectsPath) {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
-            objectCoverage = new ObjectCoverage(baseClassPath, topObjectsPath);
+            objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (IOException e) {
@@ -129,7 +129,7 @@ public class Runtime {
                             while ((inputLine = in.readLine()) != null) {
                                 log("Received command: " + inputLine);
                                 // process the command and generate a response
-                                ObjectCoverage response;
+                                ObjectGraphCoverage response;
 
                                 synchronized (objectCoverageLock) {
                                     response = processCommand(inputLine);
@@ -157,7 +157,7 @@ public class Runtime {
         serverThread.start();
     }
 
-    private static ObjectCoverage processCommand(String command) {
+    private static ObjectGraphCoverage processCommand(String command) {
         // only return the violations
         // visited objects are cleared
         return objectCoverage;

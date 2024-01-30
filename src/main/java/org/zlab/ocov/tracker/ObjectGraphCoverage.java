@@ -6,14 +6,10 @@ import org.zlab.ocov.tracker.graph.GraphPattern;
 import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.graph.ObjectGraphDumper;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
-import org.zlab.ocov.tracker.type.TypeInfo;
 
 import java.io.Serializable;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
@@ -31,6 +27,16 @@ public class ObjectGraphCoverage implements Serializable {
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
+
+    long totalTime1 = 0;
+    long totalTime2 = 0;
+    long totalTime3 = 0;
+
+    int dumpedObjectCount = 0;
+    int dupObjectCount = 0;
+
+    Map<String, Integer> classDupCount = new HashMap<>();
+    Map<String, Integer> classDumpCount = new HashMap<>();
 
     public ObjectGraphCoverage() {
         // for json
@@ -89,30 +95,98 @@ public class ObjectGraphCoverage implements Serializable {
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
+
+        Integer objId = System.identityHashCode(obj);
+        if (visitedObjects.contains(objId)) {
+            // if (classDupCount.containsKey(className)) {
+            // classDupCount.put(className, classDupCount.get(className) + 1);
+            // } else {
+            // classDupCount.put(className, 1);
+            // }
+            // dupObjectCount++;
+            return false;
+        }
+        visitedObjects.add(objId);
+
+        // update classDumpCount
+        // if (classDumpCount.containsKey(className)) {
+        // classDumpCount.put(className, classDumpCount.get(className) + 1);
+        // } else {
+        // classDumpCount.put(className, 1);
+        // }
+        // dumpedObjectCount++;
+
         GraphPattern classInfo = objCoverage.get(className);
         if (classInfo == null)
             return false;
 
+        // long time1 = System.nanoTime();
+
         ObjectGraph objectGraph = objectGraphDumper.dump(obj);
         LogInfo logInfo = new LogInfo(dumpId);
+
+        // long time2 = System.nanoTime();
 
         boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet,
                 isSerialized);
 
-        Integer objId = System.identityHashCode(obj);
-        if (visitedObjects.contains(objId))
-            return false;
-        visitedObjects.add(objId);
+        // long time3 = System.nanoTime();
 
         if (equalitySet != null)
             equalitySet.dumpSameObjectGraph(dumpId);
+
+        // long time4 = System.nanoTime();
+
+        // totalTime1 += time2 - time1;
+        // totalTime2 += time3 - time2;
+        // totalTime3 += time4 - time3;
+        //
+        // Runtime.log(String.format("Time1: %d ms, Time2: %d ms, Time3: %d ms" +
+        // "", totalTime1/1_000_000, totalTime2/1_000_000, totalTime3/1_000_000));
+
+        // debugLog();
         return ret;
     }
 
     public void clear() {
         // try to separate format coverage across tests
         visitedObjects.clear();
+        // dumpedObjectCount = 0;
+        // dupObjectCount = 0;
         equalitySet.clear();
+    }
+
+    public void debugLog() {
+        Runtime.log(String.format("Dumped object count: %d, Dup object count: %d",
+                dumpedObjectCount, dupObjectCount));
+        // print classDupCount, sorted with the value and then print from max to min
+        // Convert the map to a list of entries
+        Runtime.log("Class Dup count:");
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(classDupCount.entrySet());
+        list.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+        for (Map.Entry<String, Integer> entry : list) {
+            Runtime.log(entry.getKey() + ": " + entry.getValue());
+        }
+        Runtime.log("");
+
+        Runtime.log("Class Dump count:");
+        list = new ArrayList<>(classDumpCount.entrySet());
+        list.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+        for (Map.Entry<String, Integer> entry : list) {
+            Runtime.log(entry.getKey() + ": " + entry.getValue());
+        }
+        Runtime.log("");
+
+        Map<Integer, String> timesMap = new HashMap<>();
+        for (String cName : classDupCount.keySet()) {
+            timesMap.put(classDupCount.get(cName) / classDumpCount.get(cName), cName);
+        }
+
+        Runtime.log("Ratio:");
+        timesMap.entrySet().stream().sorted(Map.Entry.<Integer, String>comparingByKey().reversed())
+                .forEach(entry -> Runtime.log(entry.getKey() + ": " + entry.getValue()));
+
+        Runtime.log("");
     }
 
     public boolean merge(ObjectGraphCoverage otherObjCoverage) {

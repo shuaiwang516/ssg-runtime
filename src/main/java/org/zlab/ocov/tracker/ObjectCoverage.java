@@ -2,7 +2,6 @@ package org.zlab.ocov.tracker;
 
 import org.zlab.ocov.Utils;
 import org.apache.commons.lang3.SerializationUtils;
-import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.graph.ObjectGraphDumper;
 import org.zlab.ocov.tracker.type.TypeInfo;
 
@@ -29,6 +28,9 @@ public class ObjectCoverage implements Serializable {
 
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
+
+    long totalTime1 = 0;
+    long totalTime2 = 0;
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
@@ -79,19 +81,6 @@ public class ObjectCoverage implements Serializable {
         return update(obj, -1);
     }
 
-    public boolean record(Object obj, int dumpId) {
-        // get object class name
-        if (obj == null)
-            return false;
-
-        // Graph Implementation
-        ObjectGraph objectGraph = objectGraphDumper.dump(obj);
-
-        // Invariant Inferring
-        // TODO: Update the existing graph patterns.
-        return false;
-    }
-
     public boolean update(Object obj, int dumpId) {
         // get object class name
         if (obj == null)
@@ -106,9 +95,22 @@ public class ObjectCoverage implements Serializable {
             return false;
         visitedObjects.add(objId);
 
+        // long time1 = System.nanoTime();
+
         boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet, isSerialized);
+
+        // long time2 = System.nanoTime();
+
         if (equalitySet != null)
             equalitySet.dumpSameObjectGraph(dumpId);
+
+        // long time3 = System.nanoTime();
+
+        // totalTime1 += time2 - time1;
+        // totalTime2 += time3 - time2;
+
+        // Runtime.log(String.format("Time1: %d ms, Time2: %d ms" +
+        // "", totalTime1/1_000_000, totalTime2/1_000_000));
         return ret;
     }
 
