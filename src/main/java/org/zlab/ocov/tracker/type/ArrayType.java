@@ -1,14 +1,21 @@
 package org.zlab.ocov.tracker.type;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
+import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
 
+import java.lang.reflect.Array;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ArrayType extends SequenceType {
     private static final long serialVersionUID = 20231215L;
+
+    public Map<String, ClassInfo> classNames = new HashMap<>();
+    public Map<String, Integer> classNamesDumpId = new HashMap<>();
 
     public ArrayType(String itinerary) {
         super("array", itinerary);
@@ -17,6 +24,10 @@ public class ArrayType extends SequenceType {
     @Override
     public void updateItinerary(String itineraryPrefix) {
         itinerary = itineraryPrefix + itinerary;
+        // Update itinerary for all classInfo
+        for (String className : classNames.keySet()) {
+            classNames.get(className).updateItinerary(itineraryPrefix);
+        }
     }
 
     @Override
@@ -24,11 +35,40 @@ public class ArrayType extends SequenceType {
             EqualitySet equalitySet, IsSerialize isSerialized) {
         if (value == null)
             return nullOnce.add(value, new LogInfo(dumpId));
-        int size = getArrayLength(value);
-        boolean changed = false;
-        if (updateSize(size, dumpId))
-            changed = true;
-        return changed;
+
+        if (value.getClass().isArray()) {
+            boolean changed = false;
+            int length = Array.getLength(value);
+            for (int i = 0; i < length; i++) {
+                Object object = Array.get(value, i);
+                if (object == null) {
+                    continue;
+                }
+                String className = object.getClass().getName();
+                if (classNames.containsKey(className)) {
+                    if (classNames.get(className).update(object, baseClassInfo, dumpId, equalitySet,
+                            isSerialized))
+                        changed = true;
+                } else {
+                    // Check whether this is a field that could be serialized
+                    if (baseClassInfo.containsKey(className)) {
+                        // Runtime.log("New class " + className);
+                        ClassInfo newClassInfo = SerializationUtils
+                                .clone(baseClassInfo.get(className));
+                        newClassInfo.updateItinerary(itinerary + ".collection_item");
+                        newClassInfo.update(object, baseClassInfo, dumpId, equalitySet,
+                                isSerialized);
+                        classNames.put(className, newClassInfo);
+                        classNamesDumpId.put(className, dumpId);
+                        changed = true;
+                    }
+                }
+            }
+            if (updateSize(length, dumpId))
+                changed = true;
+            return changed;
+        }
+        throw new RuntimeException("Not an array but claimed to be");
     }
 
     @Override
@@ -42,15 +82,6 @@ public class ArrayType extends SequenceType {
             return changed;
         } else {
             throw new RuntimeException("Type not match");
-        }
-    }
-
-    public static int getArrayLength(Object array) {
-        // Use refection to get the length of the array
-        if (array != null && array.getClass().isArray()) {
-            return java.lang.reflect.Array.getLength(array);
-        } else {
-            throw new RuntimeException("Not an array but claimed to be");
         }
     }
 
