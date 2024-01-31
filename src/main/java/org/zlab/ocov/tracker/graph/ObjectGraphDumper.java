@@ -67,26 +67,7 @@ public class ObjectGraphDumper implements Serializable {
                         Object curObj = field.get(obj);
                         String fieldName = field.getName();
                         if (isSerializedField(className, fieldName)) {
-                            ObjectGraph.Vertex curVertex;
-                            String curClassName;
-                            if (curObj == null) {
-                                curVertex = new ObjectGraph.Vertex("null", null, 0);
-                                curClassName = "null";
-                            } else {
-                                curClassName = curObj.getClass().getName();
-                                if (computeSize) {
-                                    curVertex = new ObjectGraph.Vertex(curClassName,
-                                            getValue(curObj), System.identityHashCode(curObj),
-                                            invokeSizeMethodIfExists(curObj));
-                                } else {
-                                    curVertex = new ObjectGraph.Vertex(curClassName,
-                                            getValue(curObj), System.identityHashCode(curObj));
-                                }
-                            }
-                            objectGraph.graph.addVertex(curVertex);
-                            objectGraph.graph.addEdge(vertex, curVertex,
-                                    new ObjectGraph.Edge(fieldName));
-                            processObject(objectGraph, curObj, curClassName, curVertex);
+                            addVertex(curObj, objectGraph, vertex, fieldName);
                         }
                     }
                 }
@@ -94,88 +75,47 @@ public class ObjectGraphDumper implements Serializable {
             }
             // Handle array/collection/map
             if (obj instanceof Collection) {
-                for (Object item : (java.util.Collection) obj) {
-                    if (item == null) {
-                        continue;
-                    }
-                    String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex;
-                    if (computeSize) {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
-                    } else {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item));
-                    }
-                    objectGraph.graph.addVertex(curVertex);
-                    objectGraph.graph.addEdge(vertex, curVertex,
-                            new ObjectGraph.Edge("collection_item"));
-                    processObject(objectGraph, item, curClassName, curVertex);
+                for (Object curObj : (java.util.Collection) obj) {
+                    addVertex(curObj, objectGraph, vertex, "collection_item");
                 }
             } else if (obj instanceof Map) {
-                for (Object item : ((java.util.Map) obj).keySet()) {
-                    if (item == null) {
-                        continue;
-                    }
-                    String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex;
-                    if (computeSize) {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
-                    } else {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item));
-                    }
-                    objectGraph.graph.addVertex(curVertex);
-                    objectGraph.graph.addEdge(vertex, curVertex,
-                            new ObjectGraph.Edge("map_keyItem"));
-                    processObject(objectGraph, item, curClassName, curVertex);
+                for (Object curObj : ((java.util.Map) obj).keySet()) {
+                    addVertex(curObj, objectGraph, vertex, "map_keyItem");
                 }
-                for (Object item : ((java.util.Map) obj).values()) {
-                    if (item == null) {
-                        continue;
-                    }
-                    String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex;
-                    if (computeSize) {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
-                    } else {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item));
-                    }
-                    objectGraph.graph.addVertex(curVertex);
-                    objectGraph.graph.addEdge(vertex, curVertex,
-                            new ObjectGraph.Edge("map_valueItem"));
-                    processObject(objectGraph, item, curClassName, curVertex);
+                for (Object curObj : ((java.util.Map) obj).values()) {
+                    addVertex(curObj, objectGraph, vertex, "map_valueItem");
                 }
             } else if (obj.getClass().isArray()) {
                 int length = Array.getLength(obj);
                 for (int i = 0; i < length; i++) {
                     Object item = Array.get(obj, i);
-                    if (item == null) {
-                        continue;
-                    }
-                    String curClassName = item.getClass().getName();
-                    ObjectGraph.Vertex curVertex;
-                    if (computeSize) {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item), invokeSizeMethodIfExists(item));
-                    } else {
-                        curVertex = new ObjectGraph.Vertex(curClassName, getValue(item),
-                                System.identityHashCode(item));
-                    }
-                    objectGraph.graph.addVertex(curVertex);
-                    objectGraph.graph.addEdge(vertex, curVertex,
-                            new ObjectGraph.Edge("array_item"));
-                    if (!item.getClass().isPrimitive()) {
-                        processObject(objectGraph, item, curClassName, curVertex);
-                    }
+                    addVertex(item, objectGraph, vertex, "array_item");
                 }
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    public void addVertex(Object object, ObjectGraph objectGraph, ObjectGraph.Vertex vertex,
+            String edgeName) {
+        ObjectGraph.Vertex curVertex;
+        String curClassName = null;
+        if (object == null) {
+            curVertex = new ObjectGraph.Vertex("null", null, 0);
+        } else {
+            curClassName = object.getClass().getName();
+            if (computeSize) {
+                curVertex = new ObjectGraph.Vertex(curClassName, getValue(object),
+                        System.identityHashCode(object), invokeSizeMethodIfExists(object));
+            } else {
+                curVertex = new ObjectGraph.Vertex(curClassName, getValue(object),
+                        System.identityHashCode(object));
+            }
+        }
+        objectGraph.graph.addVertex(curVertex);
+        objectGraph.graph.addEdge(vertex, curVertex, new ObjectGraph.Edge(edgeName));
+        processObject(objectGraph, object, curClassName, curVertex);
     }
 
     /**
@@ -195,7 +135,7 @@ public class ObjectGraphDumper implements Serializable {
             }
             // we don't care other values
         }
-        return null;
+        return System.identityHashCode(obj);
     }
 
     public boolean isSerializedField(String className, String fieldName) {

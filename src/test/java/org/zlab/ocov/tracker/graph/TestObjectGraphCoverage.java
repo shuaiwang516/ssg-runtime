@@ -358,13 +358,18 @@ public class TestObjectGraphCoverage {
         TestObjectGraph.TargetClassWithSizeBase targetClassWithSizeBase = new TestObjectGraph.TargetClassWithSizeBase();
 
         assert objectGraphCoverage.update(targetClassWithSizeBase);
-        assert !objectGraphCoverage.update(targetClassWithSizeBase);
+
         assert objectGraphCoverage1.merge(objectGraphCoverage);
-        assert !objectGraphCoverage1.merge(objectGraphCoverage);
+
+        TestObjectGraph.TargetClassWithSizeBase targetClassWithSizeBase1 = new TestObjectGraph.TargetClassWithSizeBase();
+        targetClassWithSizeBase1.a.size = 0;
+
+        assert objectGraphCoverage.update(targetClassWithSizeBase1);
+        assert objectGraphCoverage1.merge(objectGraphCoverage);
     }
 
     @Test
-    public void test() {
+    public void testGraphPatternVertexEqual() {
         DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph = new DirectedMultigraph<>(
                 GraphPattern.Edge.class);
         GraphPattern.Vertex v = GraphPattern.createBaseVertex("a");
@@ -380,6 +385,12 @@ public class TestObjectGraphCoverage {
 
         set.add(v1);
         assert set.size() == 1;
+    }
+
+    @Test
+    public void test() {
+        Integer a = null;
+        System.out.println(System.identityHashCode(a));
     }
 
 }

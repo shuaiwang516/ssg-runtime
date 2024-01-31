@@ -8,13 +8,12 @@ import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
 import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
 import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.nio.file.Path;
 import java.util.*;
 
 public class GraphPattern implements Serializable {
@@ -327,7 +326,7 @@ public class GraphPattern implements Serializable {
     public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
             EqualitySet equalitySet, IsSerialize isSerialized) {
         // TODO: avoid dumping the object graph (save one time overhead!)
-        return false;
+        throw new RuntimeException("Not implemented");
     }
 
     public boolean merge(GraphPattern other) {
@@ -371,30 +370,31 @@ public class GraphPattern implements Serializable {
             targetValues.add(1);
             labelInvs.add(new RestStringSizeOnce(targetValues));
         } else if (isCollection(typeName)) {
-            List<UnaryInvariant> invs = getCollectionSizeInvariants();
-            StructureConstraint structureConstraint = new OutDegreeConstraint(invs,
-                    "collection_item");
-            structureConstraints.add(structureConstraint);
+            structureConstraints
+                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "collection_item"));
+            structureConstraints.add(new AccumulatedSizeConstraint(getCollectionSizeInvariants(),
+                    "collection_item"));
         } else if (isMap(typeName)) {
             // keys
-            List<UnaryInvariant> keyInvs = getCollectionSizeInvariants();
-            StructureConstraint structureConstraint = new OutDegreeConstraint(keyInvs,
-                    "map_keyItem");
-            structureConstraints.add(structureConstraint);
+            structureConstraints
+                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "map_keyItem"));
+            structureConstraints.add(
+                    new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "map_keyItem"));
             // values
-            List<UnaryInvariant> valInvs = getCollectionSizeInvariants();
-            structureConstraint = new OutDegreeConstraint(valInvs, "map_valueItem");
-            structureConstraints.add(structureConstraint);
+            structureConstraints
+                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "map_valueItem"));
+            structureConstraints.add(
+                    new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "map_valueItem"));
         } else if (isArray(typeName)) {
             // array_item
-            List<UnaryInvariant> invs = getCollectionSizeInvariants();
-            StructureConstraint structureConstraint = new OutDegreeConstraint(invs, "array_item");
-            structureConstraints.add(structureConstraint);
+            structureConstraints
+                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "array_item"));
+            structureConstraints.add(
+                    new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "array_item"));
         } else {
             // object type
             labelInvs.add(new EnumConstant());
             isObjectType = true;
-
         }
         valueConstraints.add(new ValueConstraint(labelInvs));
         return new Vertex(typeName, itinerary, isObjectType, valueConstraints,

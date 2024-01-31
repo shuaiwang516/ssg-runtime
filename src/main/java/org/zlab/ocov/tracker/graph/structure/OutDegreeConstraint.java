@@ -1,6 +1,5 @@
 package org.zlab.ocov.tracker.graph.structure;
 
-import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
 import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;

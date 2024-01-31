@@ -134,11 +134,11 @@ public class TestObjectGraph {
     }
 
     public static class TargetClassWithSizeBase {
-        TargetClassWithSizeA a = new TargetClassWithSizeA();
+        public TargetClassWithSizeA a = new TargetClassWithSizeA();
     }
 
     public static class TargetClassWithSizeA {
-        int size = 100;
+        public int size = 100;
         int size() {
             return size;
         }
