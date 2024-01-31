@@ -19,7 +19,7 @@ import java.util.*;
 public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    // Control the boundary check
+    // Likely Invariant Options
     public static boolean enableSequenceBoundaryCheck = false;
 
     protected Vertex root;

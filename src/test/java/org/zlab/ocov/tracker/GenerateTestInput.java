@@ -234,6 +234,39 @@ public class GenerateTestInput {
         Utils.saveSetToFile(comparableClasses, comparableFilePath);
     }
 
+    @Test
+    public void createExampleInputForAccumulatedSize() {
+        String baseFilePath = "input/baseClassInfoForAccumulatedSize.json";
+        String topFilePath = "input/topObjectsForAccumulatedSize.json";
+        String comparableFilePath = "input/comparableClassesForAccumulatedSize.json";
+
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase")
+                .put("a", "org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA");
+
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA")
+                .put("ids", "java.util.List");
+
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeB",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeB")
+                .put("value", "java.lang.Integer");
+
+        // baseClassInfo
+        Utils.saveMapToFile(baseClassInfo, baseFilePath);
+        // top objects
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase");
+        Utils.saveSetToFile(topObjects, topFilePath);
+        // comparable classes
+        Set<String> comparableClasses = new HashSet<>();
+        Utils.saveSetToFile(comparableClasses, comparableFilePath);
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

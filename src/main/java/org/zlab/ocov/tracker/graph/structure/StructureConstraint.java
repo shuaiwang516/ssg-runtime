@@ -23,12 +23,11 @@ public abstract class StructureConstraint implements Serializable {
     public abstract boolean update(Object object, LogInfo logInfo);
 
     public boolean merge(StructureConstraint otherConstraint, String itinerary) {
-        if (otherConstraint instanceof OutDegreeConstraint) {
+        if (otherConstraint != null) {
             boolean changed = false;
-            OutDegreeConstraint other = (OutDegreeConstraint) otherConstraint;
-            assert unaryInvariants.size() == other.unaryInvariants.size();
+            assert unaryInvariants.size() == otherConstraint.unaryInvariants.size();
             for (int i = 0; i < unaryInvariants.size(); i++) {
-                if (unaryInvariants.get(i).merge(other.unaryInvariants.get(i))) {
+                if (unaryInvariants.get(i).merge(otherConstraint.unaryInvariants.get(i))) {
                     Runtime.log("Broken Structure Constraint: " + unaryInvariants.get(i).toString()
                             + ", itinerary = " + itinerary);
                     changed = true;

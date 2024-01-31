@@ -1,0 +1,1 @@
+{"org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase":{"a":"org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA"},"org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeB":{"value":"java.lang.Integer"},"org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA":{"ids":"java.util.List"}}

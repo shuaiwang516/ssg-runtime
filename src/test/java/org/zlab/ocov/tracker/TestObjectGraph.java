@@ -144,6 +144,31 @@ public class TestObjectGraph {
         }
     }
 
+    public static class TargetClassAccumulateSizeBase {
+        public TargetClassAccumulateSizeA a = new TargetClassAccumulateSizeA();
+    }
+
+    public static class TargetClassAccumulateSizeA {
+        public List<TargetClassAccumulateSizeB> ids = new LinkedList<>();
+
+        public TargetClassAccumulateSizeA() {
+            ids.add(new TargetClassAccumulateSizeB(10));
+            ids.add(new TargetClassAccumulateSizeB(20));
+        }
+    }
+
+    public static class TargetClassAccumulateSizeB {
+        public int value;
+
+        int size() {
+            return value;
+        }
+
+        public TargetClassAccumulateSizeB(int value) {
+            this.value = value;
+        }
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

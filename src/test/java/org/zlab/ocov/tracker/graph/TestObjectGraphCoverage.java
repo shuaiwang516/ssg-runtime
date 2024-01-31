@@ -387,6 +387,32 @@ public class TestObjectGraphCoverage {
         assert set.size() == 1;
     }
 
+    /**
+     * If test this, set GraphPattern.enableSequenceBoundaryCheck to true
+     */
+    // @Test
+    public void testAccumulatedSize() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForAccumulatedSize.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForAccumulatedSize.json");
+
+        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(bassClassPath,
+                topObjectsPath);
+        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
+                topObjectsPath);
+
+        TestObjectGraph.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase = new TestObjectGraph.TargetClassAccumulateSizeBase();
+
+        assert objectGraphCoverage.update(targetClassAccumulateSizeBase);
+        assert objectGraphCoverage1.merge(objectGraphCoverage);
+
+        TestObjectGraph.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase1 = new TestObjectGraph.TargetClassAccumulateSizeBase();
+        targetClassAccumulateSizeBase1.a.ids.get(0).value = 100;
+        targetClassAccumulateSizeBase1.a.ids.get(1).value = 200;
+
+        assert objectGraphCoverage.update(targetClassAccumulateSizeBase1);
+        assert objectGraphCoverage1.merge(objectGraphCoverage);
+    }
+
     @Test
     public void test() {
         Integer a = null;
