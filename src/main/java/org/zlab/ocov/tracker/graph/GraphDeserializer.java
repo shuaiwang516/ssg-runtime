@@ -24,7 +24,7 @@ public class GraphDeserializer
         for (JsonElement elem : jsonVertices) {
             GraphPattern.Vertex vertex = context.deserialize(elem, GraphPattern.Vertex.class);
             graph.addVertex(vertex);
-            System.out.println("vertex: " + vertex.toString());
+            // System.out.println("vertex: " + vertex.toString());
             vertexMap.put(vertex.toString(), vertex); // assuming toString uniquely identifies the
                                                       // vertex
         }
