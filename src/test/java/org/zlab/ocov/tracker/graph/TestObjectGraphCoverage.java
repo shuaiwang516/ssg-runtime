@@ -13,6 +13,10 @@ import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.TestObjectGraph;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
+import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
 
@@ -265,8 +269,16 @@ public class TestObjectGraphCoverage {
                 .registerSubtype(EnumConstant.class, "EnumConstant")
                 .registerSubtype(LongLowerBound.class, "LongLowerBound")
                 .registerSubtype(LongUpperBound.class, "LongUpperBound");
+
+        RuntimeTypeAdapterFactory<StructureConstraint> typeFactory4 = RuntimeTypeAdapterFactory
+                .of(StructureConstraint.class, "StructureConstraint")
+                .registerSubtype(InDegreeConstraint.class, "InDegreeConstraint")
+                .registerSubtype(OutDegreeConstraint.class, "OutDegreeConstraint")
+                .registerSubtype(AccumulatedSizeConstraint.class, "AccumulatedSizeConstraint");
+
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory1)
                 .registerTypeAdapterFactory(typeFactory2).registerTypeAdapterFactory(typeFactory3)
+                .registerTypeAdapterFactory(typeFactory4)
                 .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
                 .registerTypeAdapter(DirectedMultigraph.class, new GraphDeserializer()).create();
         String jsonStr = gson.toJson(graph);
