@@ -28,6 +28,9 @@ public class Runtime {
     public static ObjectGraphCoverage objectCoverage;
     private static final Object objectCoverageLock = new Object();
 
+    public static long totalTime1 = 0;
+    public static int count = 0;
+
     // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public static void init() {
@@ -90,9 +93,17 @@ public class Runtime {
         // if (dumpId != 474) {
         // return false;
         // }
+        // long time1 = System.currentTimeMillis();
         synchronized (objectCoverageLock) {
             // Ensure that objectCoverage is not being serialized while it's being updated
-            return objectCoverage.update(obj, dumpId);
+            boolean ret = objectCoverage.update(obj, dumpId);
+            // long time2 = System.currentTimeMillis();
+            //
+            // count++;
+            // totalTime1 += time2 - time1;
+            // if (count % 1000 == 0)
+            // log(String.format("Time1: %d ms", totalTime1));
+            return ret;
         }
 
         // rwLock.readLock().lock();
