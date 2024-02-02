@@ -31,6 +31,8 @@ public class Runtime {
     public static long totalTime1 = 0;
     public static int count = 0;
 
+    public static boolean memorizeAllObjectGraph = false;
+
     // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public static void init() {
@@ -96,7 +98,11 @@ public class Runtime {
         // long time1 = System.currentTimeMillis();
         synchronized (objectCoverageLock) {
             // Ensure that objectCoverage is not being serialized while it's being updated
-            boolean ret = objectCoverage.update(obj, dumpId);
+            boolean ret;
+            if (memorizeAllObjectGraph)
+                ret = objectCoverage.dump(obj, dumpId);
+            else
+                ret = objectCoverage.update(obj, dumpId);
             // long time2 = System.currentTimeMillis();
             //
             // count++;
@@ -146,7 +152,11 @@ public class Runtime {
                                     response = processCommand(inputLine);
                                     // Serialize and send the response within the synchronized block
                                     out.writeObject(response);
-                                    response.clear();
+                                    if (memorizeAllObjectGraph) {
+                                        response.clearDump();
+                                    } else {
+                                        response.clear();
+                                    }
                                 }
                                 System.out.println("Sent response: " + response);
                             }
@@ -171,6 +181,8 @@ public class Runtime {
     private static ObjectGraphCoverage processCommand(String command) {
         // only return the violations
         // visited objects are cleared
+        if (memorizeAllObjectGraph)
+            objectCoverage.inferInvariant();
         return objectCoverage;
     }
 

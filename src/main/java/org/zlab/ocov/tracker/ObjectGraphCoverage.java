@@ -156,6 +156,52 @@ public class ObjectGraphCoverage implements Serializable {
         equalitySet.clear();
     }
 
+    // Only record, and infer at last
+    List<ObjectGraph> objectGraphs = new ArrayList<>();
+
+    public boolean dump(Object obj, int dumpId) {
+        if (obj == null)
+            return false;
+        String className = obj.getClass().getName();
+        Integer objId = System.identityHashCode(obj);
+        if (visitedObjects.contains(objId)) {
+            return false;
+        }
+        visitedObjects.add(objId);
+
+        GraphPattern classInfo = objCoverage.get(className);
+        if (classInfo == null)
+            return false;
+
+        ObjectGraph objectGraph = objectGraphDumper.dump(obj);
+
+        // Testing
+        // objectGraphs.clear();
+
+        objectGraphs.add(objectGraph);
+        return true;
+    }
+
+    public void inferInvariant() {
+        int dumpId = -1;
+        LogInfo logInfo = new LogInfo(dumpId);
+        for (ObjectGraph objectGraph : objectGraphs) {
+            objCoverage.get(objectGraph.root.type).update(objectGraph, baseClassInfo, logInfo,
+                    equalitySet, isSerialized);
+            if (equalitySet != null)
+                equalitySet.dumpSameObjectGraph(dumpId);
+        }
+        objectGraphs.clear();
+    }
+
+    // Invoked after inferInvariant
+    public void clearDump() {
+        visitedObjects.clear();
+        // dumpedObjectCount = 0;
+        // dupObjectCount = 0;
+        equalitySet.clear();
+    }
+
     public void debugLog() {
         Runtime.log(String.format("Dumped object count: %d, Dup object count: %d",
                 dumpedObjectCount, dupObjectCount));
