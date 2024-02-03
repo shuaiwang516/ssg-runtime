@@ -7,7 +7,6 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.TestObjectGraph;
@@ -317,6 +316,40 @@ public class TestObjectGraphCoverage {
         TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 9;
         obj5.targetClassEqualityC.compClass.a = 4;
+        coverage.update(obj5);
+        assert coverage1.merge(coverage);
+    }
+
+    // @Test
+    public void testEqualityAcrossObjectGraph() {
+        // FIXME!
+        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // 2,3
+        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
+        coverage.update(obj1);
+
+        // 6,6
+        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
+        obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
+        obj4.targetClassEqualityC.compClass.a = 6;
+        coverage.update(obj4);
+        assert coverage1.merge(coverage);
+
+        coverage.update(obj1);
+        coverage.update(obj4);
+
+        // 5,2
+        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
+        obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
+        obj5.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj5);
         assert coverage1.merge(coverage);
     }

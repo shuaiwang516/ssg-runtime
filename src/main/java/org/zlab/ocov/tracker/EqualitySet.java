@@ -144,7 +144,7 @@ public class EqualitySet implements Serializable {
     public Map<String, Set<Set<String>>> dedupAcrossObjectGraph() {
         Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
-        if (enableAcrossEquality) {
+        if (false) {
             // Compute equality only once when merging
             Map<String, Map<Integer, Set<Set<String>>>> equalSetAcrossObjTmp = new HashMap<>();
 
