@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.type;
 import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
-import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.util.HashSet;
@@ -38,7 +37,7 @@ public class StringType extends TypeInfo {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialize) {
+            EqualitySet equalitySet, IsSerialize isSerialize, int objId) {
         if (value == null)
             return nullOnce.add(value, new LogInfo(dumpId));
 

@@ -11,18 +11,30 @@ public class EqualitySet implements Serializable {
 
     public Set<String> comparableClasses;
 
+    public List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
+
+    /**
+     * Currently there's certain overlapping between the following three conditions,
+     * one example is test: testEqualityAcrossObjectGraph. Set enableAcrossEquality
+     * to true can fix it, but it runs into performance problem.
+     */
+
+    /**
+     * Equality within one object graph - Itinerary is different
+     */
     public Map<String, Map<Integer, Set<String>>> equalSetSameObj = new HashMap<>();
     public Map<String, Set<SetMapping>> equalSetSameObjDedup = new HashMap<>();
 
-    public Map<String, Map<Integer, Set<String>>> equalSetAcrossOrSameObj = new HashMap<>();
+    /**
+     * Equality across object graphs - Itinerary is different
+     */
+    public Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj = new HashMap<>();
     public Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
-    public List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
-
-    // FIXME: need to avoid equality within the same object graph
-    // E.g. within the same object graph, there's a list with the same itinerary and
-    // the same hashcode
-    public Map<String, Map<Integer, Set<String>>> equalSetSameItineraryAcrossObj = new HashMap<>();
+    /**
+     * Equality across object graphs - Itinerary is the same
+     */
+    public Map<String, Map<Integer, Map<String, Set<Integer>>>> equalSetSameItineraryAcrossObj = new HashMap<>();
     public Map<String, Set<String>> equalSetSameItineraryAcrossObjDedup = new HashMap<>();
 
     static final String logPrefixAcrossObject = "Equality: across object graphs";
@@ -42,7 +54,7 @@ public class EqualitySet implements Serializable {
         if (enableAcrossEquality)
             itinerarySingleTopObjects.clear();
         else
-            equalSetAcrossOrSameObj.clear();
+            equalSetAcrossObj.clear();
         equalSetSameObj.clear();
         equalSetSameObjDedup.clear();
         equalSetAcrossObjDedup.clear();
@@ -51,16 +63,16 @@ public class EqualitySet implements Serializable {
         equalSetSameItineraryAcrossObjDedup.clear();
     }
 
-    public void update(ObjectGraph.Vertex vertex, String className, String itinerary) {
+    public void update(ObjectGraph.Vertex vertex, String className, String itinerary, int objId) {
         if (comparableClasses.contains(className)) {
             assert vertex.value instanceof Integer;
             int hashCode = (int) vertex.value;
             if (!enableAcrossEquality) {
-                Map<Integer, Set<String>> hashCodeMap0 = equalSetAcrossOrSameObj
+                Map<Integer, Map<String, Integer>> hashCodeMap0 = equalSetAcrossObj
                         .computeIfAbsent(className, k -> new HashMap<>());
-                Set<String> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
-                        k -> new HashSet<>());
-                itinerarySet0.add(itinerary);
+                Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
+                        k -> new HashMap<>());
+                itinerarySet0.put(itinerary, objId);
             }
 
             Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
@@ -71,15 +83,15 @@ public class EqualitySet implements Serializable {
         }
     }
 
-    public void update(Object obj, String className, String itinerary) {
+    public void update(Object obj, String className, String itinerary, int objId) {
         if (comparableClasses.contains(className)) {
             int hashCode = obj.hashCode();
             if (!enableAcrossEquality) {
-                Map<Integer, Set<String>> hashCodeMap0 = equalSetAcrossOrSameObj
+                Map<Integer, Map<String, Integer>> hashCodeMap0 = equalSetAcrossObj
                         .computeIfAbsent(className, k -> new HashMap<>());
-                Set<String> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
-                        k -> new HashSet<>());
-                itinerarySet0.add(itinerary);
+                Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
+                        k -> new HashMap<>());
+                itinerarySet0.put(itinerary, objId);
             }
 
             Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
@@ -90,7 +102,7 @@ public class EqualitySet implements Serializable {
         }
     }
 
-    public void dumpSameObjectGraph(int dumpId) {
+    public void dumpSameObjectGraph(int dumpId, int objId) {
         if (!equalSetSameObj.isEmpty()) {
             mergeCompClass2EqualityDedup(equalSetSameObjDedup, dedup(equalSetSameObj), false,
                     logPrefixSameObject, dumpId);
@@ -99,7 +111,7 @@ public class EqualitySet implements Serializable {
                 itinerarySingleTopObjects.add(new ItinerarySingleTopObject(equalSetSameObj));
 
             // update equalSetSameItineraryAcrossObj
-            updateEqualSetSameItineraryAcrossObjDedup(equalSetSameObj);
+            updateEqualSetSameItineraryAcrossObjDedup(equalSetSameObj, objId);
 
             equalSetSameObj = new HashMap<>();
         }
@@ -114,10 +126,10 @@ public class EqualitySet implements Serializable {
      * In the end, we maintain Map<String, Set<String> dedup
      */
     public void updateEqualSetSameItineraryAcrossObjDedup(
-            Map<String, Map<Integer, Set<String>>> equalSetSameObj) {
+            Map<String, Map<Integer, Set<String>>> equalSetSameObj, int objId) {
         for (String compClass : equalSetSameObj.keySet()) {
             Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.get(compClass);
-            Map<Integer, Set<String>> hashCodeMap2 = equalSetSameItineraryAcrossObj
+            Map<Integer, Map<String, Set<Integer>>> hashCodeMap2 = equalSetSameItineraryAcrossObj
                     .computeIfAbsent(compClass, k -> new HashMap<>());
 
             Set<String> dupSet = equalSetSameItineraryAcrossObjDedup.computeIfAbsent(compClass,
@@ -130,12 +142,13 @@ public class EqualitySet implements Serializable {
                         continue;
                     }
                     if (hashCodeMap2.containsKey(hashCode)
-                            && hashCodeMap2.get(hashCode).contains(itinerary)) {
+                            && hashCodeMap2.get(hashCode).containsKey(itinerary)) {
                         equalSetSameItineraryAcrossObjDedup
                                 .computeIfAbsent(compClass, k -> new HashSet<>()).add(itinerary);
-                    } else {
-                        hashCodeMap2.computeIfAbsent(hashCode, k -> new HashSet<>()).add(itinerary);
                     }
+                    hashCodeMap2.computeIfAbsent(hashCode, k -> new HashMap<>())
+                            .computeIfAbsent(itinerary, k -> new HashSet<>()).add(objId);
+
                 }
             }
         }
@@ -144,7 +157,7 @@ public class EqualitySet implements Serializable {
     public Map<String, Set<Set<String>>> dedupAcrossObjectGraph() {
         Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
-        if (false) {
+        if (enableAcrossEquality) {
             // Compute equality only once when merging
             Map<String, Map<Integer, Set<Set<String>>>> equalSetAcrossObjTmp = new HashMap<>();
 
@@ -188,9 +201,13 @@ public class EqualitySet implements Serializable {
             }
             return equalSetAcrossObjDedup;
         } else {
-            for (String compClass : equalSetAcrossOrSameObj.keySet()) {
-                Map<Integer, Set<String>> hashCodeMap = equalSetAcrossOrSameObj.get(compClass);
-                Set<Set<String>> sets = new HashSet<>(hashCodeMap.values());
+            for (String compClass : equalSetAcrossObj.keySet()) {
+                Map<Integer, Map<String, Integer>> hashCodeMap = equalSetAcrossObj.get(compClass);
+                Set<Set<String>> sets = new HashSet<>();
+                for (Integer hashCode : hashCodeMap.keySet()) {
+                    Set<String> set = new HashSet<>(hashCodeMap.get(hashCode).keySet());
+                    sets.add(set);
+                }
                 dedupSet(sets);
                 equalSetAcrossObjDedup.put(compClass, deepCopy(sets));
             }
@@ -198,22 +215,23 @@ public class EqualitySet implements Serializable {
         }
     }
 
+    public void infer() {
+        equalSetAcrossObjDedup = dedupAcrossObjectGraph();
+    }
+
     public boolean merge(EqualitySet other) {
         if (other == null) {
             return false;
         }
         boolean changed = false;
-        Map<String, Set<Set<String>>> otherEqualSetDiffObjDedup = other.dedupAcrossObjectGraph();
-        if (mergeCompClass2EqualityDedup(equalSetAcrossObjDedup, otherEqualSetDiffObjDedup, true,
+        if (mergeCompClass2EqualityDedup(equalSetAcrossObjDedup, other.equalSetAcrossObjDedup, true,
                 logPrefixAcrossObject)) {
             changed = true;
         }
-
         if (mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, other.equalSetSameObjDedup,
                 true, logPrefixSameObject)) {
             changed = true;
         }
-
         if (mergeEqualityWithSameItinerary(equalSetSameItineraryAcrossObjDedup,
                 other.equalSetSameItineraryAcrossObjDedup)) {
             changed = true;
@@ -543,65 +561,6 @@ public class EqualitySet implements Serializable {
         public ItinerarySingleTopObject(Map<String, Map<Integer, Set<String>>> itineraries) {
             this.itineraries = itineraries;
         }
-    }
-
-    // Extract equality given a list of recorded memory objects
-    public static Map<String, Set<Set<String>>> dedupAcrossObjectGraph1(
-            List<ItinerarySingleTopObject> itinerarySingleTopObjects) {
-        Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
-        // Compute equality only once when merging
-        Map<String, Map<Integer, Set<Set<String>>>> equalSetAcrossObjTmp = new HashMap<>();
-        for (ItinerarySingleTopObject itinerarySingleTopObject : itinerarySingleTopObjects) {
-            Map<String, Map<Integer, Set<String>>> itineraries = itinerarySingleTopObject.itineraries;
-
-            for (String compClass : itineraries.keySet()) {
-                Map<Integer, Set<String>> hashCodeMap1 = itineraries.get(compClass);
-                Map<Integer, Set<Set<String>>> hashCodeMap2 = equalSetAcrossObjTmp
-                        .computeIfAbsent(compClass, k -> new HashMap<>());
-                for (Integer hashCode : hashCodeMap1.keySet()) {
-                    Set<String> itinerarySet1 = hashCodeMap1.get(hashCode);
-                    Set<Set<String>> itinerarySetOri = hashCodeMap2.computeIfAbsent(hashCode,
-                            k -> new HashSet<>());
-                    Set<Set<String>> itinerarySetNew = new HashSet<>();
-                    for (String itinerary : itinerarySet1) {
-                        for (Set<String> itinerarySet : itinerarySetOri) {
-                            Set<String> itinerarySetClone = new HashSet<>(itinerarySet);
-                            itinerarySetClone.add(itinerary);
-                            itinerarySetNew.add(itinerarySetClone);
-                        }
-                        Set<String> selfSet = new HashSet<>();
-                        selfSet.add(itinerary);
-                        itinerarySetNew.add(selfSet);
-                    }
-                    itinerarySetOri.clear();
-                    itinerarySetOri.addAll(itinerarySetNew);
-                }
-            }
-        }
-        for (String compClass : equalSetAcrossObjTmp.keySet()) {
-            Map<Integer, Set<Set<String>>> hashCodeMap = equalSetAcrossObjTmp.get(compClass);
-            Set<Set<String>> sets = new HashSet<>();
-            for (Integer hashCode : hashCodeMap.keySet()) {
-                for (Set<String> set : hashCodeMap.get(hashCode)) {
-                    sets.add(new HashSet<>(set));
-                }
-            }
-            dedupSet(sets);
-            equalSetAcrossObjDedup.put(compClass, sets);
-        }
-        return equalSetAcrossObjDedup;
-    }
-
-    public static Map<String, Set<Set<String>>> dedupAcrossObjectGraph2(
-            Map<String, Map<Integer, Set<String>>> equalSetAcrossOrSameObj) {
-        Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
-        for (String compClass : equalSetAcrossOrSameObj.keySet()) {
-            Map<Integer, Set<String>> hashCodeMap = equalSetAcrossOrSameObj.get(compClass);
-            Set<Set<String>> sets = new HashSet<>(hashCodeMap.values());
-            dedupSet(sets);
-            equalSetAcrossObjDedup.put(compClass, deepCopy(sets));
-        }
-        return equalSetAcrossObjDedup;
     }
 
 }

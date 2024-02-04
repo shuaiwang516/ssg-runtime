@@ -8,11 +8,31 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class OutDegreeConstraint extends StructureConstraint {
 
     public OutDegreeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
         super(unaryInvariants, edgeLabel);
+    }
+
+    @Override
+    public boolean checkPure(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo,
+            String itinerary, Set<String> brokenInvs) {
+        int count = 0;
+        for (ObjectGraph.Edge edge : graph.graph.outgoingEdgesOf(vertex)) {
+            if (edge.getName().equals(edgeLabel)) {
+                count++;
+            }
+        }
+        boolean changed = false;
+        for (UnaryInvariant invariant : unaryInvariants) {
+            if (invariant.checkPure(count, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     @Override

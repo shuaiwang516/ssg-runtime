@@ -1,11 +1,20 @@
 package org.zlab.ocov.tracker;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.apache.commons.lang3.SerializationUtils;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
-import org.zlab.ocov.tracker.graph.GraphPattern;
-import org.zlab.ocov.tracker.graph.ObjectGraph;
-import org.zlab.ocov.tracker.graph.ObjectGraphDumper;
-import org.zlab.ocov.tracker.inv.unary.LogInfo;
+import org.zlab.ocov.tracker.graph.*;
+import org.zlab.ocov.tracker.graph.label.LabelConstraint;
+import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
+import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
+import org.zlab.ocov.tracker.inv.Invariant;
+import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -13,6 +22,8 @@ import java.util.*;
 
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
+
+    public final static boolean enableInvariantCombination = true;
 
     // Only contain the top level objects: class name -> class info
     public Map<String, GraphPattern> objCoverage = new HashMap<>();
@@ -24,6 +35,7 @@ public class ObjectGraphCoverage implements Serializable {
 
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
+    public InvariantCombination invariantCombination;
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
@@ -71,6 +83,8 @@ public class ObjectGraphCoverage implements Serializable {
                 && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()) {
             isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
         }
+        if (enableInvariantCombination)
+            invariantCombination = new InvariantCombination();
 
         // Get classInfo
         for (String className : topObjects) {
@@ -127,13 +141,19 @@ public class ObjectGraphCoverage implements Serializable {
 
         // long time2 = System.nanoTime();
 
+        Set<String> brokenInvs = new HashSet<>();
+
         boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet,
-                isSerialized);
+                isSerialized, brokenInvs);
+
+        if (!brokenInvs.isEmpty() && enableInvariantCombination) {
+            invariantCombination.record(objId, brokenInvs);
+        }
 
         // long time3 = System.nanoTime();
 
         if (equalitySet != null)
-            equalitySet.dumpSameObjectGraph(dumpId);
+            equalitySet.dumpSameObjectGraph(dumpId, objId);
 
         // long time4 = System.nanoTime();
 
@@ -148,12 +168,25 @@ public class ObjectGraphCoverage implements Serializable {
         return ret;
     }
 
+    public void inferInvariant() {
+        // this should be invoked for every test
+        if (equalitySet != null)
+            equalitySet.infer();
+        if (enableInvariantCombination)
+            invariantCombination.infer(equalitySet);
+    }
+
     public void clear() {
         // try to separate format coverage across tests
         visitedObjects.clear();
         // dumpedObjectCount = 0;
         // dupObjectCount = 0;
-        equalitySet.clear();
+        if (equalitySet != null)
+            equalitySet.clear();
+        if (isSerialized != null)
+            isSerialized.clear();
+        if (enableInvariantCombination)
+            invariantCombination.clear();
     }
 
     // Only record, and infer at last
@@ -182,24 +215,16 @@ public class ObjectGraphCoverage implements Serializable {
         return true;
     }
 
-    public void inferInvariant() {
+    public void inferInvariantFromAllObjectGraphs() {
         int dumpId = -1;
         LogInfo logInfo = new LogInfo(dumpId);
         for (ObjectGraph objectGraph : objectGraphs) {
             objCoverage.get(objectGraph.root.type).update(objectGraph, baseClassInfo, logInfo,
                     equalitySet, isSerialized);
             if (equalitySet != null)
-                equalitySet.dumpSameObjectGraph(dumpId);
+                equalitySet.dumpSameObjectGraph(dumpId, objectGraph.root.identifyHash);
         }
         objectGraphs.clear();
-    }
-
-    // Invoked after inferInvariant
-    public void clearDump() {
-        visitedObjects.clear();
-        // dumpedObjectCount = 0;
-        // dupObjectCount = 0;
-        equalitySet.clear();
     }
 
     public void debugLog() {
@@ -284,6 +309,10 @@ public class ObjectGraphCoverage implements Serializable {
                 newCoverage = true;
             }
         }
+        if (enableInvariantCombination
+                && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
+            newCoverage = true;
+        }
         if (newCoverage) {
             Runtime.log(
                     String.format("[hklog] --- Merged new coverage from testId: %d ---", testId));
@@ -297,6 +326,45 @@ public class ObjectGraphCoverage implements Serializable {
                 .loadModifiedFields(modifiedFieldsPath.toString());
         Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath.toString());
         return new IsSerialize(modifiedFields, modifiedEnums);
+    }
+
+    public static Gson constructGson() {
+        RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
+                .of(LabelConstraint.class, "LabelConstraint")
+                .registerSubtype(ValueConstraint.class, "ValueConstraint");
+
+        RuntimeTypeAdapterFactory<Invariant> typeFactory2 = RuntimeTypeAdapterFactory
+                .of(Invariant.class, "Invariant")
+                .registerSubtype(UnaryInvariant.class, "UnaryInvariant");
+        RuntimeTypeAdapterFactory<UnaryInvariant> typeFactory3 = RuntimeTypeAdapterFactory
+                .of(UnaryInvariant.class, "UnaryInvariant")
+                .registerSubtype(IntegerLowerBound.class, "IntegerLowerBound")
+                .registerSubtype(IntegerUpperBound.class, "IntegerUpperBound")
+                .registerSubtype(EmptyStringOnce.class, "EmptyStringOnce")
+                .registerSubtype(TrueOnce.class, "TrueOnce")
+                .registerSubtype(RestOnce.class, "RestOnce")
+                .registerSubtype(FalseOnce.class, "FalseOnce")
+                .registerSubtype(NegativeOneOnce.class, "NegativeOneOnce")
+                .registerSubtype(OneCharStringOnce.class, "OneCharStringOnce")
+                .registerSubtype(NullOnce.class, "NullOnce")
+                .registerSubtype(OneOnce.class, "OneOnce")
+                .registerSubtype(ZeroOnce.class, "ZeroOnce")
+                .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
+                .registerSubtype(EnumConstant.class, "EnumConstant")
+                .registerSubtype(LongLowerBound.class, "LongLowerBound")
+                .registerSubtype(LongUpperBound.class, "LongUpperBound");
+
+        RuntimeTypeAdapterFactory<StructureConstraint> typeFactory4 = RuntimeTypeAdapterFactory
+                .of(StructureConstraint.class, "StructureConstraint")
+                .registerSubtype(InDegreeConstraint.class, "InDegreeConstraint")
+                .registerSubtype(OutDegreeConstraint.class, "OutDegreeConstraint")
+                .registerSubtype(AccumulatedSizeConstraint.class, "AccumulatedSizeConstraint");
+
+        return new GsonBuilder().registerTypeAdapterFactory(typeFactory1)
+                .registerTypeAdapterFactory(typeFactory2).registerTypeAdapterFactory(typeFactory3)
+                .registerTypeAdapterFactory(typeFactory4)
+                .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
+                .registerTypeAdapter(DirectedMultigraph.class, new GraphDeserializer()).create();
     }
 
 }

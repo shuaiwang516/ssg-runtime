@@ -28,7 +28,7 @@ public abstract class TypeInfo implements Serializable {
     // Update constraint information
     // NULL Value should be handled inside each type!
     public abstract boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialized);
+            EqualitySet equalitySet, IsSerialize isSerialized, int objId);
 
     // Merge
     public abstract boolean merge(TypeInfo otherTypeInfo);

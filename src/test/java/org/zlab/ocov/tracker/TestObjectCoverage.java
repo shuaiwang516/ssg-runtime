@@ -416,6 +416,9 @@ public class TestObjectCoverage {
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
         obj5.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj5);
+
+        coverage.inferInvariant();
+
         assert coverage1.merge(coverage);
     }
 

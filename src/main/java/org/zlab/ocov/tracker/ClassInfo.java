@@ -41,7 +41,7 @@ public class ClassInfo implements Serializable {
     }
 
     public boolean update(Object obj, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialized) {
+            EqualitySet equalitySet, IsSerialize isSerialized, int objId) {
         if (obj == null) {
             return false;
         }
@@ -50,7 +50,7 @@ public class ClassInfo implements Serializable {
             // Equality likely invariants
             if (equalitySet != null) {
                 String fieldClassName = obj.getClass().getName();
-                equalitySet.update(obj, fieldClassName, itinerary);
+                equalitySet.update(obj, fieldClassName, itinerary, objId);
             }
             // IsSerialize likely invariants
             if (isSerialized != null) {
@@ -71,7 +71,7 @@ public class ClassInfo implements Serializable {
                         // Runtime.log("[hklog] processing object classname = " + objectClassName
                         // + ", field = " + field.getName() + ", value = " + value);
                         if (update(fieldName, value, baseClassInfo, dumpId, equalitySet,
-                                isSerialized)) {
+                                isSerialized, objId)) {
                             isNew = true;
                         }
                     }
@@ -85,7 +85,7 @@ public class ClassInfo implements Serializable {
         return isNew;
     }
     private boolean update(String fieldName, Object value, Map<String, ClassInfo> baseClassInfo,
-            int id, EqualitySet equalitySet, IsSerialize isSerialized) {
+            int id, EqualitySet equalitySet, IsSerialize isSerialized, int objId) {
         if (!fields.containsKey(fieldName)) {
             // Only track target fields
             return false;
@@ -95,7 +95,7 @@ public class ClassInfo implements Serializable {
         if (typeInfo == null) {
             return false;
         }
-        return typeInfo.update(value, baseClassInfo, id, equalitySet, isSerialized);
+        return typeInfo.update(value, baseClassInfo, id, equalitySet, isSerialized, objId);
     }
 
     public boolean merge(ClassInfo otherClassInfo) {

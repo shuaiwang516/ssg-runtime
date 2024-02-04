@@ -19,6 +19,18 @@ public class IntegerUpperBound extends UnaryInvariant {
     }
 
     @Override
+    public boolean checkPure(Object val, LogInfo logInfo) {
+        // Only check, but not update
+        if (val instanceof Integer) {
+            int tmpVal = (Integer) val;
+            if (tmpVal > upperBound) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean add(Object val, LogInfo logInfo) {
         if (val instanceof Integer) {
             int tmpVal = (Integer) val;

@@ -5,11 +5,40 @@ import org.zlab.ocov.tracker.inv.unary.LogInfo;
 import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;
 
 import java.util.List;
+import java.util.Set;
 
 public class AccumulatedSizeConstraint extends StructureConstraint {
 
     public AccumulatedSizeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
         super(unaryInvariants, edgeLabel);
+    }
+
+    @Override
+    public boolean checkPure(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo,
+            String itinerary, Set<String> brokenInvs) {
+        boolean atLeastOne = false;
+        int accumulatedSize = 0;
+        for (ObjectGraph.Edge edge : graph.graph.outgoingEdgesOf(vertex)) {
+            if (edge.getName().equals(edgeLabel)) {
+                // get target of the edge
+                ObjectGraph.Vertex target = graph.graph.getEdgeTarget(edge);
+                if (target.size != null) {
+                    accumulatedSize += target.size;
+                    if (!atLeastOne)
+                        atLeastOne = true;
+                }
+            }
+        }
+        if (!atLeastOne)
+            return false;
+        boolean changed = false;
+        for (UnaryInvariant invariant : unaryInvariants) {
+            if (invariant.checkPure(accumulatedSize, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     @Override

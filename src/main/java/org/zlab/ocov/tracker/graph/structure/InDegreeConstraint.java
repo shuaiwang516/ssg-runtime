@@ -5,11 +5,31 @@ import org.zlab.ocov.tracker.inv.unary.LogInfo;
 import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;
 
 import java.util.List;
+import java.util.Set;
 
 public class InDegreeConstraint extends StructureConstraint {
 
     public InDegreeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
         super(unaryInvariants, edgeLabel);
+    }
+
+    @Override
+    public boolean checkPure(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo,
+            String itinerary, Set<String> brokenInvs) {
+        int count = 0;
+        for (ObjectGraph.Edge edge : graph.graph.incomingEdgesOf(vertex)) {
+            if (edge.getName().equals(edgeLabel)) {
+                count++;
+            }
+        }
+        boolean result = false;
+        for (UnaryInvariant invariant : unaryInvariants) {
+            if (invariant.checkPure(count, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                result = true;
+            }
+        }
+        return result;
     }
 
     @Override

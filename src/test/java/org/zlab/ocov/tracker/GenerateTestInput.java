@@ -267,6 +267,50 @@ public class GenerateTestInput {
         Utils.saveSetToFile(comparableClasses, comparableFilePath);
     }
 
+    @Test
+    public void createExampleInputForInvCombination() {
+        String baseFilePath = "input/baseClassInfoForInvCombination.json";
+        String topFilePath = "input/topObjectsForInvCombination.json";
+        String comparableFilePath = "input/comparableClassesForInvCombination.json";
+
+        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase")
+                .put("a", "org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA");
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase")
+                .put("b", "org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB");
+
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA")
+                .put("value", "java.lang.Integer");
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA")
+                .put("compClass", "org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB",
+                new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB")
+                .put("value", "java.lang.Integer");
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB")
+                .put("compClass", "org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+
+        // CompClass
+        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$CompClass", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$CompClass").put("a", "int");
+
+        // baseClassInfo
+        Utils.saveMapToFile(baseClassInfo, baseFilePath);
+        // top objects
+        Set<String> topObjects = new HashSet<>();
+        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase");
+        Utils.saveSetToFile(topObjects, topFilePath);
+        // comparable classes
+        Set<String> comparableClasses = new HashSet<>();
+        comparableClasses.add("org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+        Utils.saveSetToFile(comparableClasses, comparableFilePath);
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

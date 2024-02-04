@@ -32,7 +32,7 @@ public class ArrayType extends SequenceType {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialized) {
+            EqualitySet equalitySet, IsSerialize isSerialized, int objId) {
         if (value == null)
             return nullOnce.add(value, new LogInfo(dumpId));
 
@@ -47,7 +47,7 @@ public class ArrayType extends SequenceType {
                 String className = object.getClass().getName();
                 if (classNames.containsKey(className)) {
                     if (classNames.get(className).update(object, baseClassInfo, dumpId, equalitySet,
-                            isSerialized))
+                            isSerialized, objId))
                         changed = true;
                 } else {
                     // Check whether this is a field that could be serialized
@@ -57,7 +57,7 @@ public class ArrayType extends SequenceType {
                                 .clone(baseClassInfo.get(className));
                         newClassInfo.updateItinerary(itinerary + ".collection_item");
                         newClassInfo.update(object, baseClassInfo, dumpId, equalitySet,
-                                isSerialized);
+                                isSerialized, objId);
                         classNames.put(className, newClassInfo);
                         classNamesDumpId.put(className, dumpId);
                         changed = true;

@@ -2,22 +2,12 @@ package org.zlab.ocov.tracker.graph;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.TestObjectGraph;
-import org.zlab.ocov.tracker.graph.label.LabelConstraint;
-import org.zlab.ocov.tracker.graph.label.ValueConstraint;
-import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
-import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
-import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
-import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
-import org.zlab.ocov.tracker.inv.Invariant;
-import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -244,42 +234,7 @@ public class TestObjectGraphCoverage {
         DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph = coverage1.objCoverage
                 .get(obj1.getClass().getName()).graph;
 
-        RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
-                .of(LabelConstraint.class, "LabelConstraint")
-                .registerSubtype(ValueConstraint.class, "ValueConstraint");
-
-        RuntimeTypeAdapterFactory<Invariant> typeFactory2 = RuntimeTypeAdapterFactory
-                .of(Invariant.class, "Invariant")
-                .registerSubtype(UnaryInvariant.class, "UnaryInvariant");
-        RuntimeTypeAdapterFactory<UnaryInvariant> typeFactory3 = RuntimeTypeAdapterFactory
-                .of(UnaryInvariant.class, "UnaryInvariant")
-                .registerSubtype(IntegerLowerBound.class, "IntegerLowerBound")
-                .registerSubtype(IntegerUpperBound.class, "IntegerUpperBound")
-                .registerSubtype(EmptyStringOnce.class, "EmptyStringOnce")
-                .registerSubtype(TrueOnce.class, "TrueOnce")
-                .registerSubtype(RestOnce.class, "RestOnce")
-                .registerSubtype(FalseOnce.class, "FalseOnce")
-                .registerSubtype(NegativeOneOnce.class, "NegativeOneOnce")
-                .registerSubtype(OneCharStringOnce.class, "OneCharStringOnce")
-                .registerSubtype(NullOnce.class, "NullOnce")
-                .registerSubtype(OneOnce.class, "OneOnce")
-                .registerSubtype(ZeroOnce.class, "ZeroOnce")
-                .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
-                .registerSubtype(EnumConstant.class, "EnumConstant")
-                .registerSubtype(LongLowerBound.class, "LongLowerBound")
-                .registerSubtype(LongUpperBound.class, "LongUpperBound");
-
-        RuntimeTypeAdapterFactory<StructureConstraint> typeFactory4 = RuntimeTypeAdapterFactory
-                .of(StructureConstraint.class, "StructureConstraint")
-                .registerSubtype(InDegreeConstraint.class, "InDegreeConstraint")
-                .registerSubtype(OutDegreeConstraint.class, "OutDegreeConstraint")
-                .registerSubtype(AccumulatedSizeConstraint.class, "AccumulatedSizeConstraint");
-
-        Gson gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory1)
-                .registerTypeAdapterFactory(typeFactory2).registerTypeAdapterFactory(typeFactory3)
-                .registerTypeAdapterFactory(typeFactory4)
-                .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
-                .registerTypeAdapter(DirectedMultigraph.class, new GraphDeserializer()).create();
+        Gson gson = ObjectGraphCoverage.constructGson();
         String jsonStr = gson.toJson(graph);
         System.out.println(jsonStr);
         DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graphFromGson = gson.fromJson(
@@ -351,6 +306,9 @@ public class TestObjectGraphCoverage {
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
         obj5.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj5);
+
+        coverage.inferInvariant();
+
         assert coverage1.merge(coverage);
     }
 
@@ -459,9 +417,141 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
+    public void testInvCombinationSingleObject() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForInvCombination.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForInvCombination.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // Test1: base obj
+        TestObjectGraph.TargetClassInvCombinationBase obj = new TestObjectGraph.TargetClassInvCombinationBase();
+        coverage.update(obj);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // Test2
+        // o1: break inv1
+        TestObjectGraph.TargetClassInvCombinationBase obj1 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj1.a.value = 0;
+        coverage.update(obj1);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // o2: break inv2
+        TestObjectGraph.TargetClassInvCombinationBase obj2 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj2.b.value = 1;
+        coverage.update(obj2);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // o3: break inv1 and inv2 at the same time
+        TestObjectGraph.TargetClassInvCombinationBase obj3 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj3.a.value = 0;
+        obj3.b.value = 1;
+        coverage.update(obj3);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+    }
+
+    @Test
+    public void testInvariantCombinationMultiObjects() {
+        /**
+         * T1 Class1, o1 break inv1
+         *
+         * T2 Class1, o2 break inv2
+         *
+         * T3 <Equality> o1 == o2
+         *
+         * T4 Class1, o1 break inv1 Class2, o2 break inv2 <Equality> o1 == o2
+         */
+        Path bassClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForInvCombination.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForInvCombination.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // Test0: base obj
+        TestObjectGraph.TargetClassInvCombinationBase obj = new TestObjectGraph.TargetClassInvCombinationBase();
+        coverage.update(obj);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // Test1: o1: break inv1
+        TestObjectGraph.TargetClassInvCombinationBase obj1 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj1.a.value = 0;
+        coverage.update(obj1);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // Test2: o2: break inv2
+        TestObjectGraph.TargetClassInvCombinationBase obj2 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj2.b.value = 1;
+        coverage.update(obj2);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // Test3: o1 == o2
+        TestObjectGraph.TargetClassInvCombinationBase obj3 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj3.a.compClass.a = 4;
+        coverage.update(obj3);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // Test4: o1 == o2
+        // o1: break inv1
+        // o2: break inv2
+        TestObjectGraph.TargetClassInvCombinationBase obj4 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj4.a.compClass.a = 4;
+        obj4.a.value = 0;
+        obj4.b.value = 1;
+        coverage.update(obj4);
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // Test5: o1 == o2
+        TestObjectGraph.TargetClassInvCombinationBase obj5 = new TestObjectGraph.TargetClassInvCombinationBase();
+        obj5.a.compClass.a = 4;
+        obj5.a.value = 0;
+        obj5.b.value = 1;
+        coverage.update(obj5);
+        coverage.inferInvariant();
+        assert !coverage1.merge(coverage);
+        coverage.clear();
+
+        Gson gson = ObjectGraphCoverage.constructGson();
+        String jsonStr = gson.toJson(coverage1);
+        System.out.println(jsonStr);
+        ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr, ObjectGraphCoverage.class);
+    }
+
+    @Test
     public void test() {
-        Integer a = null;
-        System.out.println(System.identityHashCode(a));
+        Set<String> s1 = new HashSet<>();
+        s1.add("a");
+        s1.add("b");
+        Set<String> s2 = new HashSet<>();
+        s2.add("b");
+        s2.add("a");
+
+        Set<Set<String>> set = new HashSet<>();
+        set.add(s1);
+        assert set.contains(s2);
     }
 
 }

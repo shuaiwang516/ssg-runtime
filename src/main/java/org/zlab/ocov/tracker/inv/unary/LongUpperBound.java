@@ -19,6 +19,17 @@ public class LongUpperBound extends UnaryInvariant {
     }
 
     @Override
+    public boolean checkPure(Object val, LogInfo logInfo) {
+        if (val instanceof Long) {
+            long tmpVal = (Long) val;
+            if (tmpVal > upperBound) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean add(Object val, LogInfo logInfo) {
         if (val instanceof Long) {
             long tmpVal = (Long) val;

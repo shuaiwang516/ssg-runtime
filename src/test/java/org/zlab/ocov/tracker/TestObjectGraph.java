@@ -169,6 +169,36 @@ public class TestObjectGraph {
         }
     }
 
+    public static class TargetClassInvCombinationBase {
+        public TargetClassInvCombinationA a = new TargetClassInvCombinationA(10);
+        public TargetClassInvCombinationB b = new TargetClassInvCombinationB(20);
+
+        public TargetClassInvCombinationBase() {
+        }
+    }
+
+    public static class TargetClassInvCombinationA {
+        public int value;
+        public CompClass compClass = new CompClass(3);
+
+        public TargetClassInvCombinationA(int value) {
+            this.value = value;
+        }
+    }
+
+    public static class TargetClassInvCombinationB {
+        public int value;
+        public CompClass compClass = new CompClass(4);
+
+        int size() {
+            return value;
+        }
+
+        public TargetClassInvCombinationB(int value) {
+            this.value = value;
+        }
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

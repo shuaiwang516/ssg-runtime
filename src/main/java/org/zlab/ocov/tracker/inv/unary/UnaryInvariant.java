@@ -13,6 +13,16 @@ public abstract class UnaryInvariant extends Invariant {
     }
 
     /**
+     * Do not care about whether the invariant is modified, just check without
+     * considering the state.
+     *
+     * If o1 breaks it, our inv mark is as broken and won't record if o2 breaks it.
+     *
+     * checkPure will already mark it broken from a clean state.
+     */
+    public abstract boolean checkPure(Object val, LogInfo logInfo);
+
+    /**
      * @param val
      * @param logInfo
      * @return true if the invariant is modified

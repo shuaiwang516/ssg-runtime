@@ -7,6 +7,7 @@ import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public abstract class StructureConstraint implements Serializable {
     protected List<UnaryInvariant> unaryInvariants;
@@ -17,6 +18,9 @@ public abstract class StructureConstraint implements Serializable {
         this.unaryInvariants = unaryInvariants;
         this.edgeLabel = edgeLabel;
     }
+
+    public abstract boolean checkPure(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo,
+            String itinerary, Set<String> brokenInvs);
 
     public abstract boolean update(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo);
 

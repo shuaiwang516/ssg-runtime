@@ -152,11 +152,7 @@ public class Runtime {
                                     response = processCommand(inputLine);
                                     // Serialize and send the response within the synchronized block
                                     out.writeObject(response);
-                                    if (memorizeAllObjectGraph) {
-                                        response.clearDump();
-                                    } else {
-                                        response.clear();
-                                    }
+                                    response.clear();
                                 }
                                 System.out.println("Sent response: " + response);
                             }
@@ -182,6 +178,8 @@ public class Runtime {
         // only return the violations
         // visited objects are cleared
         if (memorizeAllObjectGraph)
+            objectCoverage.inferInvariantFromAllObjectGraphs();
+        else
             objectCoverage.inferInvariant();
         return objectCoverage;
     }

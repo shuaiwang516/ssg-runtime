@@ -97,12 +97,13 @@ public class ObjectCoverage implements Serializable {
 
         // long time1 = System.nanoTime();
 
-        boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet, isSerialized);
+        boolean ret = classInfo.update(obj, baseClassInfo, dumpId, equalitySet, isSerialized,
+                objId);
 
         // long time2 = System.nanoTime();
 
         if (equalitySet != null)
-            equalitySet.dumpSameObjectGraph(dumpId);
+            equalitySet.dumpSameObjectGraph(dumpId, objId);
 
         // long time3 = System.nanoTime();
 
@@ -112,6 +113,12 @@ public class ObjectCoverage implements Serializable {
         // Runtime.log(String.format("Time1: %d ms, Time2: %d ms" +
         // "", totalTime1/1_000_000, totalTime2/1_000_000));
         return ret;
+    }
+
+    public void inferInvariant() {
+        // this should be invoked for every test
+        if (equalitySet != null)
+            equalitySet.infer();
     }
 
     public void clear() {

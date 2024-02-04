@@ -19,6 +19,17 @@ public class IntegerLowerBound extends UnaryInvariant {
     }
 
     @Override
+    public boolean checkPure(Object val, LogInfo logInfo) {
+        if (val instanceof Integer) {
+            int tmpVal = (Integer) val;
+            if (tmpVal < lowerBound) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean add(Object val, LogInfo logInfo) {
         if (val instanceof Integer) {
             int tmpVal = (Integer) val;

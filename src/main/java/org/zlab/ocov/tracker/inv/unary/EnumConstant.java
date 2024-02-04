@@ -36,6 +36,25 @@ public class EnumConstant extends UnaryInvariant {
     }
 
     @Override
+    public boolean checkPure(Object val, LogInfo logInfo) {
+        if (val == null)
+            return false;
+        boolean changed = false;
+        if (val.getClass().isEnum()) {
+            // check if the enum class has been visited
+            if (!enumConstants.containsKey(val.getClass().getName())) {
+                changed = true;
+            } else {
+                // check if the enum constant has been visited
+                if (!enumConstants.get(val.getClass().getName()).contains(val.toString())) {
+                    changed = true;
+                }
+            }
+        }
+        return changed;
+    }
+
+    @Override
     public boolean add(Object val, LogInfo logInfo) {
         if (val == null)
             return false;

@@ -13,6 +13,16 @@ public class RestOnce extends OccurOnceInvariant {
     }
 
     @Override
+    public boolean checkPure(Object val, LogInfo logInfo) {
+        if (val instanceof Number) {
+            if (!isEqualToAny(val, targetValues)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean add(Object val, LogInfo logInfo) {
         if (val instanceof Number && !occurOnce) {
             if (!isEqualToAny(val, targetValues)) {

@@ -62,7 +62,7 @@ public abstract class ScalaType extends TypeInfo {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialized) {
+            EqualitySet equalitySet, IsSerialize isSerialized, int objId) {
         return update(value, baseClassInfo, dumpId);
     }
 

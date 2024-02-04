@@ -34,6 +34,11 @@ public class IsSerialize implements Serializable {
         }
     }
 
+    public void clear() {
+        serializedClasses.clear();
+        serializedEnums.clear();
+    }
+
     public boolean merge(IsSerialize other) {
         if (other == null) {
             return false;

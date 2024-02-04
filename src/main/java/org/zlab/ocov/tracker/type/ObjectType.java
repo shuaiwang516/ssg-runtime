@@ -49,7 +49,7 @@ public class ObjectType extends TypeInfo {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialized) {
+            EqualitySet equalitySet, IsSerialize isSerialized, int objId) {
         if (value == null) {
             if (!beenNullOnce) {
                 beenNullOnce = true;
@@ -106,7 +106,7 @@ public class ObjectType extends TypeInfo {
         String className = value.getClass().getName();
         if (classNames.containsKey(className)) {
             if (classNames.get(className).update(value, baseClassInfo, dumpId, equalitySet,
-                    isSerialized))
+                    isSerialized, objId))
                 changed = true;
         } else {
             // Check whether this is a field that could be serialized
@@ -114,7 +114,7 @@ public class ObjectType extends TypeInfo {
                 // Runtime.log("New class " + className);
                 ClassInfo newClassInfo = SerializationUtils.clone(baseClassInfo.get(className));
                 newClassInfo.updateItinerary(itinerary);
-                newClassInfo.update(value, baseClassInfo, dumpId, equalitySet, isSerialized);
+                newClassInfo.update(value, baseClassInfo, dumpId, equalitySet, isSerialized, objId);
                 classNames.put(className, newClassInfo);
                 classNamesDumpId.put(className, dumpId);
                 changed = true;

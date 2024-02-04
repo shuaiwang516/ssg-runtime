@@ -37,7 +37,7 @@ public class MapType extends SequenceType {
 
     @Override
     public boolean update(Object value, Map<String, ClassInfo> baseClassInfo, int dumpId,
-            EqualitySet equalitySet, IsSerialize isSerialized) {
+            EqualitySet equalitySet, IsSerialize isSerialized, int objId) {
         if (value == null)
             return nullOnce.add(value, new LogInfo(dumpId));
 
@@ -56,7 +56,7 @@ public class MapType extends SequenceType {
                 // object);
                 if (keyClassNames.containsKey(className)) {
                     if (keyClassNames.get(className).update(object, baseClassInfo, dumpId,
-                            equalitySet, isSerialized))
+                            equalitySet, isSerialized, objId))
                         changed = true;
                 } else {
                     // Check whether this is a field that could be serialized
@@ -66,7 +66,7 @@ public class MapType extends SequenceType {
                                 .clone(baseClassInfo.get(className));
                         newClassInfo.updateItinerary(itinerary + ".map_keyItem");
                         newClassInfo.update(object, baseClassInfo, dumpId, equalitySet,
-                                isSerialized);
+                                isSerialized, objId);
                         keyClassNames.put(className, newClassInfo);
                         keyClassNamesDumpId.put(className, dumpId);
                         changed = true;
@@ -80,7 +80,7 @@ public class MapType extends SequenceType {
                 String className = object.getClass().getName();
                 if (valueClassNames.containsKey(className)) {
                     if (valueClassNames.get(className).update(object, baseClassInfo, dumpId,
-                            equalitySet, isSerialized))
+                            equalitySet, isSerialized, objId))
                         changed = true;
                 } else {
                     // Check whether this is a field that could be serialized
@@ -90,7 +90,7 @@ public class MapType extends SequenceType {
                                 .clone(baseClassInfo.get(className));
                         newClassInfo.updateItinerary(itinerary + ".map_valueItem");
                         newClassInfo.update(object, baseClassInfo, dumpId, equalitySet,
-                                isSerialized);
+                                isSerialized, objId);
                         valueClassNames.put(className, newClassInfo);
                         valueClassNamesDumpId.put(className, dumpId);
                         changed = true;

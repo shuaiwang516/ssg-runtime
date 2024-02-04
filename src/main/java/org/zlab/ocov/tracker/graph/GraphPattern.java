@@ -52,16 +52,19 @@ public class GraphPattern implements Serializable {
 
         public boolean update(ObjectGraph.Vertex vertex, ObjectGraph objectGraph,
                 GraphPattern graphPattern, Map<String, GraphPattern> graphPatternMap,
-                LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized) {
+                LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized,
+                Set<String> brokenInvs) {
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
+                labelConstraint.checkPure(vertex, logInfo, itinerary, brokenInvs);
                 if (labelConstraint.update(vertex, logInfo))
                     labelConstraintsChange = true;
             }
             // Update structure constraints
             boolean structureConstraintsChange = false;
             for (StructureConstraint structureConstraint : structureConstraints) {
+                structureConstraint.checkPure(vertex, objectGraph, logInfo, itinerary, brokenInvs);
                 if (structureConstraint.update(vertex, objectGraph, logInfo))
                     structureConstraintsChange = true;
             }
@@ -74,7 +77,7 @@ public class GraphPattern implements Serializable {
                     if (target.type.equals(vertex.type)) {
                         found = true;
                         subGraphPatternChange = target.update(vertex, objectGraph, graphPattern,
-                                graphPatternMap, logInfo, equalitySet, isSerialized);
+                                graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs);
                     }
                 }
                 if (!found) {
@@ -102,14 +105,14 @@ public class GraphPattern implements Serializable {
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(vertex.type);
                         graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
                         subGraphPatternRoot.update(vertex, objectGraph, graphPattern,
-                                graphPatternMap, logInfo, equalitySet, isSerialized);
+                                graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs);
                         subGraphPatternChange = true;
                     }
                 }
             } else {
                 // The current object vertex won't be iterated again, process it
                 if (equalitySet != null)
-                    equalitySet.update(vertex, type, itinerary);
+                    equalitySet.update(vertex, type, itinerary, objectGraph.root.identifyHash);
                 if (isSerialized != null) {
                     if (vertex.value != null && vertex.value.getClass().isEnum())
                         isSerialized.updateVisitedEnums(vertex.value.getClass().getName(),
@@ -124,7 +127,7 @@ public class GraphPattern implements Serializable {
                                     .getEdgeTarget(patternEdge);
                             if (target.update(objectGraph.graph.getEdgeTarget(edge), objectGraph,
                                     graphPattern, graphPatternMap, logInfo, equalitySet,
-                                    isSerialized)) {
+                                    isSerialized, brokenInvs)) {
                                 subGraphPatternChange = true;
                             }
                             // there should only be one edge with the same name
@@ -138,7 +141,7 @@ public class GraphPattern implements Serializable {
 
         public boolean update(Object object, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
-                IsSerialize isSerialized) {
+                IsSerialize isSerialized, int objId) {
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
@@ -162,7 +165,7 @@ public class GraphPattern implements Serializable {
                     if (target.type.equals(objectType)) {
                         found = true;
                         subGraphPatternChange = target.update(object, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized);
+                                logInfo, equalitySet, isSerialized, objId);
                     }
                 }
                 if (!found) {
@@ -190,14 +193,14 @@ public class GraphPattern implements Serializable {
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
                         graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
                         subGraphPatternRoot.update(object, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized);
+                                equalitySet, isSerialized, objId);
                         subGraphPatternChange = true;
                     }
                 }
             } else {
                 // The current object vertex won't be iterated again, process it
                 if (equalitySet != null)
-                    equalitySet.update(object, objectType, itinerary);
+                    equalitySet.update(object, objectType, itinerary, objId);
                 if (isSerialized != null) {
                     if (object.getClass().isEnum())
                         isSerialized.updateVisitedEnums(objectType, object.toString());
@@ -318,9 +321,10 @@ public class GraphPattern implements Serializable {
     }
 
     public boolean update(ObjectGraph objectGraph, Map<String, GraphPattern> graphPatternMap,
-            LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized) {
+            LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized,
+            Set<String> brokenInvs) {
         return root.update(objectGraph.root, objectGraph, this, graphPatternMap, logInfo,
-                equalitySet, isSerialized);
+                equalitySet, isSerialized, brokenInvs);
     }
 
     public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,

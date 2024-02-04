@@ -6,11 +6,25 @@ import org.zlab.ocov.tracker.inv.unary.LogInfo;
 import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;
 
 import java.util.List;
+import java.util.Set;
 
 public class ValueConstraint extends LabelConstraint {
 
     public ValueConstraint(List<UnaryInvariant> unaryInvariants) {
         super(unaryInvariants);
+    }
+
+    @Override
+    public boolean checkPure(ObjectGraph.Vertex vertex, LogInfo logInfo, String itinerary,
+            Set<String> brokenInvs) {
+        boolean changed = false;
+        for (UnaryInvariant invariant : unaryInvariants) {
+            if (invariant.checkPure(vertex.value, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     @Override
