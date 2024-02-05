@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Runtime {
+    public static final boolean disable = false;
+
     /**
      * Collect & update coverage information, dump coverage when program finishes.
      * TODO: These paths need to be configured with input arguments
@@ -91,6 +93,9 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static boolean update(Object obj, int dumpId) {
+        if (disable)
+            return false;
+
         // Debug
         // if (dumpId != 474) {
         // return false;
