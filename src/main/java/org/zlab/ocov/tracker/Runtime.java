@@ -44,8 +44,12 @@ public class Runtime {
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log("Invariant Runtime failed to initialize!, e = " + e);
+            for (StackTraceElement ste : e.getStackTrace()) {
+                log(ste.toString());
+            }
+            throw new RuntimeException("Invariant Runtime failed to initialize!");
         }
     }
 
