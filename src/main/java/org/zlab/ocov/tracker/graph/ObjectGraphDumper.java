@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.zlab.ocov.tracker.Runtime.log;
+
 public class ObjectGraphDumper implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
@@ -56,6 +58,10 @@ public class ObjectGraphDumper implements Serializable {
             return;
         }
         try {
+            // debug
+            // if (obj.getClass().getName().contains("IndexEntry")) {
+            // log("[hklog] processing IndexEntry object: " + obj);
+            // }
             // process all fields
             Class<?> currentClass = obj.getClass();
             while (currentClass != Object.class) {
