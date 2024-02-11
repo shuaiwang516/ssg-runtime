@@ -369,7 +369,7 @@ public class TestObjectCoverage {
 
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory).create();
         String jsonStr = gson.toJson(coverage1);
-        System.out.println(jsonStr);
+        // System.out.println(jsonStr);
 
         ObjectCoverage coverage2 = gson.fromJson(jsonStr, ObjectCoverage.class);
         assert !coverage2.merge(coverage1);

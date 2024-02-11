@@ -20,6 +20,7 @@ public class IsSerialize implements Serializable {
         this.modifiedEnums = modifiedEnums;
     }
 
+    // FIXME: not invoked in graph implementation
     public void updateVisitedClasses(String className) {
         if (modifiedFields.containsKey(className)) {
             serializedClasses.add(className);

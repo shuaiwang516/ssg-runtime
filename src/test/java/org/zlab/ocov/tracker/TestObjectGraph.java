@@ -133,6 +133,32 @@ public class TestObjectGraph {
         }
     }
 
+    public static class CompClass1 {
+        // comparable class
+        public int a;
+
+        public CompClass1(int a) {
+            this.a = a;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (obj instanceof CompClass1) {
+                CompClass1 other = (CompClass1) obj;
+                return a == other.a;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return a;
+        }
+    }
+
     public static class TargetClassWithSizeBase {
         public TargetClassWithSizeA a = new TargetClassWithSizeA();
     }
@@ -197,6 +223,24 @@ public class TestObjectGraph {
         public TargetClassInvCombinationB(int value) {
             this.value = value;
         }
+    }
+
+    public static class TargetClassMultiEqualBase {
+        public TargetClassMultiEqualA a = new TargetClassMultiEqualA();
+        public TargetClassMultiEqualB b = new TargetClassMultiEqualB();
+    }
+
+    public static class TargetClassMultiEqualA {
+        public CompClass comp = new CompClass(3);
+    }
+
+    public static class TargetClassMultiEqualB {
+        public CompClass1 comp1 = new CompClass1(3);
+    }
+
+    public static class TargetClassMultiEqualBase1 {
+        public TargetClassMultiEqualA a = new TargetClassMultiEqualA();
+        public TargetClassMultiEqualB b = new TargetClassMultiEqualB();
     }
 
     @Test

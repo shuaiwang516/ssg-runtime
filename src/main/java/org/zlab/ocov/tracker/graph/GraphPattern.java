@@ -4,6 +4,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
+import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
@@ -14,6 +15,8 @@ import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class GraphPattern implements Serializable {
@@ -118,6 +121,7 @@ public class GraphPattern implements Serializable {
                         isSerialized.updateVisitedEnums(vertex.value.getClass().getName(),
                                 vertex.value.toString());
                 }
+
                 for (ObjectGraph.Edge edge : objectGraph.graph.outgoingEdgesOf(vertex)) {
                     // check whether the edge is in the graphPattern
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
@@ -139,24 +143,29 @@ public class GraphPattern implements Serializable {
             return labelConstraintsChange || structureConstraintsChange || subGraphPatternChange;
         }
 
-        public boolean update(Object object, GraphPattern graphPattern,
+        public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
-                IsSerialize isSerialized, int objId) {
+                IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
-                if (labelConstraint.update(object, logInfo))
+                labelConstraint.checkPure(obj, logInfo, itinerary, brokenInvs);
+                if (labelConstraint.update(obj, logInfo))
                     labelConstraintsChange = true;
             }
             // Update structure constraints
             boolean structureConstraintsChange = false;
             for (StructureConstraint structureConstraint : structureConstraints) {
-                if (structureConstraint.update(object, logInfo))
+                structureConstraint.checkPure(obj, logInfo, itinerary, brokenInvs);
+                if (structureConstraint.update(obj, logInfo))
                     structureConstraintsChange = true;
             }
             boolean subGraphPatternChange = false;
 
-            String objectType = object.getClass().getName();
+            if (obj == null)
+                return labelConstraintsChange || structureConstraintsChange;
+
+            String objectType = obj.getClass().getName();
             if (isObjectType) {
                 boolean found = false;
                 Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
@@ -164,8 +173,8 @@ public class GraphPattern implements Serializable {
                     GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(edge);
                     if (target.type.equals(objectType)) {
                         found = true;
-                        subGraphPatternChange = target.update(object, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, objId);
+                        subGraphPatternChange = target.update(obj, graphPattern, graphPatternMap,
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId);
                     }
                 }
                 if (!found) {
@@ -192,39 +201,125 @@ public class GraphPattern implements Serializable {
 
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
                         graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
-                        subGraphPatternRoot.update(object, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized, objId);
+                        subGraphPatternRoot.update(obj, graphPattern, graphPatternMap, logInfo,
+                                equalitySet, isSerialized, brokenInvs, objId);
                         subGraphPatternChange = true;
                     }
                 }
             } else {
                 // The current object vertex won't be iterated again, process it
                 if (equalitySet != null)
-                    equalitySet.update(object, objectType, itinerary, objId);
+                    equalitySet.update(obj, objectType, itinerary, objId);
                 if (isSerialized != null) {
-                    if (object.getClass().isEnum())
-                        isSerialized.updateVisitedEnums(objectType, object.toString());
+                    if (obj.getClass().isEnum())
+                        isSerialized.updateVisitedEnums(objectType, obj.toString());
                 }
-                // TODO fix this
 
-                // for (ObjectGraph.Edge edge : objectGraph.graph.outgoingEdgesOf(vertex)) {
-                // // check whether the edge is in the graphPattern
-                // Set<GraphPattern.Edge> outgoingEdges =
-                // graphPattern.graph.outgoingEdgesOf(this);
-                // for (GraphPattern.Edge patternEdge : outgoingEdges) {
-                // if (patternEdge.name.equals(edge.name)) {
-                // GraphPattern.Vertex target = graphPattern.graph
-                // .getEdgeTarget(patternEdge);
-                // if (target.update(objectGraph.graph.getEdgeTarget(edge), objectGraph,
-                // graphPattern, graphPatternMap, logInfo, equalitySet,
-                // isSerialized)) {
-                // subGraphPatternChange = true;
-                // }
-                // // there should only be one edge with the same name
-                // break;
-                // }
-                // }
-                // }
+                // Special process Map/Collection/Array
+                if (obj instanceof Map) {
+                    GraphPattern.Vertex mapKeyItemVertex = null;
+                    GraphPattern.Vertex mapValueItemVertex = null;
+                    Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
+                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                        if (patternEdge.name.equals("map_keyItem")) {
+                            mapKeyItemVertex = graphPattern.graph.getEdgeTarget(patternEdge);
+                        }
+                        if (patternEdge.name.equals("map_valueItem")) {
+                            mapValueItemVertex = graphPattern.graph.getEdgeTarget(patternEdge);
+                        }
+                        if (mapKeyItemVertex != null && mapValueItemVertex != null) {
+                            break;
+                        }
+                    }
+                    for (Object object : ((java.util.Map) obj).keySet()) {
+                        if (object == null) {
+                            continue;
+                        }
+                        if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap, logInfo,
+                                equalitySet, isSerialized, brokenInvs, objId))
+                            subGraphPatternChange = true;
+                    }
+                    for (Object object : ((java.util.Map) obj).values()) {
+                        if (object == null) {
+                            continue;
+                        }
+                        if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                            subGraphPatternChange = true;
+                    }
+                } else if (obj instanceof Collection) {
+                    GraphPattern.Vertex collectionItemVertex = null;
+                    Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
+                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                        if (patternEdge.name.equals("collection_item")) {
+                            collectionItemVertex = graphPattern.graph.getEdgeTarget(patternEdge);
+                            break;
+                        }
+                    }
+                    for (Object object : (Collection) obj) {
+                        if (object == null) {
+                            continue;
+                        }
+                        if (collectionItemVertex.update(object, graphPattern, graphPatternMap,
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                            subGraphPatternChange = true;
+                    }
+                } else if (obj.getClass().isArray()) {
+                    GraphPattern.Vertex arrayItemVertex = null;
+                    Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
+                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                        if (patternEdge.name.equals("array_item")) {
+                            arrayItemVertex = graphPattern.graph.getEdgeTarget(patternEdge);
+                            break;
+                        }
+                    }
+                    int length = Array.getLength(obj);
+                    for (int i = 0; i < length; i++) {
+                        Object object = Array.get(obj, i);
+                        if (object == null) {
+                            continue;
+                        }
+                        if (arrayItemVertex.update(object, graphPattern, graphPatternMap, logInfo,
+                                equalitySet, isSerialized, brokenInvs, objId))
+                            subGraphPatternChange = true;
+                    }
+                } else {
+                    // Iterate all fields of the object
+                    try {
+                        Class<?> currentClass = obj.getClass();
+                        while (currentClass != Object.class) { // Traverse up the class hierarchy
+                            Field[] fields = currentClass.getDeclaredFields();
+                            for (Field field : fields) {
+                                if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                                        || !java.lang.reflect.Modifier
+                                                .isFinal(field.getModifiers())) {
+                                    field.setAccessible(true);
+                                    // Field Information
+                                    Object value = field.get(obj);
+                                    String fieldName = field.getName();
+                                    Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph
+                                            .outgoingEdgesOf(this);
+                                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                                        if (patternEdge.name.equals(fieldName)) {
+                                            GraphPattern.Vertex target = graphPattern.graph
+                                                    .getEdgeTarget(patternEdge);
+                                            if (target.update(value, graphPattern, graphPatternMap,
+                                                    logInfo, equalitySet, isSerialized, brokenInvs,
+                                                    objId)) {
+                                                subGraphPatternChange = true;
+                                            }
+                                            // there should only be one edge with the same name
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            currentClass = currentClass.getSuperclass(); // Move to the superclass
+                        }
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
             return labelConstraintsChange || structureConstraintsChange || subGraphPatternChange;
         }
@@ -328,9 +423,10 @@ public class GraphPattern implements Serializable {
     }
 
     public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
-            EqualitySet equalitySet, IsSerialize isSerialized) {
+            EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
         // TODO: avoid dumping the object graph (save one time overhead!)
-        throw new RuntimeException("Not implemented");
+        return root.update(obj, this, graphPatternMap, logInfo, equalitySet, isSerialized,
+                brokenInvs, objId);
     }
 
     public boolean merge(GraphPattern other) {

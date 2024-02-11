@@ -563,9 +563,9 @@ public class EqualitySet implements Serializable {
         }
     }
 
-    public static Map<Integer, Map<Integer, Set<String>>> extractEqualityEdges(
+    public static void extractEqualityEdgesAcross(
+            Map<Integer, Map<Integer, Set<String>>> equalityEdges,
             Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj) {
-        Map<Integer, Map<Integer, Set<String>>> equalityEdges = new HashMap<>();
         for (Map.Entry<String, Map<Integer, Map<String, Integer>>> entry : equalSetAcrossObj
                 .entrySet()) {
             for (Map.Entry<Integer, Map<String, Integer>> objEntry : entry.getValue().entrySet()) {
@@ -586,7 +586,32 @@ public class EqualitySet implements Serializable {
                 }
             }
         }
-        return equalityEdges;
+    }
+
+    public static void extractEqualityEdgesSameIti(
+            Map<Integer, Map<Integer, Set<String>>> equalityEdges,
+            Map<String, Map<Integer, Map<String, Set<Integer>>>> equalSetSameItineraryAcrossObj) {
+        for (Map.Entry<String, Map<Integer, Map<String, Set<Integer>>>> entry : equalSetSameItineraryAcrossObj
+                .entrySet()) {
+            for (Map.Entry<Integer, Map<String, Set<Integer>>> objEntry : entry.getValue()
+                    .entrySet()) {
+                Map<String, Set<Integer>> itinerarySet = objEntry.getValue();
+                for (Map.Entry<String, Set<Integer>> itineraryEntry1 : itinerarySet.entrySet()) {
+                    String itinerary = itineraryEntry1.getKey();
+                    Set<Integer> objIds = itineraryEntry1.getValue();
+                    for (int objId1 : objIds) {
+                        for (int objId2 : objIds) {
+                            if (objId1 == objId2)
+                                continue;
+                            String edge = String.format("<Equality> %s == %s", itinerary,
+                                    itinerary);
+                            equalityEdges.computeIfAbsent(objId1, k -> new HashMap<>())
+                                    .computeIfAbsent(objId2, k -> new HashSet<>()).add(edge);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

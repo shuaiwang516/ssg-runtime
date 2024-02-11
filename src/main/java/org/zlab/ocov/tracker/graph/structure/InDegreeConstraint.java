@@ -4,7 +4,10 @@ import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
 import org.zlab.ocov.tracker.inv.unary.UnaryInvariant;
 
+import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class InDegreeConstraint extends StructureConstraint {
@@ -33,6 +36,12 @@ public class InDegreeConstraint extends StructureConstraint {
     }
 
     @Override
+    public boolean checkPure(Object object, LogInfo logInfo, String itinerary,
+            Set<String> brokenInvs) {
+        throw new RuntimeException("InDegreeConstraint does not support checking pure on object");
+    }
+
+    @Override
     public boolean update(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo) {
         int count = 0;
         for (ObjectGraph.Edge edge : graph.graph.incomingEdgesOf(vertex)) {
@@ -50,7 +59,7 @@ public class InDegreeConstraint extends StructureConstraint {
 
     @Override
     public boolean update(Object object, LogInfo logInfo) {
-        return false;
+        throw new RuntimeException("InDegreeConstraint does not support checking pure on object");
     }
 
 }

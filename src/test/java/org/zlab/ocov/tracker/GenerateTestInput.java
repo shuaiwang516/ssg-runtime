@@ -311,6 +311,38 @@ public class GenerateTestInput {
         Utils.saveSetToFile(comparableClasses, comparableFilePath);
     }
 
+    @Test
+    public void createExampleInputForMultiEqual() {
+        TestHelper helper = new TestHelper("MultiEqual");
+        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualBase", "a",
+                classPrefix + "TargetClassMultiEqualA");
+        helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualBase", "b",
+                classPrefix + "TargetClassMultiEqualB");
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualBase1", "a",
+                classPrefix + "TargetClassMultiEqualA");
+        helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualBase1", "b",
+                classPrefix + "TargetClassMultiEqualB");
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualA", "comp",
+                classPrefix + "CompClass");
+        helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualB", "comp1",
+                classPrefix + "CompClass1");
+
+        helper.addBaseClassInfo(classPrefix + "CompClass", "a", "int");
+        helper.addBaseClassInfo(classPrefix + "CompClass1", "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassMultiEqualBase");
+        helper.addTopObject(classPrefix + "TargetClassMultiEqualBase1");
+
+        helper.addComparableClass(classPrefix + "CompClass");
+        helper.addComparableClass(classPrefix + "CompClass1");
+
+        helper.save();
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo
@@ -320,6 +352,43 @@ public class GenerateTestInput {
                 + coverage.baseClassInfo.containsKey("org.apache.cassandra.db.AtomicBTreeColumns"));
         System.out.println("ret2 = "
                 + coverage.baseClassInfo.get("org.apache.cassandra.db.AtomicBTreeColumns"));
+    }
+
+    public static class TestHelper {
+        public Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
+        public Set<String> topObjects = new HashSet<>();
+        public Set<String> comparableClasses = new HashSet<>();
+
+        public String bassClassPath;
+        public String topObjectsPath;
+        public String comparableClassesPath;
+
+        public TestHelper(String suffix) {
+            bassClassPath = String.format("input/baseClassInfoFor%s.json", suffix);
+            topObjectsPath = String.format("input/topObjectsFor%s.json", suffix);
+            comparableClassesPath = String.format("input/comparableClassesFor%s.json", suffix);
+        }
+
+        public void addBaseClassInfo(String className, String fieldName, String fieldType) {
+            if (!baseClassInfo.containsKey(className)) {
+                baseClassInfo.put(className, new HashMap<>());
+            }
+            baseClassInfo.get(className).put(fieldName, fieldType);
+        }
+
+        public void addTopObject(String className) {
+            topObjects.add(className);
+        }
+
+        public void addComparableClass(String className) {
+            comparableClasses.add(className);
+        }
+
+        public void save() {
+            Utils.saveMapToFile(baseClassInfo, bassClassPath);
+            Utils.saveSetToFile(topObjects, topObjectsPath);
+            Utils.saveSetToFile(comparableClasses, comparableClassesPath);
+        }
     }
 
 }

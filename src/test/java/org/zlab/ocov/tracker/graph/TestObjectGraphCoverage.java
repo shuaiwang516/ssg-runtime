@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.zlab.ocov.tracker.ObjectCoverage;
 import org.zlab.ocov.tracker.ObjectGraphCoverage;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.TestObjectGraph;
@@ -236,7 +237,7 @@ public class TestObjectGraphCoverage {
 
         Gson gson = ObjectGraphCoverage.constructGson();
         String jsonStr = gson.toJson(graph);
-        System.out.println(jsonStr);
+        // System.out.println(jsonStr);
         DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graphFromGson = gson.fromJson(
                 jsonStr,
                 new TypeToken<DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge>>() {
@@ -536,8 +537,123 @@ public class TestObjectGraphCoverage {
 
         Gson gson = ObjectGraphCoverage.constructGson();
         String jsonStr = gson.toJson(coverage1);
-        System.out.println(jsonStr);
+        // System.out.println(jsonStr);
         ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr, ObjectGraphCoverage.class);
+    }
+
+    @Test
+    public void testCombination1() {
+        /**
+         * There are 2 objects, and there are multiple equality between them
+         */
+        String suffix = "MultiEqual";
+        Path bassClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // first equality
+        TestObjectGraph.TargetClassMultiEqualBase obj1 = new TestObjectGraph.TargetClassMultiEqualBase();
+        obj1.b.comp1.a = 4;
+        coverage.update(obj1);
+        TestObjectGraph.TargetClassMultiEqualBase obj2 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj2);
+
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // second equality
+        TestObjectGraph.TargetClassMultiEqualBase obj3 = new TestObjectGraph.TargetClassMultiEqualBase();
+        obj3.a.comp.a = 4;
+        coverage.update(obj3);
+        TestObjectGraph.TargetClassMultiEqualBase obj4 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj4);
+
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // both equality
+        TestObjectGraph.TargetClassMultiEqualBase obj5 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj5);
+        TestObjectGraph.TargetClassMultiEqualBase obj6 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj6);
+
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // add it again?
+        TestObjectGraph.TargetClassMultiEqualBase obj7 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj7);
+        TestObjectGraph.TargetClassMultiEqualBase obj8 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj8);
+
+        coverage.inferInvariant();
+        assert !coverage1.merge(coverage);
+        coverage.clear();
+    }
+
+    @Test
+    public void testCombination2() {
+        String suffix = "MultiEqual";
+        Path bassClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // first equality
+        TestObjectGraph.TargetClassMultiEqualBase obj1 = new TestObjectGraph.TargetClassMultiEqualBase();
+        obj1.b.comp1.a = 4;
+        coverage.update(obj1);
+        TestObjectGraph.TargetClassMultiEqualBase1 obj2 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        coverage.update(obj2);
+
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // second equality
+        TestObjectGraph.TargetClassMultiEqualBase obj3 = new TestObjectGraph.TargetClassMultiEqualBase();
+        obj3.a.comp.a = 4;
+        coverage.update(obj3);
+        TestObjectGraph.TargetClassMultiEqualBase1 obj4 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        coverage.update(obj4);
+
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // both equality
+        TestObjectGraph.TargetClassMultiEqualBase obj5 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj5);
+        TestObjectGraph.TargetClassMultiEqualBase1 obj6 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        coverage.update(obj6);
+
+        coverage.inferInvariant();
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        // add it again?
+        TestObjectGraph.TargetClassMultiEqualBase obj7 = new TestObjectGraph.TargetClassMultiEqualBase();
+        coverage.update(obj7);
+        TestObjectGraph.TargetClassMultiEqualBase1 obj8 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        coverage.update(obj8);
+
+        coverage.inferInvariant();
+        assert !coverage1.merge(coverage);
+        coverage.clear();
     }
 
     @Test

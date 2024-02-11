@@ -17,34 +17,12 @@ public class ValueConstraint extends LabelConstraint {
     @Override
     public boolean checkPure(ObjectGraph.Vertex vertex, LogInfo logInfo, String itinerary,
             Set<String> brokenInvs) {
-        boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
-            if (invariant.checkPure(vertex.value, logInfo)) {
-                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
-                changed = true;
-            }
-        }
-        return changed;
+        return checkPure(vertex.value, logInfo, itinerary, brokenInvs);
     }
 
     @Override
     public boolean update(ObjectGraph.Vertex vertex, LogInfo logInfo) {
-        boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
-            if (invariant.add(vertex.value, logInfo))
-                changed = true;
-        }
-        return changed;
-    }
-
-    @Override
-    public boolean update(Object object, LogInfo logInfo) {
-        boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
-            if (invariant.add(object, logInfo))
-                changed = true;
-        }
-        return changed;
+        return update(vertex.value, logInfo);
     }
 
     @Override

@@ -188,8 +188,7 @@ public class Runtime {
         // visited objects are cleared
         if (memorizeAllObjectGraph)
             objectCoverage.inferInvariantFromAllObjectGraphs();
-        else
-            objectCoverage.inferInvariant();
+        objectCoverage.inferInvariant();
         return objectCoverage;
     }
 

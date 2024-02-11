@@ -36,6 +36,33 @@ public class OutDegreeConstraint extends StructureConstraint {
     }
 
     @Override
+    public boolean checkPure(Object object, LogInfo logInfo, String itinerary,
+            Set<String> brokenInvs) {
+        if (object == null)
+            return false;
+        int count;
+        if (edgeLabel.equals("collection_item")) {
+            count = ((Collection) object).size();
+        } else if (edgeLabel.equals("map_keyItem")) {
+            count = ((Map) object).keySet().size();
+        } else if (edgeLabel.equals("map_valueItem")) {
+            count = ((Map) object).values().size();
+        } else if (edgeLabel.equals("array_item")) {
+            count = Array.getLength(object);
+        } else {
+            throw new RuntimeException("Unknown edge label: " + edgeLabel);
+        }
+        boolean result = false;
+        for (UnaryInvariant invariant : unaryInvariants) {
+            if (invariant.checkPure(count, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                result = true;
+            }
+        }
+        return result;
+    }
+
+    @Override
     public boolean update(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo) {
         int count = 0;
         for (ObjectGraph.Edge edge : graph.graph.outgoingEdgesOf(vertex)) {

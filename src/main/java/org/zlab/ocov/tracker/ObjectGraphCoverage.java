@@ -25,6 +25,7 @@ public class ObjectGraphCoverage implements Serializable {
 
     public final static boolean enableInvariantCombination = true;
     public final static boolean useFixedObjectGraph = false;
+    public final static boolean avoidObjectGraphDump = true;
 
     // Only contain the top level objects: class name -> class info
     public Map<String, GraphPattern> objCoverage = new HashMap<>();
@@ -140,25 +141,30 @@ public class ObjectGraphCoverage implements Serializable {
 
         // long time1 = System.nanoTime();
 
-        ObjectGraph objectGraph;
-
-        if (useFixedObjectGraph) {
-            if (tmpObjectGraph == null) {
-                tmpObjectGraph = objectGraphDumper.dump(obj);
-            }
-            objectGraph = tmpObjectGraph;
-        } else {
-            objectGraph = objectGraphDumper.dump(obj);
-        }
-
+        boolean ret = false;
+        Set<String> brokenInvs = new HashSet<>();
         LogInfo logInfo = new LogInfo(dumpId);
 
-        // long time2 = System.nanoTime();
+        if (avoidObjectGraphDump) {
+            ret = classInfo.update(obj, baseClassInfo, logInfo, equalitySet, isSerialized,
+                    brokenInvs, objId);
+        } else {
+            ObjectGraph objectGraph;
 
-        Set<String> brokenInvs = new HashSet<>();
+            if (useFixedObjectGraph) {
+                if (tmpObjectGraph == null) {
+                    tmpObjectGraph = objectGraphDumper.dump(obj);
+                }
+                objectGraph = tmpObjectGraph;
+            } else {
+                objectGraph = objectGraphDumper.dump(obj);
+            }
 
-        boolean ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet,
-                isSerialized, brokenInvs);
+            // long time2 = System.nanoTime();
+
+            ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet, isSerialized,
+                    brokenInvs);
+        }
 
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
             invariantCombination.record(objId, brokenInvs);
@@ -233,8 +239,12 @@ public class ObjectGraphCoverage implements Serializable {
         int dumpId = -1;
         LogInfo logInfo = new LogInfo(dumpId);
         for (ObjectGraph objectGraph : objectGraphs) {
+            Set<String> brokenInvs = new HashSet<>();
             objCoverage.get(objectGraph.root.type).update(objectGraph, baseClassInfo, logInfo,
-                    equalitySet, isSerialized);
+                    equalitySet, isSerialized, brokenInvs);
+            if (!brokenInvs.isEmpty() && enableInvariantCombination) {
+                invariantCombination.record(objectGraph.root.identifyHash, brokenInvs);
+            }
             if (equalitySet != null)
                 equalitySet.dumpSameObjectGraph(dumpId, objectGraph.root.identifyHash);
         }

@@ -22,6 +22,9 @@ public abstract class StructureConstraint implements Serializable {
     public abstract boolean checkPure(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo,
             String itinerary, Set<String> brokenInvs);
 
+    public abstract boolean checkPure(Object object, LogInfo logInfo, String itinerary,
+            Set<String> brokenInvs);
+
     public abstract boolean update(ObjectGraph.Vertex vertex, ObjectGraph graph, LogInfo logInfo);
 
     public abstract boolean update(Object object, LogInfo logInfo);

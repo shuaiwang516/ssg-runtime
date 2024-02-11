@@ -35,10 +35,11 @@ public class InvariantCombination implements Serializable {
     }
 
     public void inferMulti(EqualitySet equalitySet) {
-        Map<Integer, Map<Integer, Set<String>>> equalAcrossObj = EqualitySet
-                .extractEqualityEdges(equalitySet.equalSetAcrossObj);
-
-        for (Map.Entry<Integer, Map<Integer, Set<String>>> entry : equalAcrossObj.entrySet()) {
+        Map<Integer, Map<Integer, Set<String>>> equality = new HashMap<>();
+        EqualitySet.extractEqualityEdgesAcross(equality, equalitySet.equalSetAcrossObj);
+        EqualitySet.extractEqualityEdgesSameIti(equality,
+                equalitySet.equalSetSameItineraryAcrossObj);
+        for (Map.Entry<Integer, Map<Integer, Set<String>>> entry : equality.entrySet()) {
             Integer objId1 = entry.getKey();
             for (Map.Entry<Integer, Set<String>> objEntry : entry.getValue().entrySet()) {
                 Integer objId2 = objEntry.getKey();

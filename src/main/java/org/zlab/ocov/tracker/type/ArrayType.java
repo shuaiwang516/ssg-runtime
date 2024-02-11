@@ -55,7 +55,7 @@ public class ArrayType extends SequenceType {
                         // Runtime.log("New class " + className);
                         ClassInfo newClassInfo = SerializationUtils
                                 .clone(baseClassInfo.get(className));
-                        newClassInfo.updateItinerary(itinerary + ".collection_item");
+                        newClassInfo.updateItinerary(itinerary + ".array_item");
                         newClassInfo.update(object, baseClassInfo, dumpId, equalitySet,
                                 isSerialized, objId);
                         classNames.put(className, newClassInfo);
