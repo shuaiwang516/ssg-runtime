@@ -24,6 +24,7 @@ public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     public final static boolean enableInvariantCombination = true;
+    public final static boolean useFixedObjectGraph = false;
 
     // Only contain the top level objects: class name -> class info
     public Map<String, GraphPattern> objCoverage = new HashMap<>();
@@ -49,6 +50,9 @@ public class ObjectGraphCoverage implements Serializable {
 
     Map<String, Integer> classDupCount = new HashMap<>();
     Map<String, Integer> classDumpCount = new HashMap<>();
+
+    // Debug
+    ObjectGraph tmpObjectGraph;
 
     public ObjectGraphCoverage() {
         // for json
@@ -110,7 +114,7 @@ public class ObjectGraphCoverage implements Serializable {
             return false;
         String className = obj.getClass().getName();
 
-        Integer objId = System.identityHashCode(obj);
+        int objId = System.identityHashCode(obj);
         if (visitedObjects.contains(objId)) {
             // if (classDupCount.containsKey(className)) {
             // classDupCount.put(className, classDupCount.get(className) + 1);
@@ -136,7 +140,17 @@ public class ObjectGraphCoverage implements Serializable {
 
         // long time1 = System.nanoTime();
 
-        ObjectGraph objectGraph = objectGraphDumper.dump(obj);
+        ObjectGraph objectGraph;
+
+        if (useFixedObjectGraph) {
+            if (tmpObjectGraph == null) {
+                tmpObjectGraph = objectGraphDumper.dump(obj);
+            }
+            objectGraph = tmpObjectGraph;
+        } else {
+            objectGraph = objectGraphDumper.dump(obj);
+        }
+
         LogInfo logInfo = new LogInfo(dumpId);
 
         // long time2 = System.nanoTime();
