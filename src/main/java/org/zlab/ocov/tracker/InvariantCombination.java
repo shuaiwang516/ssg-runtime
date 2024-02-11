@@ -35,37 +35,26 @@ public class InvariantCombination implements Serializable {
     }
 
     public void inferMulti(EqualitySet equalitySet) {
+        Map<Integer, Map<Integer, Set<String>>> equalAcrossObj = EqualitySet
+                .extractEqualityEdges(equalitySet.equalSetAcrossObj);
 
-        for (Map.Entry<String, Map<Integer, Map<String, Integer>>> entry : equalitySet.equalSetAcrossObj
-                .entrySet()) {
-            for (Map.Entry<Integer, Map<String, Integer>> objEntry : entry.getValue().entrySet()) {
-                Set<Integer> relatedObjects = new HashSet<>(objEntry.getValue().values());
-                if (relatedObjects.size() > 1) {
-                    Set<String> brokenInvSet = new HashSet<>();
-                    for (Integer objId : relatedObjects) {
-                        if (obj2BrokenInvSet.containsKey(objId))
-                            brokenInvSet.addAll(obj2BrokenInvSet.get(objId));
-                    }
-                    MultiObjectBrokenInvSet.add(brokenInvSet);
+        for (Map.Entry<Integer, Map<Integer, Set<String>>> entry : equalAcrossObj.entrySet()) {
+            Integer objId1 = entry.getKey();
+            for (Map.Entry<Integer, Set<String>> objEntry : entry.getValue().entrySet()) {
+                Integer objId2 = objEntry.getKey();
+                Set<String> equalInvs = objEntry.getValue();
+                Set<String> brokenInvSet1 = obj2BrokenInvSet.get(objId1);
+                Set<String> brokenInvSet2 = obj2BrokenInvSet.get(objId2);
+                Set<String> brokenInvSet = new HashSet<>();
+                if (brokenInvSet1 != null) {
+                    brokenInvSet.addAll(brokenInvSet1);
                 }
-            }
-        }
-
-        for (Map.Entry<String, Map<Integer, Map<String, Set<Integer>>>> entry : equalitySet.equalSetSameItineraryAcrossObj
-                .entrySet()) {
-            for (Map.Entry<Integer, Map<String, Set<Integer>>> objEntry : entry.getValue()
-                    .entrySet()) {
-                for (Map.Entry<String, Set<Integer>> invEntry : objEntry.getValue().entrySet()) {
-                    // No need for deep copy
-                    Set<Integer> relatedObjects = new HashSet<>(invEntry.getValue());
-                    if (relatedObjects.size() > 1) {
-                        Set<String> brokenInvSet = new HashSet<>();
-                        for (Integer objId : relatedObjects) {
-                            if (obj2BrokenInvSet.containsKey(objId))
-                                brokenInvSet.addAll(obj2BrokenInvSet.get(objId));
-                        }
-                        MultiObjectBrokenInvSet.add(brokenInvSet);
-                    }
+                if (brokenInvSet2 != null) {
+                    brokenInvSet.addAll(brokenInvSet2);
+                }
+                brokenInvSet.addAll(equalInvs);
+                if (!brokenInvSet.isEmpty()) {
+                    MultiObjectBrokenInvSet.add(brokenInvSet);
                 }
             }
         }

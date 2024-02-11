@@ -563,4 +563,30 @@ public class EqualitySet implements Serializable {
         }
     }
 
+    public static Map<Integer, Map<Integer, Set<String>>> extractEqualityEdges(
+            Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj) {
+        Map<Integer, Map<Integer, Set<String>>> equalityEdges = new HashMap<>();
+        for (Map.Entry<String, Map<Integer, Map<String, Integer>>> entry : equalSetAcrossObj
+                .entrySet()) {
+            for (Map.Entry<Integer, Map<String, Integer>> objEntry : entry.getValue().entrySet()) {
+                Map<String, Integer> itinerarySet = objEntry.getValue();
+                for (Map.Entry<String, Integer> itineraryEntry1 : itinerarySet.entrySet()) {
+                    String itinerary1 = itineraryEntry1.getKey();
+                    int objId1 = itineraryEntry1.getValue();
+                    for (Map.Entry<String, Integer> itineraryEntry2 : itinerarySet.entrySet()) {
+                        String itinerary2 = itineraryEntry2.getKey();
+                        int objId2 = itineraryEntry2.getValue();
+                        if (objId1 != objId2) {
+                            String edge = String.format("<Equality> %s == %s", itinerary1,
+                                    itinerary2);
+                            equalityEdges.computeIfAbsent(objId1, k -> new HashMap<>())
+                                    .computeIfAbsent(objId2, k -> new HashSet<>()).add(edge);
+                        }
+                    }
+                }
+            }
+        }
+        return equalityEdges;
+    }
+
 }
