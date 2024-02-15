@@ -127,7 +127,7 @@ public class Runtime {
         if (disable)
             return false;
         synchronized (objectCoverageLock) {
-            return objectCoverage.dump(obj, dumpId);
+            return objectCoverage.updateBranch(obj, dumpId);
         }
     }
 
@@ -135,7 +135,7 @@ public class Runtime {
         if (disable)
             return false;
         synchronized (objectCoverageLock) {
-            return objectCoverage.dump(obj, dumpId);
+            return objectCoverage.updateCollection(obj, dumpId);
         }
     }
 
