@@ -38,6 +38,7 @@ public class ObjectGraphCoverage implements Serializable {
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
     public InvariantCombination invariantCombination;
+    public Boundary boundary;
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
@@ -60,16 +61,23 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath) {
-        this(baseClassInfoPath, topObjectsPath, null, null, null);
+        this(baseClassInfoPath, topObjectsPath, null, null, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath) {
-        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null);
+        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath) {
+        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, modifiedFieldsPath,
+                modifiedEnumsPath, null);
+    }
+
+    public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
+            Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
+            Path branch2CollectionPath) {
         Map<String, Map<String, String>> classInfoOri = Utils
                 .loadMapFromFile(baseClassInfoPath.toString());
         baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
@@ -87,6 +95,9 @@ public class ObjectGraphCoverage implements Serializable {
         if (modifiedFieldsPath != null && modifiedFieldsPath.toFile().exists()
                 && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()) {
             isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
+        }
+        if (branch2CollectionPath != null && branch2CollectionPath.toFile().exists()) {
+            boundary = new Boundary(Utils.loadBranch2Collection(branch2CollectionPath));
         }
         if (enableInvariantCombination)
             invariantCombination = new InvariantCombination();
@@ -188,6 +199,19 @@ public class ObjectGraphCoverage implements Serializable {
         return ret;
     }
 
+    // ----Boundary Related----
+    public boolean updateBranch(Object obj, int id) {
+        if (boundary == null)
+            return false;
+        return boundary.updateBranch(obj, id);
+    }
+
+    public boolean updateCollection(Object obj, int id) {
+        if (boundary == null)
+            return false;
+        return boundary.updateCollection(obj, id);
+    }
+
     public void inferInvariant() {
         // this should be invoked for every test
         if (equalitySet != null)
@@ -207,6 +231,8 @@ public class ObjectGraphCoverage implements Serializable {
             isSerialized.clear();
         if (enableInvariantCombination)
             invariantCombination.clear();
+        if (boundary != null)
+            boundary.clear();
     }
 
     // Only record, and infer at last
@@ -336,6 +362,16 @@ public class ObjectGraphCoverage implements Serializable {
         if (enableInvariantCombination
                 && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
             newCoverage = true;
+        }
+        if (boundary == null) {
+            if (otherObjCoverage.boundary != null) {
+                boundary = SerializationUtils.clone(otherObjCoverage.boundary);
+                newCoverage = true;
+            }
+        } else {
+            if (boundary.merge(otherObjCoverage.boundary)) {
+                newCoverage = true;
+            }
         }
         if (newCoverage) {
             Runtime.log(

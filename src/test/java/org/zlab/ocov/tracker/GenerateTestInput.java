@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -339,6 +340,23 @@ public class GenerateTestInput {
 
         helper.addComparableClass(classPrefix + "CompClass");
         helper.addComparableClass(classPrefix + "CompClass1");
+
+        helper.save();
+    }
+
+    @Test
+    public void createInputForBoundary() {
+        String suffix = "Boundary";
+        TestHelper helper = new TestHelper(suffix);
+
+        Map<Integer, Set<Integer>> branch2Collection = new HashMap<>();
+        Set<Integer> set1 = branch2Collection.computeIfAbsent(1, k -> new HashSet<>());
+        set1.add(1);
+        set1.add(2);
+        Set<Integer> set2 = branch2Collection.computeIfAbsent(2, k -> new HashSet<>());
+        set2.add(9);
+        Utils.saveBranch2Collection(branch2Collection,
+                Paths.get("input/branch2CollectionForBoundary.json"));
 
         helper.save();
     }

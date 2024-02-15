@@ -12,7 +12,9 @@ import org.zlab.ocov.tracker.TestObjectGraph;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class TestObjectGraphCoverage {
@@ -603,14 +605,14 @@ public class TestObjectGraphCoverage {
     @Test
     public void testCombination2() {
         String suffix = "MultiEqual";
-        Path bassClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
         Path comparableClassesPath = Paths
                 .get(String.format("input/comparableClassesFor%s.json", suffix));
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // first equality
@@ -653,6 +655,48 @@ public class TestObjectGraphCoverage {
 
         coverage.inferInvariant();
         assert !coverage1.merge(coverage);
+        coverage.clear();
+    }
+
+    @Test
+    public void testBoundary() {
+        String suffix = "Boundary";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path branch2Collection = Paths
+                .get(String.format("input/branch2CollectionFor%s.json", suffix));
+        // 1 -> 1, 2
+        // 2 -> 9
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
+                null, null, branch2Collection);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
+                null, null, branch2Collection);
+
+        List<Integer> list1 = new ArrayList<>();
+        List<Integer> list2 = new ArrayList<>();
+        List<Integer> list3 = new ArrayList<>();
+
+        // record a collection
+        coverage.updateCollection(list1, 1);
+        // Branch is broken
+        coverage.updateBranch(true, 1);
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        coverage.updateCollection(list2, 2);
+        coverage.updateBranch(true, 1);
+        assert !coverage1.merge(coverage);
+        coverage.clear();
+
+        coverage.updateCollection(list2, 2);
+        coverage.updateBranch(false, 1);
+        assert coverage1.merge(coverage);
+        coverage.clear();
+
+        coverage.updateCollection(list3, 9);
+        coverage.updateBranch(true, 2);
+
+        assert coverage1.merge(coverage);
         coverage.clear();
     }
 

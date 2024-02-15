@@ -32,6 +32,30 @@ public class Utils {
         return null;
     }
 
+    public static void saveBranch2Collection(Map<Integer, Set<Integer>> programLocations,
+            Path filePath) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(filePath.toFile(), programLocations);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Map<Integer, Set<Integer>> loadBranch2Collection(Path filePath) {
+        // Read the map from the JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Map<Integer, Set<Integer>> mapFromFile = objectMapper.readValue(filePath.toFile(),
+                    new TypeReference<Map<Integer, Set<Integer>>>() {
+                    });
+            return mapFromFile;
+        } catch (IOException e) {
+            System.err.println("Exception happen when loading output from " + filePath);
+            throw new RuntimeException(e);
+        }
+    }
+
     // json: save set to a file
     public static void saveSetToFile(Set<String> map, String filename) {
         try {

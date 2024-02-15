@@ -22,6 +22,7 @@ public class Runtime {
     public static Path comparableClassesPath = Paths.get("/tmp/comparableClasses.json");
     public static Path modifiedFieldsPath = Paths.get("/tmp/modifiedFields.json");
     public static Path modifiedEnumsPath = Paths.get("/tmp/modifiedEnums.json");
+    public static Path branch2CollectionPath = Paths.get("/tmp/branch2Collection.json");
 
     public static Path filePath = Paths.get("/tmp/coverage.log");
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -41,7 +42,8 @@ public class Runtime {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                    comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
+                    comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
+                    branch2CollectionPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (Exception e) {
@@ -99,7 +101,6 @@ public class Runtime {
     public static boolean update(Object obj, int dumpId) {
         if (disable)
             return false;
-
         // Debug
         // if (dumpId != 474) {
         // return false;
@@ -120,15 +121,22 @@ public class Runtime {
             // log(String.format("Time1: %d ms", totalTime1));
             return ret;
         }
+    }
 
-        // rwLock.readLock().lock();
-        // try {
-        // boolean val = objectCoverage.update(obj, dumpId);
-        // // Runtime.log("Update coverage ret = " + val);
-        // return val;
-        // } finally {
-        // rwLock.readLock().unlock();
-        // }
+    public static boolean updateBranch(Object obj, int dumpId) {
+        if (disable)
+            return false;
+        synchronized (objectCoverageLock) {
+            return objectCoverage.dump(obj, dumpId);
+        }
+    }
+
+    public static boolean updateCollection(Object obj, int dumpId) {
+        if (disable)
+            return false;
+        synchronized (objectCoverageLock) {
+            return objectCoverage.dump(obj, dumpId);
+        }
     }
 
     private static final int PORT = 62000; // the port to listen on
