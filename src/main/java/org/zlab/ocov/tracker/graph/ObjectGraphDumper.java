@@ -1,5 +1,7 @@
 package org.zlab.ocov.tracker.graph;
 
+import org.zlab.ocov.tracker.Runtime;
+
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -33,10 +35,11 @@ public class ObjectGraphDumper implements Serializable {
     /**
      * Given an object, traverse its reference graph and dump into ObjectGraph
      */
-    public ObjectGraph dump(Object obj) {
+    public ObjectGraph dump(Object obj, int dumpId) {
         if (obj == null || !classInfo.containsKey(obj.getClass().getName()))
             return null;
 
+        // Runtime.log("[hklog] Dumping object: " + obj.getClass().getName() + " id: " + dumpId);
         ObjectGraph.Vertex vertex;
         if (computeSize) {
             vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),
@@ -57,6 +60,7 @@ public class ObjectGraphDumper implements Serializable {
         if (obj == null) {
             return;
         }
+        // Runtime.log("[hklog] className = " + className);
         try {
             // debug
             // if (obj.getClass().getName().contains("IndexEntry")) {
@@ -72,6 +76,11 @@ public class ObjectGraphDumper implements Serializable {
                         field.setAccessible(true);
                         Object curObj = field.get(obj);
                         String fieldName = field.getName();
+                        // TODO: directly avoid circles by memorizing addresses
+                        // Inner classes
+                        if (curObj == obj || field.getName().equals("this$0")) {
+                            continue;
+                        }
                         if (isSerializedField(className, fieldName)) {
                             addVertex(curObj, objectGraph, vertex, fieldName);
                         }

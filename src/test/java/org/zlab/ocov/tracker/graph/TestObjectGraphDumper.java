@@ -34,7 +34,7 @@ public class TestObjectGraphDumper {
         obj1.fList.add(new TestObjectGraph.TargetClassF2());
         obj1.fList.add(new TestObjectGraph.TargetClassF2());
 
-        ObjectGraph objectGraph = dumper.dump(obj1);
+        ObjectGraph objectGraph = dumper.dump(obj1, -1);
 
         objectGraph.print();
 

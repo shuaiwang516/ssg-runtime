@@ -4,7 +4,6 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
-import org.zlab.ocov.tracker.ClassInfo;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
@@ -231,21 +230,25 @@ public class GraphPattern implements Serializable {
                             break;
                         }
                     }
-                    for (Object object : ((java.util.Map) obj).keySet()) {
-                        if (object == null) {
-                            continue;
+                    if (mapKeyItemVertex != null) {
+                        for (Object object : ((java.util.Map) obj).keySet()) {
+                            if (object == null) {
+                                continue;
+                            }
+                            if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap,
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                subGraphPatternChange = true;
                         }
-                        if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized, brokenInvs, objId))
-                            subGraphPatternChange = true;
                     }
-                    for (Object object : ((java.util.Map) obj).values()) {
-                        if (object == null) {
-                            continue;
+                    if (mapValueItemVertex != null) {
+                        for (Object object : ((java.util.Map) obj).values()) {
+                            if (object == null) {
+                                continue;
+                            }
+                            if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                subGraphPatternChange = true;
                         }
-                        if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId))
-                            subGraphPatternChange = true;
                     }
                 } else if (obj instanceof Collection) {
                     GraphPattern.Vertex collectionItemVertex = null;
@@ -256,13 +259,15 @@ public class GraphPattern implements Serializable {
                             break;
                         }
                     }
-                    for (Object object : (Collection) obj) {
-                        if (object == null) {
-                            continue;
+                    if (collectionItemVertex != null) {
+                        for (Object object : (Collection) obj) {
+                            if (object == null) {
+                                continue;
+                            }
+                            if (collectionItemVertex.update(object, graphPattern, graphPatternMap,
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                subGraphPatternChange = true;
                         }
-                        if (collectionItemVertex.update(object, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId))
-                            subGraphPatternChange = true;
                     }
                 } else if (obj.getClass().isArray()) {
                     GraphPattern.Vertex arrayItemVertex = null;
@@ -273,15 +278,17 @@ public class GraphPattern implements Serializable {
                             break;
                         }
                     }
-                    int length = Array.getLength(obj);
-                    for (int i = 0; i < length; i++) {
-                        Object object = Array.get(obj, i);
-                        if (object == null) {
-                            continue;
+                    if (arrayItemVertex != null) {
+                        int length = Array.getLength(obj);
+                        for (int i = 0; i < length; i++) {
+                            Object object = Array.get(obj, i);
+                            if (object == null) {
+                                continue;
+                            }
+                            if (arrayItemVertex.update(object, graphPattern, graphPatternMap,
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                subGraphPatternChange = true;
                         }
-                        if (arrayItemVertex.update(object, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized, brokenInvs, objId))
-                            subGraphPatternChange = true;
                     }
                 } else {
                     // Iterate all fields of the object
@@ -297,6 +304,9 @@ public class GraphPattern implements Serializable {
                                     // Field Information
                                     Object value = field.get(obj);
                                     String fieldName = field.getName();
+                                    if (value == obj || fieldName.equals("this$0")) {
+                                        continue;
+                                    }
                                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph
                                             .outgoingEdgesOf(this);
                                     for (GraphPattern.Edge patternEdge : outgoingEdges) {
