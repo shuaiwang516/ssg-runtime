@@ -69,9 +69,10 @@ public class Boundary implements Serializable {
                 changed |= collectionSet.addAll(entry2.getValue());
             }
         }
-        // add log
         if (changed) {
             Runtime.log("<Boundary Status Change>");
+        } else {
+            Runtime.log("<Boundary Status Unchanged>");
         }
         return changed;
     }

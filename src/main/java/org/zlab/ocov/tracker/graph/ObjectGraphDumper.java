@@ -39,7 +39,8 @@ public class ObjectGraphDumper implements Serializable {
         if (obj == null || !classInfo.containsKey(obj.getClass().getName()))
             return null;
 
-        // Runtime.log("[hklog] Dumping object: " + obj.getClass().getName() + " id: " + dumpId);
+        // Runtime.log("[hklog] Dumping object: " + obj.getClass().getName() + " id: " +
+        // dumpId);
         ObjectGraph.Vertex vertex;
         if (computeSize) {
             vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),

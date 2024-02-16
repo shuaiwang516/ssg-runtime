@@ -364,11 +364,13 @@ public class ObjectGraphCoverage implements Serializable {
             newCoverage = true;
         }
         if (boundary == null) {
+            // Runtime.log("[hklog] Add new boundary");
             if (otherObjCoverage.boundary != null) {
                 boundary = SerializationUtils.clone(otherObjCoverage.boundary);
                 newCoverage = true;
             }
         } else {
+            // Runtime.log("[hklog] Merge boundary");
             if (boundary.merge(otherObjCoverage.boundary)) {
                 newCoverage = true;
             }
