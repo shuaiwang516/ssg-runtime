@@ -38,9 +38,7 @@ public class ObjectGraphDumper implements Serializable {
     public ObjectGraph dump(Object obj, int dumpId) {
         if (obj == null || !classInfo.containsKey(obj.getClass().getName()))
             return null;
-
-        // Runtime.log("[hklog] Dumping object: " + obj.getClass().getName() + " id: " +
-        // dumpId);
+        log("\n\n [hklog] Dumping object: " + obj.getClass().getName() + " id: " + dumpId);
         ObjectGraph.Vertex vertex;
         if (computeSize) {
             vertex = new ObjectGraph.Vertex(obj.getClass().getName(), getValue(obj),
@@ -51,14 +49,14 @@ public class ObjectGraphDumper implements Serializable {
         }
         ObjectGraph objectGraph = new ObjectGraph(vertex);
         String className = obj.getClass().getName();
-        processObject(objectGraph, obj, className, vertex);
+        processObject(objectGraph, obj, className, vertex, "", new HashSet<>());
         return objectGraph;
     }
 
     public void processObject(ObjectGraph objectGraph, Object obj, String className,
-            ObjectGraph.Vertex vertex) {
+            ObjectGraph.Vertex vertex, String indent, Set<Integer> visited) {
         // Traverse the object graph and create the object graph
-        if (obj == null) {
+        if (obj == null || visited.contains(System.identityHashCode(obj))) {
             return;
         }
         // Runtime.log("[hklog] className = " + className);
@@ -68,6 +66,9 @@ public class ObjectGraphDumper implements Serializable {
             // log("[hklog] processing IndexEntry object: " + obj);
             // }
             // process all fields
+
+            log(indent + "[hklog] className = " + className);
+            visited.add(System.identityHashCode(obj));
             Class<?> currentClass = obj.getClass();
             while (currentClass != Object.class) {
                 Field[] fields = currentClass.getDeclaredFields();
@@ -83,7 +84,8 @@ public class ObjectGraphDumper implements Serializable {
                             continue;
                         }
                         if (isSerializedField(className, fieldName)) {
-                            addVertex(curObj, objectGraph, vertex, fieldName);
+                            log(indent + "[hklog] field: " + fieldName);
+                            addVertex(curObj, objectGraph, vertex, fieldName, indent, visited);
                         }
                     }
                 }
@@ -92,20 +94,20 @@ public class ObjectGraphDumper implements Serializable {
             // Handle array/collection/map
             if (obj instanceof Collection) {
                 for (Object curObj : (java.util.Collection) obj) {
-                    addVertex(curObj, objectGraph, vertex, "collection_item");
+                    addVertex(curObj, objectGraph, vertex, "collection_item", indent, visited);
                 }
             } else if (obj instanceof Map) {
                 for (Object curObj : ((java.util.Map) obj).keySet()) {
-                    addVertex(curObj, objectGraph, vertex, "map_keyItem");
+                    addVertex(curObj, objectGraph, vertex, "map_keyItem", indent, visited);
                 }
                 for (Object curObj : ((java.util.Map) obj).values()) {
-                    addVertex(curObj, objectGraph, vertex, "map_valueItem");
+                    addVertex(curObj, objectGraph, vertex, "map_valueItem", indent, visited);
                 }
             } else if (obj.getClass().isArray()) {
                 int length = Array.getLength(obj);
                 for (int i = 0; i < length; i++) {
                     Object item = Array.get(obj, i);
-                    addVertex(item, objectGraph, vertex, "array_item");
+                    addVertex(item, objectGraph, vertex, "array_item", indent, visited);
                 }
             }
         } catch (IllegalAccessException e) {
@@ -114,7 +116,7 @@ public class ObjectGraphDumper implements Serializable {
     }
 
     public void addVertex(Object object, ObjectGraph objectGraph, ObjectGraph.Vertex vertex,
-            String edgeName) {
+            String edgeName, String indent, Set<Integer> visited) {
         ObjectGraph.Vertex curVertex;
         String curClassName = null;
         if (object == null) {
@@ -131,7 +133,7 @@ public class ObjectGraphDumper implements Serializable {
         }
         objectGraph.graph.addVertex(curVertex);
         objectGraph.graph.addEdge(vertex, curVertex, new ObjectGraph.Edge(edgeName));
-        processObject(objectGraph, object, curClassName, curVertex);
+        processObject(objectGraph, object, curClassName, curVertex, indent + "    ", visited);
     }
 
     /**
