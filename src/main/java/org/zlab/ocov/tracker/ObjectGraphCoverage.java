@@ -26,6 +26,7 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean enableInvariantCombination = true;
     public final static boolean useFixedObjectGraph = false;
     public final static boolean avoidObjectGraphDump = false;
+    public final static boolean avoidRecordObjectWithSameAddress = true;
 
     // Only contain the top level objects: class name -> class info
     public Map<String, GraphPattern> objCoverage = new HashMap<>();
@@ -127,16 +128,18 @@ public class ObjectGraphCoverage implements Serializable {
         String className = obj.getClass().getName();
 
         int objId = System.identityHashCode(obj);
-        if (visitedObjects.contains(objId)) {
-            // if (classDupCount.containsKey(className)) {
-            // classDupCount.put(className, classDupCount.get(className) + 1);
-            // } else {
-            // classDupCount.put(className, 1);
-            // }
-            // dupObjectCount++;
-            return false;
+        if (avoidRecordObjectWithSameAddress) {
+            if (visitedObjects.contains(objId)) {
+                // if (classDupCount.containsKey(className)) {
+                // classDupCount.put(className, classDupCount.get(className) + 1);
+                // } else {
+                // classDupCount.put(className, 1);
+                // }
+                // dupObjectCount++;
+                return false;
+            }
+            visitedObjects.add(objId);
         }
-        visitedObjects.add(objId);
 
         // update classDumpCount
         // if (classDumpCount.containsKey(className)) {
@@ -243,10 +246,12 @@ public class ObjectGraphCoverage implements Serializable {
             return false;
         String className = obj.getClass().getName();
         Integer objId = System.identityHashCode(obj);
-        if (visitedObjects.contains(objId)) {
-            return false;
+        if (avoidRecordObjectWithSameAddress) {
+            if (visitedObjects.contains(objId)) {
+                return false;
+            }
+            visitedObjects.add(objId);
         }
-        visitedObjects.add(objId);
 
         GraphPattern classInfo = objCoverage.get(className);
         if (classInfo == null)
