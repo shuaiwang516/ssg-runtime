@@ -42,7 +42,7 @@ public class RuntimeTest {
         t2.join();
     }
 
-    // @Test
+    @Test
     public void testFetch() throws InterruptedException, IOException, ClassNotFoundException {
         fetchInvInfo();
     }
@@ -52,7 +52,7 @@ public class RuntimeTest {
         ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         out.println("collectInv"); // send a command to the server
-        ObjectCoverage response = (ObjectCoverage) in.readObject(); // read the server
+        ObjectGraphCoverage response = (ObjectGraphCoverage) in.readObject(); // read the server
         // clean up resources
         out.close();
         in.close();

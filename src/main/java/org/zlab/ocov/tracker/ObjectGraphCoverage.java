@@ -27,7 +27,7 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean useFixedObjectGraph = false;
 
     // Config
-    public final static boolean enableInvariantCombination = true;
+    public final static boolean enableInvariantCombination = false;
     public final static boolean avoidObjectGraphDump = true;
     public final static boolean avoidRecordObjectWithSameAddress = false;
 
@@ -94,6 +94,8 @@ public class ObjectGraphCoverage implements Serializable {
             equalitySet = new EqualitySet(comparableClasses);
             objectGraphDumper = new ObjectGraphDumper(classInfoOri, comparableClasses);
         } else {
+            assert !enableInvariantCombination
+                    : "comparableClasses should be provided for invariant combination";
             objectGraphDumper = new ObjectGraphDumper(classInfoOri);
         }
         if (modifiedFieldsPath != null && modifiedFieldsPath.toFile().exists()
