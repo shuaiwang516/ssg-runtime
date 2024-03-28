@@ -133,11 +133,20 @@ public class Runtime {
         return obj;
     }
 
-    public static boolean updateBranch(Object obj, int dumpId) {
+    public static boolean updateBranch(boolean status, int dumpId) {
+        if (!disable) {
+            synchronized (objectCoverageLock) {
+                objectCoverage.updateBranch(status, dumpId);
+            }
+        }
+        return status;
+    }
+
+    public static boolean updateBranchWithCollection(Object obj, int dumpId) {
         if (disable)
             return false;
         synchronized (objectCoverageLock) {
-            return objectCoverage.updateBranch(obj, dumpId);
+            return objectCoverage.updateBranchWithCollection(obj, dumpId);
         }
     }
 

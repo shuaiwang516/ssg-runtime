@@ -21,7 +21,7 @@ public class BoundaryWithCollection implements Serializable {
     }
 
     // ----Boundary Related----
-    public boolean updateBranch(Object obj, int id) {
+    public boolean updateBranchWithCollection(Object obj, int id) {
         if (obj == null)
             return false;
         if (obj instanceof Boolean) {
@@ -70,9 +70,9 @@ public class BoundaryWithCollection implements Serializable {
             }
         }
         if (changed) {
-            Runtime.log("<Boundary Status Change>");
+            Runtime.log("<BoundaryWithCollection Status Change>");
         } else {
-            Runtime.log("<Boundary Status Unchanged>");
+            Runtime.log("<BoundaryWithCollection Status Unchanged>");
         }
         return changed;
     }
