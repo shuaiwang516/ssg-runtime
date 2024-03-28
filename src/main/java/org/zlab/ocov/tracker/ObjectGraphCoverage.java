@@ -42,7 +42,7 @@ public class ObjectGraphCoverage implements Serializable {
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
     public InvariantCombination invariantCombination;
-    public Boundary boundary;
+    public BoundaryWithCollection boundary;
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
@@ -103,7 +103,8 @@ public class ObjectGraphCoverage implements Serializable {
             isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
         }
         if (branch2CollectionPath != null && branch2CollectionPath.toFile().exists()) {
-            boundary = new Boundary(Utils.loadBranch2Collection(branch2CollectionPath));
+            boundary = new BoundaryWithCollection(
+                    Utils.loadBranch2Collection(branch2CollectionPath));
         }
         if (enableInvariantCombination)
             invariantCombination = new InvariantCombination();

@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Boundary implements Serializable {
+public class BoundaryWithCollection implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     Map<Integer, Set<Integer>> branch2Collection;
@@ -16,7 +16,7 @@ public class Boundary implements Serializable {
     // Boolean means the branch status
     Map<Integer, Map<Boolean, Set<Integer>>> boundaryInvariant = new HashMap<>();
 
-    public Boundary(Map<Integer, Set<Integer>> branch2Collection) {
+    public BoundaryWithCollection(Map<Integer, Set<Integer>> branch2Collection) {
         this.branch2Collection = branch2Collection;
     }
 
@@ -55,7 +55,7 @@ public class Boundary implements Serializable {
         id2Collection.clear();
     }
 
-    public boolean merge(Boundary other) {
+    public boolean merge(BoundaryWithCollection other) {
         boolean changed = false;
         for (Map.Entry<Integer, Map<Boolean, Set<Integer>>> entry : other.boundaryInvariant
                 .entrySet()) {

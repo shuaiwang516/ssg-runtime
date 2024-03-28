@@ -108,9 +108,9 @@ public class Runtime {
     }
 
     // id uniquely identify the program location for dumping
-    public static boolean update(Object obj, int dumpId) {
+    public static Object update(Object obj, int dumpId) {
         if (disable)
-            return false;
+            return obj;
         // Debug
         // if (dumpId != 474) {
         // return false;
@@ -129,8 +129,8 @@ public class Runtime {
             // totalTime1 += time2 - time1;
             // if (count % 1000 == 0)
             // log(String.format("Time1: %d ms", totalTime1));
-            return ret;
         }
+        return obj;
     }
 
     public static boolean updateBranch(Object obj, int dumpId) {
@@ -209,5 +209,4 @@ public class Runtime {
         objectCoverage.inferInvariant();
         return objectCoverage;
     }
-
 }
