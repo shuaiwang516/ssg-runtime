@@ -23,14 +23,16 @@ import java.util.*;
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    // Debug
+    // ----------------------- Debug -----------------------
     public final static boolean useFixedObjectGraph = false;
 
-    // Config
+    // ----------------------- Config -----------------------
     public final static boolean enableInvariantCombination = false;
     public final static boolean avoidObjectGraphDump = true;
+    // If object with the same addr occur twice, avoid processing it
     public final static boolean avoidRecordObjectWithSameAddress = false;
 
+    // Core coverage
     // Only contain the top level objects: class name -> class info
     public Map<String, GraphPattern> objCoverage = new HashMap<>();
 
