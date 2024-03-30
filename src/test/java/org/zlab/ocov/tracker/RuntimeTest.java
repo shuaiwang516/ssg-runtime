@@ -43,7 +43,7 @@ public class RuntimeTest {
     }
 
     // @Test
-    public void testFetch() throws InterruptedException, IOException, ClassNotFoundException {
+    public void testFetch() throws IOException, ClassNotFoundException {
         fetchInvInfo();
     }
 
@@ -57,6 +57,35 @@ public class RuntimeTest {
         out.close();
         in.close();
         socket.close();
+    }
+
+    // @Test
+    public void testFetchLoop() throws IOException, ClassNotFoundException {
+        fetchInvInfoLoop();
+    }
+
+    public void fetchInvInfoLoop() throws IOException, ClassNotFoundException {
+        ObjectGraphCoverage objectGraphCoverage = null;
+        while (true) {
+            Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out.println("collectInv"); // send a command to the server
+            ObjectGraphCoverage response = (ObjectGraphCoverage) in.readObject(); // read the server
+            // response.objCoverage.get("org.apache.cassandra.db.RowIndexEntry$IndexedEntry").graph
+            boolean newCov;
+            if (objectGraphCoverage == null) {
+                objectGraphCoverage = response;
+                newCov = true;
+            } else {
+                // Add a break point here for checking
+                newCov = objectGraphCoverage.merge(response);
+            }
+            System.out.println("newCov = " + newCov);
+            out.close();
+            in.close();
+            socket.close();
+        }
     }
 
 }

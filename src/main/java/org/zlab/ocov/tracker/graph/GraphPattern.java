@@ -22,7 +22,7 @@ public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     // Likely Invariant Options
-    public static boolean enableSequenceBoundaryCheck = false;
+    public static boolean enableSequenceBoundaryCheck = true;
 
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
