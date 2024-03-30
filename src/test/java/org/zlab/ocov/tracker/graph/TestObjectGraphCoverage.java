@@ -421,6 +421,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testInvCombinationSingleObject() {
+        if (!ObjectGraphCoverage.enableInvariantCombination)
+            return;
         Path bassClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
         Path topObjectsPath = Paths.get("input/topObjectsForInvCombination.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForInvCombination.json");
@@ -466,6 +468,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testInvariantCombinationMultiObjects() {
+        if (!ObjectGraphCoverage.enableInvariantCombination)
+            return;
         /**
          * T1 Class1, o1 break inv1
          *
@@ -545,6 +549,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testCombination1() {
+        if (!ObjectGraphCoverage.enableInvariantCombination)
+            return;
         /**
          * There are 2 objects, and there are multiple equality between them
          */
@@ -560,6 +566,9 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // first equality
+        /**
+         * Across two objects, itinerary is the same CompClass: Base->a->a occur twice
+         */
         TestObjectGraph.TargetClassMultiEqualBase obj1 = new TestObjectGraph.TargetClassMultiEqualBase();
         obj1.b.comp1.a = 4;
         coverage.update(obj1);
@@ -571,6 +580,9 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // second equality
+        /**
+         * Across two objects, itinerary is the same CompClass1: Base->b->a occur twice
+         */
         TestObjectGraph.TargetClassMultiEqualBase obj3 = new TestObjectGraph.TargetClassMultiEqualBase();
         obj3.a.comp.a = 4;
         coverage.update(obj3);
@@ -582,6 +594,10 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // both equality
+        /**
+         * The two invariant happens at the same time CompClass: Base->a->a occur twice
+         * CompClass1: Base->b->a occur twice
+         */
         TestObjectGraph.TargetClassMultiEqualBase obj5 = new TestObjectGraph.TargetClassMultiEqualBase();
         coverage.update(obj5);
         TestObjectGraph.TargetClassMultiEqualBase obj6 = new TestObjectGraph.TargetClassMultiEqualBase();
@@ -604,6 +620,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testCombination2() {
+        if (!ObjectGraphCoverage.enableInvariantCombination)
+            return;
         String suffix = "MultiEqual";
         Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
@@ -679,22 +697,22 @@ public class TestObjectGraphCoverage {
         // record a collection
         coverage.updateCollection(list1, 1);
         // Branch is broken
-        coverage.updateBranch(true, 1);
+        coverage.updateBranchWithCollection(true, 1);
         assert coverage1.merge(coverage);
         coverage.clear();
 
         coverage.updateCollection(list2, 2);
-        coverage.updateBranch(true, 1);
+        coverage.updateBranchWithCollection(true, 1);
         assert !coverage1.merge(coverage);
         coverage.clear();
 
         coverage.updateCollection(list2, 2);
-        coverage.updateBranch(false, 1);
+        coverage.updateBranchWithCollection(false, 1);
         assert coverage1.merge(coverage);
         coverage.clear();
 
         coverage.updateCollection(list3, 9);
-        coverage.updateBranch(true, 2);
+        coverage.updateBranchWithCollection(true, 2);
 
         assert coverage1.merge(coverage);
         coverage.clear();

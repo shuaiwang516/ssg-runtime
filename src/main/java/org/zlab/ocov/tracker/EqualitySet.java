@@ -32,7 +32,8 @@ public class EqualitySet implements Serializable {
     public Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
     /**
-     * Equality across object graphs - Itinerary is the same
+     * Equality across object graphs - Itinerary is the same Integer means its
+     * occurrence
      */
     public Map<String, Map<Integer, Map<String, Set<Integer>>>> equalSetSameItineraryAcrossObj = new HashMap<>();
     public Map<String, Set<String>> equalSetSameItineraryAcrossObjDedup = new HashMap<>();
