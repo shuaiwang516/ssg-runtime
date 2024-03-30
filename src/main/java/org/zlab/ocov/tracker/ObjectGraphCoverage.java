@@ -98,8 +98,6 @@ public class ObjectGraphCoverage implements Serializable {
             equalitySet = new EqualitySet(comparableClasses);
             objectGraphDumper = new ObjectGraphDumper(classInfoOri, comparableClasses);
         } else {
-            assert !enableInvariantCombination
-                    : "comparableClasses should be provided for invariant combination";
             objectGraphDumper = new ObjectGraphDumper(classInfoOri);
         }
         if (modifiedFieldsPath != null && modifiedFieldsPath.toFile().exists()
