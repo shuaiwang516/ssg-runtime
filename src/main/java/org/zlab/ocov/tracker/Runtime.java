@@ -9,7 +9,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Runtime {
-    public static final boolean disable = false;
+    // Only enable the runtime when the environment variable is set
+    public static boolean enable = true;
+    public static final String envVarName = "ENABLE_FORMAT_COVERAGE";
 
     /**
      * Collect & update coverage information, dump coverage when program finishes.
@@ -38,9 +40,19 @@ public class Runtime {
 
     // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
+    // Invoked by main of target program
     public static void init() {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
+
+            // Only enable when this environment variable is set to true
+            String envVar = System.getenv(envVarName);
+            if (!Boolean.parseBoolean(envVar)) {
+                enable = false;
+                log("Invariant Runtime is disabled by environment variable");
+                return;
+            }
+
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
                     branch2CollectionPath);
@@ -55,6 +67,7 @@ public class Runtime {
         }
     }
 
+    // Used by tests
     public static void init(Path baseClassPath, Path topObjectsPath) {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
@@ -109,32 +122,32 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId) {
-        if (disable)
-            return obj;
         // Debug
         // if (dumpId != 474) {
         // return false;
         // }
         // long time1 = System.currentTimeMillis();
-        synchronized (objectCoverageLock) {
-            // Ensure that objectCoverage is not being serialized while it's being updated
-            boolean ret;
-            if (memorizeAllObjectGraph)
-                ret = objectCoverage.dump(obj, dumpId);
-            else
-                ret = objectCoverage.update(obj, dumpId);
-            // long time2 = System.currentTimeMillis();
-            //
-            // count++;
-            // totalTime1 += time2 - time1;
-            // if (count % 1000 == 0)
-            // log(String.format("Time1: %d ms", totalTime1));
+        if (enable) {
+            synchronized (objectCoverageLock) {
+                // Ensure that objectCoverage is not being serialized while it's being updated
+                boolean ret;
+                if (memorizeAllObjectGraph)
+                    ret = objectCoverage.dump(obj, dumpId);
+                else
+                    ret = objectCoverage.update(obj, dumpId);
+                // long time2 = System.currentTimeMillis();
+                //
+                // count++;
+                // totalTime1 += time2 - time1;
+                // if (count % 1000 == 0)
+                // log(String.format("Time1: %d ms", totalTime1));
+            }
         }
         return obj;
     }
 
     public static boolean updateBranch(boolean status, int dumpId) {
-        if (!disable) {
+        if (enable) {
             synchronized (objectCoverageLock) {
                 objectCoverage.updateBranch(status, dumpId);
             }
@@ -142,20 +155,24 @@ public class Runtime {
         return status;
     }
 
-    public static boolean updateBranchWithCollection(Object obj, int dumpId) {
-        if (disable)
-            return false;
-        synchronized (objectCoverageLock) {
-            return objectCoverage.updateBranchWithCollection(obj, dumpId);
+    // Deprecated
+    public static boolean updateBranchWithCollection(boolean status, int dumpId) {
+        if (enable) {
+            synchronized (objectCoverageLock) {
+                objectCoverage.updateBranchWithCollection(status, dumpId);
+            }
         }
+        return status;
     }
 
-    public static boolean updateCollection(Object obj, int dumpId) {
-        if (disable)
-            return false;
-        synchronized (objectCoverageLock) {
-            return objectCoverage.updateCollection(obj, dumpId);
+    // Deprecated
+    public static Object updateCollection(Object obj, int dumpId) {
+        if (enable) {
+            synchronized (objectCoverageLock) {
+                objectCoverage.updateCollection(obj, dumpId);
+            }
         }
+        return obj;
     }
 
     private static final int PORT = 62000; // the port to listen on

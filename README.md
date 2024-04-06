@@ -39,6 +39,13 @@ public class LegacySchemaTables {
 }
 ```
 
+## Run
+The format coverage is disabled by default
+```bash
+# Enable format coverage
+export ENABLE_FORMAT_COVERAGE=true
+```
+
 ## Likely invariants Configurations
 Enable range check (max, min size of collection/map), set it to true.
 ```java
