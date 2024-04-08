@@ -60,19 +60,20 @@ Add the jar to `lib` folder
 When compile HDFS, we modify the `$HADOOP_ROOT_PATH/hadoop-hdfs-project/hadoop-hdfs/pom.xml`, 
 create a lib folder: `$HADOOP_ROOT_PATH/hadoop-hdfs-project/hadoop-hdfs/lib/` and put
 the jar here.
+
 ```xml
 <dependency>
     <groupId>org.zlab</groupId>
-    <artifactId>dinv-monitor</artifactId>
+    <artifactId>ssg-runtime</artifactId>
     <version>1.0</version>
     <scope>system</scope>
-    <systemPath>${project.basedir}/lib/dinv-monitor-shadow.jar</systemPath>
+    <systemPath>${project.basedir}/lib/ssgFatJar.jar</systemPath>
 </dependency>
 ```
 
 Test the dist version of HDFS, we need to put the runtime jar to the HDFS's classpath.
 ```bash
-$HADOOP_ROOT_PATH/share/hadoop/hdfs/lib/dinv-monitor-shadow.jar
+$HADOOP_ROOT_PATH/share/hadoop/hdfs/lib/ssgFatJar.jar
 ```
 
 After building the dist version, after untar, also create a lib folder

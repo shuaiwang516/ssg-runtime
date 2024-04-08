@@ -128,19 +128,23 @@ public class Runtime {
         // }
         // long time1 = System.currentTimeMillis();
         if (enable) {
-            synchronized (objectCoverageLock) {
-                // Ensure that objectCoverage is not being serialized while it's being updated
-                boolean ret;
-                if (memorizeAllObjectGraph)
-                    ret = objectCoverage.dump(obj, dumpId);
-                else
-                    ret = objectCoverage.update(obj, dumpId);
-                // long time2 = System.currentTimeMillis();
-                //
-                // count++;
-                // totalTime1 += time2 - time1;
-                // if (count % 1000 == 0)
-                // log(String.format("Time1: %d ms", totalTime1));
+            if (objectCoverage != null) {
+                synchronized (objectCoverageLock) {
+                    // Ensure that objectCoverage is not being serialized while it's being updated
+                    boolean ret;
+                    if (memorizeAllObjectGraph)
+                        ret = objectCoverage.dump(obj, dumpId);
+                    else
+                        ret = objectCoverage.update(obj, dumpId);
+                    // long time2 = System.currentTimeMillis();
+                    //
+                    // count++;
+                    // totalTime1 += time2 - time1;
+                    // if (count % 1000 == 0)
+                    // log(String.format("Time1: %d ms", totalTime1));
+                }
+            } else {
+                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
             }
         }
         return obj;
