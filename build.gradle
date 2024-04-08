@@ -46,9 +46,12 @@ shadowJar {
 //    include 'org/zlab/dinv/runtimechecker/Runtime*'
 //    include 'org/zlab/dinv/runtimechecker/Quant*'
 
-    include 'org/zlab/ocov/tracker/*'
-    include 'org/zlab/ocov/tracker/type/*'
-    include 'org/zlab/ocov/*'
+    // Dependencies to include in the shadow jar
+//    include 'com/google/gson/**'  // Corrected to include all Gson classes
+
+    include 'org/zlab/ocov/tracker/**'
+    include 'org/zlab/ocov/tracker/type/**'
+    include 'org/zlab/ocov/**'
 }
 
 // Defining a custom shadowJar task
@@ -60,6 +63,13 @@ task fatJar(type: ShadowJar) {
     from sourceSets.main.output // Adjust if using a different source set
 
     configurations = [project.configurations.runtimeClasspath]
+
+    // Create a new configuration that excludes the unwanted library
+    // configurations = [project.configurations.runtimeClasspath.copy().exclude(group: 'com.google.guava', module: 'guava')]
+
+    // Include or exclude specific packages as needed
+    exclude 'com/google/common/**'
+    exclude 'com/google/gson/**'
 }
 
 application {

@@ -12,7 +12,11 @@ Generate rt jar
 cp /Users/hanke/Desktop/Project/ssg-runtime/build/libs/ssgFatJar.jar PATH_TO_LIB
 ```
 
-Init format coverage collector
+Init format coverage collector in the main function
+```java
+org.zlab.ocov.tracker.Runtime.init();
+```
+E.g. in cassandra
 ```java
 // CassandraDaemon.java
 class CassandraDaemon {

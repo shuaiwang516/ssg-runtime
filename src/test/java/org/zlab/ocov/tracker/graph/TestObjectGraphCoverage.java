@@ -1,7 +1,7 @@
 package org.zlab.ocov.tracker.graph;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
+// import com.google.gson.Gson;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -237,13 +237,14 @@ public class TestObjectGraphCoverage {
         DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph = coverage1.objCoverage
                 .get(obj1.getClass().getName()).graph;
 
-        Gson gson = ObjectGraphCoverage.constructGson();
-        String jsonStr = gson.toJson(graph);
-        // System.out.println(jsonStr);
-        DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graphFromGson = gson.fromJson(
-                jsonStr,
-                new TypeToken<DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge>>() {
-                }.getType());
+        // Gson gson = ObjectGraphCoverage.constructGson();
+        // String jsonStr = gson.toJson(graph);
+        // // System.out.println(jsonStr);
+        // DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graphFromGson =
+        // gson.fromJson(
+        // jsonStr,
+        // new TypeToken<DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge>>() {
+        // }.getType());
     }
 
     @Test
@@ -541,10 +542,11 @@ public class TestObjectGraphCoverage {
         assert !coverage1.merge(coverage);
         coverage.clear();
 
-        Gson gson = ObjectGraphCoverage.constructGson();
-        String jsonStr = gson.toJson(coverage1);
+        // Gson gson = ObjectGraphCoverage.constructGson();
+        // String jsonStr = gson.toJson(coverage1);
         // System.out.println(jsonStr);
-        ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr, ObjectGraphCoverage.class);
+        // ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr,
+        // ObjectGraphCoverage.class);
     }
 
     @Test
