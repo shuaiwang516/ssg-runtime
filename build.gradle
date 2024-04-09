@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.javaparser:javaparser-core:3.25.2'
-    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.23.0' // replace with the current version
+//    implementation 'com.github.javaparser:javaparser-core:3.25.2'
+//    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.23.0' // replace with the current version
     implementation 'com.fasterxml.jackson.core:jackson-core:2.12.5'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.3'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.3'
@@ -70,6 +70,10 @@ task fatJar(type: ShadowJar) {
     // Include or exclude specific packages as needed
     exclude 'com/google/common/**'
     exclude 'com/google/gson/**'
+    // exclude junit
+    exclude 'junit/**'
+    exclude 'org/junit/**'
+    exclude 'org/hamcrest/**' // Hamcrest often comes with JUnit
 }
 
 application {
