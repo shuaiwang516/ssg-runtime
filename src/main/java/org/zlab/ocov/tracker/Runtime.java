@@ -152,8 +152,12 @@ public class Runtime {
 
     public static boolean updateBranch(boolean status, int dumpId) {
         if (enable) {
-            synchronized (objectCoverageLock) {
-                objectCoverage.updateBranch(status, dumpId);
+            if (objectCoverage != null) {
+                synchronized (objectCoverageLock) {
+                    objectCoverage.updateBranch(status, dumpId);
+                }
+            } else {
+                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
             }
         }
         return status;
@@ -162,8 +166,12 @@ public class Runtime {
     // Deprecated
     public static boolean updateBranchWithCollection(boolean status, int dumpId) {
         if (enable) {
-            synchronized (objectCoverageLock) {
-                objectCoverage.updateBranchWithCollection(status, dumpId);
+            if (objectCoverage != null) {
+                synchronized (objectCoverageLock) {
+                    objectCoverage.updateBranchWithCollection(status, dumpId);
+                }
+            } else {
+                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
             }
         }
         return status;
@@ -172,8 +180,12 @@ public class Runtime {
     // Deprecated
     public static Object updateCollection(Object obj, int dumpId) {
         if (enable) {
-            synchronized (objectCoverageLock) {
-                objectCoverage.updateCollection(obj, dumpId);
+            if (objectCoverage != null) {
+                synchronized (objectCoverageLock) {
+                    objectCoverage.updateCollection(obj, dumpId);
+                }
+            } else {
+                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
             }
         }
         return obj;
