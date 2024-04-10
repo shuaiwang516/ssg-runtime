@@ -309,8 +309,8 @@ public class GraphPattern implements Serializable {
                                     if (value == obj || fieldName.equals("this$0")) {
                                         continue;
                                     }
-                                    Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph
-                                            .outgoingEdgesOf(this);
+                                    Set<GraphPattern.Edge> outgoingEdges = new HashSet<>(graphPattern.graph
+                                            .outgoingEdgesOf(this));
                                     for (GraphPattern.Edge patternEdge : outgoingEdges) {
                                         if (patternEdge.name.equals(fieldName)) {
                                             GraphPattern.Vertex target = graphPattern.graph
