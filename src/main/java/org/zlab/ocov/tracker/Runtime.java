@@ -7,11 +7,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 public class Runtime {
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
     public static final String envVarName = "ENABLE_FORMAT_COVERAGE";
+    public static final Random rand = new Random();
 
     /**
      * Collect & update coverage information, dump coverage when program finishes.
@@ -37,6 +39,13 @@ public class Runtime {
     public static int count = 0;
 
     public static boolean memorizeAllObjectGraph = false;
+
+    public static final boolean sample = false;
+    public static final double sampleRate = 0.2;
+
+    public boolean isSampled() {
+        return rand.nextDouble() < sampleRate;
+    }
 
     // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
