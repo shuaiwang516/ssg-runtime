@@ -124,7 +124,7 @@ public class Utils {
             int idx = rand.nextInt(size);
             idxs.add(idx);
             count++;
-            if (count > 200) { // avoid infinite loop
+            if (count > 2 * minSize) { // avoid infinite loop
                 break;
             }
         }

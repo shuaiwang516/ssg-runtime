@@ -32,8 +32,10 @@ public class GraphPattern implements Serializable {
     /**
      * If an array length is larger than this value, we sample values from the array
      */
-    private static final int maxArrayLength = 100;
-    private static final int arrayMaxSampleSize = 20;
+    private static final boolean useFixedSampleSize = true;
+    private static final int maxArrayLength = 50;
+    private static final int arraySampleSize = 50;
+    private static final double arraySampleRate = 0.01;
 
     public static class Vertex implements Serializable {
         private static final long serialVersionUID = 20231215L;
@@ -244,7 +246,10 @@ public class GraphPattern implements Serializable {
                         int length = ((java.util.Map) obj).keySet().size();
                         List<Integer> sampleIdxs;
                         if (length > maxArrayLength) {
-                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                            int sampleSize = useFixedSampleSize
+                                    ? arraySampleSize
+                                    : (int) (length * arraySampleRate);
+                            sampleIdxs = Utils.sampleIdxFromSize(length, sampleSize);
                         } else {
                             sampleIdxs = new ArrayList<>();
                             for (int i = 0; i < length; i++)
@@ -264,7 +269,10 @@ public class GraphPattern implements Serializable {
                         int length = ((java.util.Map) obj).values().size();
                         List<Integer> sampleIdxs;
                         if (length > maxArrayLength) {
-                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                            int sampleSize = useFixedSampleSize
+                                    ? arraySampleSize
+                                    : (int) (length * arraySampleRate);
+                            sampleIdxs = Utils.sampleIdxFromSize(length, sampleSize);
                         } else {
                             sampleIdxs = new ArrayList<>();
                             for (int i = 0; i < length; i++)
@@ -293,7 +301,10 @@ public class GraphPattern implements Serializable {
                         int length = ((Collection) obj).size();
                         List<Integer> sampleIdxs;
                         if (length > maxArrayLength) {
-                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                            int sampleSize = useFixedSampleSize
+                                    ? arraySampleSize
+                                    : (int) (length * arraySampleRate);
+                            sampleIdxs = Utils.sampleIdxFromSize(length, sampleSize);
                         } else {
                             sampleIdxs = new ArrayList<>();
                             for (int i = 0; i < length; i++)
@@ -323,7 +334,10 @@ public class GraphPattern implements Serializable {
                         List<Integer> sampleIdxs;
                         if (length > maxArrayLength) {
                             // Sample a few values from this array
-                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                            int sampleSize = useFixedSampleSize
+                                    ? arraySampleSize
+                                    : (int) (length * arraySampleRate);
+                            sampleIdxs = Utils.sampleIdxFromSize(length, sampleSize);
                         } else {
                             sampleIdxs = new ArrayList<>();
                             for (int i = 0; i < length; i++) {
