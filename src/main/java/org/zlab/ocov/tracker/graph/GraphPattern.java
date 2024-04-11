@@ -33,8 +33,8 @@ public class GraphPattern implements Serializable {
      * If an array length is larger than this value, we sample values from the array
      */
     private static final boolean useFixedSampleSize = true;
-    private static final int maxArrayLength = 50;
-    private static final int arraySampleSize = 50;
+    private static final int maxArrayLength = 20;
+    private static final int arraySampleSize = 20;
     private static final double arraySampleRate = 0.01;
 
     public static class Vertex implements Serializable {
