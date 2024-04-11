@@ -6,12 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 public class Utils {
 
     public static ObjectMapper mapper = new ObjectMapper();
+    public static Random rand = new Random();
 
     // json: save map to a file
     public static void saveMapToFile(Map<String, Map<String, String>> map, String filename) {
@@ -112,4 +115,19 @@ public class Utils {
                 || type.equals("java.lang.Byte");
     }
 
+    public static List<Integer> sampleIdxFromSize(int size, int sampleSize) {
+        List<Integer> idxs = new java.util.ArrayList<>();
+        int minSize = Math.min(size, sampleSize);
+
+        int count = 0;
+        while (idxs.size() < minSize) {
+            int idx = rand.nextInt(size);
+            idxs.add(idx);
+            count++;
+            if (count > 200) { // avoid infinite loop
+                break;
+            }
+        }
+        return idxs;
+    }
 }

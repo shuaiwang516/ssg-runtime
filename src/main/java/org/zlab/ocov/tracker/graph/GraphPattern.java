@@ -6,6 +6,7 @@ import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.EqualitySet;
 import org.zlab.ocov.tracker.IsSerialize;
+import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
 import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
@@ -23,9 +24,16 @@ public class GraphPattern implements Serializable {
 
     // Likely Invariant Options
     public static boolean enableSequenceBoundaryCheck = true;
+    public static boolean enableAccumulatedSizeCheck = false;
 
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
+
+    /**
+     * If an array length is larger than this value, we sample values from the array
+     */
+    private static final int maxArrayLength = 100;
+    private static final int arrayMaxSampleSize = 20;
 
     public static class Vertex implements Serializable {
         private static final long serialVersionUID = 20231215L;
@@ -145,6 +153,8 @@ public class GraphPattern implements Serializable {
         public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
                 IsSerialize isSerialized, Set<String> brokenInvs, int objId, Set<Integer> visited) {
+            Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = " + itinerary
+                    + ", current time = " + System.currentTimeMillis() + ", objId = " + objId);
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
@@ -213,9 +223,7 @@ public class GraphPattern implements Serializable {
                     if (obj.getClass().isEnum())
                         isSerialized.updateVisitedEnums(objectType, obj.toString());
                 }
-
                 visited.add(System.identityHashCode(obj));
-
                 // Special process Map/Collection/Array
                 if (obj instanceof Map) {
                     GraphPattern.Vertex mapKeyItemVertex = null;
@@ -233,7 +241,17 @@ public class GraphPattern implements Serializable {
                         }
                     }
                     if (mapKeyItemVertex != null) {
-                        for (Object object : ((java.util.Map) obj).keySet()) {
+                        int length = ((java.util.Map) obj).keySet().size();
+                        List<Integer> sampleIdxs;
+                        if (length > maxArrayLength) {
+                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                        } else {
+                            sampleIdxs = new ArrayList<>();
+                            for (int i = 0; i < length; i++)
+                                sampleIdxs.add(i);
+                        }
+                        for (int i : sampleIdxs) {
+                            Object object = ((java.util.Map) obj).keySet().toArray()[i];
                             if (object == null) {
                                 continue;
                             }
@@ -243,7 +261,17 @@ public class GraphPattern implements Serializable {
                         }
                     }
                     if (mapValueItemVertex != null) {
-                        for (Object object : ((java.util.Map) obj).values()) {
+                        int length = ((java.util.Map) obj).values().size();
+                        List<Integer> sampleIdxs;
+                        if (length > maxArrayLength) {
+                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                        } else {
+                            sampleIdxs = new ArrayList<>();
+                            for (int i = 0; i < length; i++)
+                                sampleIdxs.add(i);
+                        }
+                        for (int i : sampleIdxs) {
+                            Object object = ((java.util.Map) obj).values().toArray()[i];
                             if (object == null) {
                                 continue;
                             }
@@ -262,7 +290,17 @@ public class GraphPattern implements Serializable {
                         }
                     }
                     if (collectionItemVertex != null) {
-                        for (Object object : (Collection) obj) {
+                        int length = ((Collection) obj).size();
+                        List<Integer> sampleIdxs;
+                        if (length > maxArrayLength) {
+                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                        } else {
+                            sampleIdxs = new ArrayList<>();
+                            for (int i = 0; i < length; i++)
+                                sampleIdxs.add(i);
+                        }
+                        for (int i : sampleIdxs) {
+                            Object object = ((Collection) obj).toArray()[i];
                             if (object == null) {
                                 continue;
                             }
@@ -282,7 +320,17 @@ public class GraphPattern implements Serializable {
                     }
                     if (arrayItemVertex != null) {
                         int length = Array.getLength(obj);
-                        for (int i = 0; i < length; i++) {
+                        List<Integer> sampleIdxs;
+                        if (length > maxArrayLength) {
+                            // Sample a few values from this array
+                            sampleIdxs = Utils.sampleIdxFromSize(length, arrayMaxSampleSize);
+                        } else {
+                            sampleIdxs = new ArrayList<>();
+                            for (int i = 0; i < length; i++) {
+                                sampleIdxs.add(i);
+                            }
+                        }
+                        for (int i : sampleIdxs) {
                             Object object = Array.get(obj, i);
                             if (object == null) {
                                 continue;
@@ -484,25 +532,29 @@ public class GraphPattern implements Serializable {
         } else if (isCollection(typeName)) {
             structureConstraints
                     .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "collection_item"));
-            structureConstraints.add(new AccumulatedSizeConstraint(getCollectionSizeInvariants(),
-                    "collection_item"));
+            if (enableAccumulatedSizeCheck)
+                structureConstraints.add(new AccumulatedSizeConstraint(
+                        getCollectionSizeInvariants(), "collection_item"));
         } else if (isMap(typeName)) {
             // keys
             structureConstraints
                     .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "map_keyItem"));
-            structureConstraints.add(
-                    new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "map_keyItem"));
+            if (enableAccumulatedSizeCheck)
+                structureConstraints.add(new AccumulatedSizeConstraint(
+                        getCollectionSizeInvariants(), "map_keyItem"));
             // values
             structureConstraints
                     .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "map_valueItem"));
-            structureConstraints.add(
-                    new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "map_valueItem"));
+            if (enableAccumulatedSizeCheck)
+                structureConstraints.add(new AccumulatedSizeConstraint(
+                        getCollectionSizeInvariants(), "map_valueItem"));
         } else if (isArray(typeName)) {
             // array_item
             structureConstraints
                     .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "array_item"));
-            structureConstraints.add(
-                    new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "array_item"));
+            if (enableAccumulatedSizeCheck)
+                structureConstraints.add(
+                        new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "array_item"));
         } else {
             // object type
             labelInvs.add(new EnumConstant());

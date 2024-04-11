@@ -15,6 +15,9 @@ public class Runtime {
     public static final String envVarName = "ENABLE_FORMAT_COVERAGE";
     public static final Random rand = new Random();
 
+    public static final boolean sample = false;
+    public static final double sampleRate = 0.2;
+
     /**
      * Collect & update coverage information, dump coverage when program finishes.
      * TODO: These paths need to be configured with input arguments
@@ -40,10 +43,7 @@ public class Runtime {
 
     public static boolean memorizeAllObjectGraph = false;
 
-    public static final boolean sample = false;
-    public static final double sampleRate = 0.2;
-
-    public boolean isSampled() {
+    public static boolean isSampled() {
         return rand.nextDouble() < sampleRate;
     }
 
@@ -131,30 +131,30 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId) {
-        // Debug
-        // if (dumpId != 474) {
-        // return false;
-        // }
-        // long time1 = System.currentTimeMillis();
-        if (enable) {
-            if (objectCoverage != null) {
+        if (!enable)
+            return obj;
+
+        if (objectCoverage != null) {
+            if (!sample || isSampled()) {
+                long time1 = System.currentTimeMillis();
                 synchronized (objectCoverageLock) {
-                    // Ensure that objectCoverage is not being serialized while it's being updated
-                    boolean ret;
+
+                    long time2 = System.currentTimeMillis();
                     if (memorizeAllObjectGraph)
-                        ret = objectCoverage.dump(obj, dumpId);
+                        objectCoverage.dump(obj, dumpId);
                     else
-                        ret = objectCoverage.update(obj, dumpId);
-                    // long time2 = System.currentTimeMillis();
-                    //
-                    // count++;
-                    // totalTime1 += time2 - time1;
-                    // if (count % 1000 == 0)
-                    // log(String.format("Time1: %d ms", totalTime1));
+                        objectCoverage.update(obj, dumpId);
+                    long time3 = System.currentTimeMillis();
+
+                    if ((time3 - time1) / 1000. > 1)
+                        log("slow dump id: " + dumpId);
+                    log("[debug performance problem] dumpId = " + dumpId + "\t, process time = "
+                            + (time3 - time2) / 1000. + "s" + ", total time = "
+                            + (time3 - time1) / 1000. + "s");
                 }
-            } else {
-                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
             }
+        } else {
+            log("objectCoverage is null, Invariant Runtime is not initialized properly!");
         }
         return obj;
     }

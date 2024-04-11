@@ -30,7 +30,7 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean enableInvariantCombination = false;
     public final static boolean avoidObjectGraphDump = true;
     // If object with the same addr occur twice, avoid processing it
-    public final static boolean avoidRecordObjectWithSameAddress = true;
+    public final static boolean avoidRecordObjectWithSameAddress = false;
 
     // Core coverage
     // Only contain the top level objects: class name -> class info
