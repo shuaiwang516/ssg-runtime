@@ -334,6 +334,8 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public boolean merge(ObjectGraphCoverage otherObjCoverage, int testId) {
+        if (otherObjCoverage == null)
+            return false;
         // The coverage's class info should be similar
         // Let's include all new here
         boolean newCoverage = false;
