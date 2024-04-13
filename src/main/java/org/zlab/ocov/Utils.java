@@ -121,7 +121,7 @@ public class Utils {
 
         int count = 0;
         while (idxs.size() < minSize) {
-            int idx = rand.nextInt(size);
+            int idx = rand.nextInt(minSize);
             idxs.add(idx);
             count++;
             if (count > 2 * minSize) { // avoid infinite loop
