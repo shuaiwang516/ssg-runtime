@@ -218,12 +218,20 @@ public class ObjectGraphCoverage implements Serializable {
         return boundary.updateBranch(obj, id);
     }
 
+    public boolean updateBranch(Object lhsOp, Object rhsOp, String operator, int dumpId) {
+        if (boundary == null)
+            return false;
+        return boundary.updateBranch(lhsOp, rhsOp, operator, dumpId);
+    }
+
+    // Deprecated
     public boolean updateBranchWithCollection(Object obj, int id) {
         if (boundaryWithCollection == null)
             return false;
         return boundaryWithCollection.updateBranchWithCollection(obj, id);
     }
 
+    // Deprecated
     public boolean updateCollection(Object obj, int id) {
         if (boundaryWithCollection == null)
             return false;

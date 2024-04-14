@@ -1,5 +1,7 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.Utils;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -170,6 +172,16 @@ public class Runtime {
             log("objectCoverage is null, Invariant Runtime is not initialized properly!");
         }
         return obj;
+    }
+
+    public static boolean updateBranch(Object lhsOp, Object rhsOp, String operator, int dumpId) {
+        if (enable && objectCoverage != null) {
+            synchronized (objectCoverageLock) {
+                return objectCoverage.updateBranch(lhsOp, rhsOp, operator, dumpId);
+            }
+        } else {
+            return Utils.computeBranchResult(lhsOp, rhsOp, operator);
+        }
     }
 
     public static boolean updateBranch(boolean status, int dumpId) {

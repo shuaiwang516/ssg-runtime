@@ -130,4 +130,31 @@ public class Utils {
         }
         return idxs;
     }
+
+    public static boolean computeBranchResult(Object lhsOp, Object rhsOp, String operator) {
+        // Directly compute the branch status
+        boolean status = false;
+        if (lhsOp instanceof Integer && rhsOp instanceof Integer) {
+            int lhs = (Integer) lhsOp;
+            int rhs = (Integer) rhsOp;
+            switch (operator) {
+                case "<" :
+                    status = lhs < rhs;
+                    break;
+                case "<=" :
+                    status = lhs <= rhs;
+                    break;
+                case ">" :
+                    status = lhs > rhs;
+                    break;
+                case ">=" :
+                    status = lhs >= rhs;
+                    break;
+                default :
+                    throw new RuntimeException("Unsupported operator: " + operator);
+            }
+        }
+        return status;
+    }
+
 }
