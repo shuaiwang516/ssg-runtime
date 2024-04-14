@@ -353,6 +353,8 @@ public class ObjectGraphCoverage implements Serializable {
                 Runtime.log("[hklog] Add new classInfo for " + className);
                 objCoverage.put(className, otherClassInfo);
                 formatCoverageStatus.newFormat = true;
+                // FIXME: Why would this happen? Should we also consider it as a boundary
+                // change?
             } else {
                 formatCoverageStatus.incorporate(classInfo.merge(otherClassInfo));
             }
@@ -383,6 +385,7 @@ public class ObjectGraphCoverage implements Serializable {
             formatCoverageStatus.newFormat = true;
         }
 
+        // Boundary related branch change
         if (boundaryWithCollection == null) {
             // Runtime.log("[hklog] Add new boundaryWithCollection");
             if (otherObjCoverage.boundaryWithCollection != null) {
