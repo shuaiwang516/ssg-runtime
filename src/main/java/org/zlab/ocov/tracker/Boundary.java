@@ -6,13 +6,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.zlab.ocov.Utils.computeBinaryComparison;
+import static org.zlab.ocov.Utils.toLong;
+
 public class Boundary implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    int seqId = 0;
     // Boolean means the branch status
     Map<Integer, Set<Boolean>> boundaryInvariant = new HashMap<>();
-    Map<Integer, Integer> boundaryDistance = new HashMap<>();
+    Map<Integer, Long> boundaryDistance = new HashMap<>();
 
     public Boundary() {
     }
@@ -31,43 +33,28 @@ public class Boundary implements Serializable {
     }
 
     public boolean updateBranch(Object lhsOp, Object rhsOp, String operator, int dumpId) {
-        boolean status;
-        // update boundary distance
-        if (lhsOp instanceof Integer && rhsOp instanceof Integer) {
-            int lhs = (Integer) lhsOp;
-            int rhs = (Integer) rhsOp;
-            switch (operator) {
-                case "<" :
-                    status = lhs < rhs;
-                    break;
-                case "<=" :
-                    status = lhs <= rhs;
-                    break;
-                case ">" :
-                    status = lhs > rhs;
-                    break;
-                case ">=" :
-                    status = lhs >= rhs;
-                    break;
-                default :
-                    throw new RuntimeException("Unsupported operator: " + operator);
-            }
-            // compute |lhs - rhs| and add it to boundaryDistance if it's smaller
-            int distance = Math.abs(lhs - rhs);
-            if (boundaryDistance.containsKey(dumpId)) {
-                if (distance < boundaryDistance.get(dumpId)) {
-                    boundaryDistance.put(dumpId, distance);
-                }
-            } else {
+        long lhs = toLong(lhsOp);
+        long rhs = toLong(rhsOp);
+
+        // compute |lhs - rhs| and add it to boundaryDistance if it's smaller
+        long distance = Math.abs(lhs - rhs);
+        if (boundaryDistance.containsKey(dumpId)) {
+            if (distance < boundaryDistance.get(dumpId)) {
+                if (Runtime.debug)
+                    Runtime.log(
+                            "[boundary] update boundary distance: " + distance + " id: " + dumpId);
                 boundaryDistance.put(dumpId, distance);
             }
-            Set<Boolean> values = boundaryInvariant.computeIfAbsent(dumpId, k -> new HashSet<>());
-            values.add(status);
-            return status;
         } else {
-            throw new RuntimeException("Unsupported type for boundary: "
-                    + lhsOp.getClass().getName() + " and " + rhsOp.getClass().getName());
+            if (Runtime.debug)
+                Runtime.log("[boundary] new boundary distance: " + distance + " id: " + dumpId);
+            boundaryDistance.put(dumpId, distance);
         }
+
+        boolean status = computeBinaryComparison(lhs, rhs, operator);
+        Set<Boolean> values = boundaryInvariant.computeIfAbsent(dumpId, k -> new HashSet<>());
+        values.add(status);
+        return status;
     }
 
     public void clear() {
@@ -77,9 +64,9 @@ public class Boundary implements Serializable {
     public boolean merge(Boundary other) {
         boolean changed = false;
         // merge boundaryDistance
-        for (Map.Entry<Integer, Integer> entry : other.boundaryDistance.entrySet()) {
+        for (Map.Entry<Integer, Long> entry : other.boundaryDistance.entrySet()) {
             int id = entry.getKey();
-            int distance = entry.getValue();
+            long distance = entry.getValue();
             if (boundaryDistance.containsKey(id)) {
                 if (distance < boundaryDistance.get(id)) {
                     Runtime.log("<Boundary Distance Change> before: " + boundaryDistance.get(id)

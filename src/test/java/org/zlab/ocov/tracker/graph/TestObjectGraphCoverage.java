@@ -679,48 +679,6 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
-    public void testBoundary() {
-        String suffix = "Boundary";
-        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
-        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
-        Path branch2Collection = Paths
-                .get(String.format("input/branch2CollectionFor%s.json", suffix));
-        // 1 -> 1, 2
-        // 2 -> 9
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
-                null, null, branch2Collection);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
-                null, null, branch2Collection);
-
-        List<Integer> list1 = new ArrayList<>();
-        List<Integer> list2 = new ArrayList<>();
-        List<Integer> list3 = new ArrayList<>();
-
-        // record a collection
-        coverage.updateCollection(list1, 1);
-        // Branch is broken
-        coverage.updateBranchWithCollection(true, 1);
-        assert coverage1.merge(coverage).boundaryChange;
-        coverage.clear();
-
-        coverage.updateCollection(list2, 2);
-        coverage.updateBranchWithCollection(true, 1);
-        assert !coverage1.merge(coverage).boundaryChange;
-        coverage.clear();
-
-        coverage.updateCollection(list2, 2);
-        coverage.updateBranchWithCollection(false, 1);
-        assert coverage1.merge(coverage).boundaryChange;
-        coverage.clear();
-
-        coverage.updateCollection(list3, 9);
-        coverage.updateBranchWithCollection(true, 2);
-
-        assert coverage1.merge(coverage).boundaryChange;
-        coverage.clear();
-    }
-
-    @Test
     public void test() {
         Set<String> s1 = new HashSet<>();
         s1.add("a");

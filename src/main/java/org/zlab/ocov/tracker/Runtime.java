@@ -180,10 +180,12 @@ public class Runtime {
                 return objectCoverage.updateBranch(lhsOp, rhsOp, operator, dumpId);
             }
         } else {
-            return Utils.computeBranchResult(lhsOp, rhsOp, operator);
+            return Utils.computeBinaryComparison(Utils.toLong(lhsOp), Utils.toLong(rhsOp),
+                    operator);
         }
     }
 
+    // Deprecated
     public static boolean updateBranch(boolean status, int dumpId) {
         if (enable) {
             if (objectCoverage != null) {
@@ -195,34 +197,6 @@ public class Runtime {
             }
         }
         return status;
-    }
-
-    // Deprecated
-    public static boolean updateBranchWithCollection(boolean status, int dumpId) {
-        if (enable) {
-            if (objectCoverage != null) {
-                synchronized (objectCoverageLock) {
-                    objectCoverage.updateBranchWithCollection(status, dumpId);
-                }
-            } else {
-                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
-            }
-        }
-        return status;
-    }
-
-    // Deprecated
-    public static Object updateCollection(Object obj, int dumpId) {
-        if (enable) {
-            if (objectCoverage != null) {
-                synchronized (objectCoverageLock) {
-                    objectCoverage.updateCollection(obj, dumpId);
-                }
-            } else {
-                log("objectCoverage is null, Invariant Runtime is not initialized properly!");
-            }
-        }
-        return obj;
     }
 
     private static final int PORT = 62000; // the port to listen on

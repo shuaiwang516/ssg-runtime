@@ -47,7 +47,6 @@ public class ObjectGraphCoverage implements Serializable {
 
     // FIXME: this is not merged
     public Boundary boundary;
-    public BoundaryWithCollection boundaryWithCollection;
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
@@ -105,10 +104,7 @@ public class ObjectGraphCoverage implements Serializable {
                 && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()) {
             isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
         }
-        if (branch2CollectionPath != null && branch2CollectionPath.toFile().exists()) {
-            boundaryWithCollection = new BoundaryWithCollection(
-                    Utils.loadBranch2Collection(branch2CollectionPath));
-        }
+        boundary = new Boundary();
         if (enableInvariantCombination)
             invariantCombination = new InvariantCombination();
 
@@ -224,20 +220,6 @@ public class ObjectGraphCoverage implements Serializable {
         return boundary.updateBranch(lhsOp, rhsOp, operator, dumpId);
     }
 
-    // Deprecated
-    public boolean updateBranchWithCollection(Object obj, int id) {
-        if (boundaryWithCollection == null)
-            return false;
-        return boundaryWithCollection.updateBranchWithCollection(obj, id);
-    }
-
-    // Deprecated
-    public boolean updateCollection(Object obj, int id) {
-        if (boundaryWithCollection == null)
-            return false;
-        return boundaryWithCollection.updateCollection(obj, id);
-    }
-
     public void inferInvariant() {
         // this should be invoked for every test
         if (equalitySet != null)
@@ -257,8 +239,7 @@ public class ObjectGraphCoverage implements Serializable {
             isSerialized.clear();
         if (enableInvariantCombination)
             invariantCombination.clear();
-        if (boundaryWithCollection != null)
-            boundaryWithCollection.clear();
+        boundary.clear();
     }
 
     // Only record, and infer at last
@@ -392,20 +373,7 @@ public class ObjectGraphCoverage implements Serializable {
                 && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
             formatCoverageStatus.newFormat = true;
         }
-
-        // Boundary related branch change
-        if (boundaryWithCollection == null) {
-            // Runtime.log("[hklog] Add new boundaryWithCollection");
-            if (otherObjCoverage.boundaryWithCollection != null) {
-                boundaryWithCollection = SerializationUtils
-                        .clone(otherObjCoverage.boundaryWithCollection);
-                formatCoverageStatus.boundaryChange = true;
-            }
-        } else {
-            // Runtime.log("[hklog] Merge boundaryWithCollection");
-            formatCoverageStatus.incorporate(
-                    boundaryWithCollection.merge(otherObjCoverage.boundaryWithCollection));
-        }
+        // Data boundary
         if (boundary == null) {
             if (otherObjCoverage.boundary != null) {
                 boundary = SerializationUtils.clone(otherObjCoverage.boundary);
