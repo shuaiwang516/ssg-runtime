@@ -19,6 +19,11 @@ public class IntegerLowerBound extends UnaryInvariant {
     }
 
     @Override
+    public void reset() {
+        lowerBound = Integer.MAX_VALUE;
+    }
+
+    @Override
     public boolean checkPure(Object val, LogInfo logInfo) {
         if (val instanceof Integer) {
             int tmpVal = (Integer) val;

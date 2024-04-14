@@ -36,6 +36,11 @@ public class EnumConstant extends UnaryInvariant {
     }
 
     @Override
+    public void reset() {
+        enumConstants.clear();
+    }
+
+    @Override
     public boolean checkPure(Object val, LogInfo logInfo) {
         if (val == null)
             return false;

@@ -45,6 +45,7 @@ public class ObjectGraphCoverage implements Serializable {
     public IsSerialize isSerialized;
     public InvariantCombination invariantCombination;
 
+    // FIXME: this is not merged
     public Boundary boundary;
     public BoundaryWithCollection boundaryWithCollection;
 
@@ -329,16 +330,16 @@ public class ObjectGraphCoverage implements Serializable {
         Runtime.log("");
     }
 
-    public boolean merge(ObjectGraphCoverage otherObjCoverage) {
+    public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {
         return merge(otherObjCoverage, -1);
     }
 
-    public boolean merge(ObjectGraphCoverage otherObjCoverage, int testId) {
+    public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId) {
+        FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherObjCoverage == null)
-            return false;
+            return formatCoverageStatus;
         // The coverage's class info should be similar
         // Let's include all new here
-        boolean newCoverage = false;
         // Normal object coverage merge
         for (String className : otherObjCoverage.objCoverage.keySet()) {
             GraphPattern otherClassInfo = otherObjCoverage.objCoverage.get(className);
@@ -351,57 +352,64 @@ public class ObjectGraphCoverage implements Serializable {
                 // Add it
                 Runtime.log("[hklog] Add new classInfo for " + className);
                 objCoverage.put(className, otherClassInfo);
-                newCoverage = true;
+                formatCoverageStatus.newFormat = true;
             } else {
-                // merge it
-                if (classInfo.merge(otherClassInfo)) {
-                    newCoverage = true;
-                }
+                formatCoverageStatus.incorporate(classInfo.merge(otherClassInfo));
             }
         }
         if (equalitySet == null) {
             // Avoid providing the information for upfuzz
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
-                newCoverage = true;
+                formatCoverageStatus.newFormat = true;
             }
         } else {
             if (equalitySet.merge(otherObjCoverage.equalitySet)) {
-                newCoverage = true;
+                formatCoverageStatus.newFormat = true;
             }
         }
         if (isSerialized == null) {
             if (otherObjCoverage.isSerialized != null) {
                 isSerialized = SerializationUtils.clone(otherObjCoverage.isSerialized);
-                newCoverage = true;
+                formatCoverageStatus.newFormat = true;
             }
         } else {
             if (isSerialized.merge(otherObjCoverage.isSerialized)) {
-                newCoverage = true;
+                formatCoverageStatus.newFormat = true;
             }
         }
         if (enableInvariantCombination
                 && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
-            newCoverage = true;
+            formatCoverageStatus.newFormat = true;
         }
+
         if (boundaryWithCollection == null) {
             // Runtime.log("[hklog] Add new boundaryWithCollection");
             if (otherObjCoverage.boundaryWithCollection != null) {
                 boundaryWithCollection = SerializationUtils
                         .clone(otherObjCoverage.boundaryWithCollection);
-                newCoverage = true;
+                formatCoverageStatus.boundaryChange = true;
             }
         } else {
             // Runtime.log("[hklog] Merge boundaryWithCollection");
-            if (boundaryWithCollection.merge(otherObjCoverage.boundaryWithCollection)) {
-                newCoverage = true;
+            formatCoverageStatus.incorporate(
+                    boundaryWithCollection.merge(otherObjCoverage.boundaryWithCollection));
+        }
+        if (boundary == null) {
+            if (otherObjCoverage.boundary != null) {
+                boundary = SerializationUtils.clone(otherObjCoverage.boundary);
+                formatCoverageStatus.boundaryChange = true;
+            }
+        } else {
+            if (boundary.merge(otherObjCoverage.boundary)) {
+                formatCoverageStatus.boundaryChange = true;
             }
         }
-        if (newCoverage) {
+        if (formatCoverageStatus.isChanged()) {
             Runtime.log(
                     String.format("[hklog] --- Merged new coverage from testId: %d ---", testId));
         }
-        return newCoverage;
+        return formatCoverageStatus;
     }
 
     public static IsSerialize constructIsSerialize(Path modifiedFieldsPath,

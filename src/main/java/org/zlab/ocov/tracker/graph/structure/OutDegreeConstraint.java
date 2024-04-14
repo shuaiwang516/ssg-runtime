@@ -12,8 +12,9 @@ import java.util.Set;
 
 public class OutDegreeConstraint extends StructureConstraint {
 
-    public OutDegreeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
-        super(unaryInvariants, edgeLabel);
+    public OutDegreeConstraint(List<UnaryInvariant> unaryFormatInvariants,
+            List<UnaryInvariant> unaryBoundaryInvariants, String edgeLabel) {
+        super(unaryFormatInvariants, unaryBoundaryInvariants, edgeLabel);
     }
 
     @Override
@@ -26,7 +27,13 @@ public class OutDegreeConstraint extends StructureConstraint {
             }
         }
         boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.checkPure(count, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                changed = true;
+            }
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.checkPure(count, logInfo)) {
                 brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
                 changed = true;
@@ -53,7 +60,13 @@ public class OutDegreeConstraint extends StructureConstraint {
             throw new RuntimeException("Unknown edge label: " + edgeLabel);
         }
         boolean result = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.checkPure(count, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                result = true;
+            }
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.checkPure(count, logInfo)) {
                 brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
                 result = true;
@@ -71,7 +84,11 @@ public class OutDegreeConstraint extends StructureConstraint {
             }
         }
         boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.add(count, logInfo))
+                changed = true;
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.add(count, logInfo))
                 changed = true;
         }
@@ -98,7 +115,11 @@ public class OutDegreeConstraint extends StructureConstraint {
         }
         if (size != null) {
             boolean changed = false;
-            for (UnaryInvariant invariant : unaryInvariants) {
+            for (UnaryInvariant invariant : unaryFormatInvariants) {
+                if (invariant.add(size, logInfo))
+                    changed = true;
+            }
+            for (UnaryInvariant invariant : unaryBoundaryInvariants) {
                 if (invariant.add(size, logInfo))
                     changed = true;
             }

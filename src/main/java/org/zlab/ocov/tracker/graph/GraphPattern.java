@@ -5,6 +5,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.EqualitySet;
+import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.IsSerialize;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
@@ -24,7 +25,7 @@ public class GraphPattern implements Serializable {
 
     // Likely Invariant Options
     public static boolean enableSequenceBoundaryCheck = true;
-    public static boolean enableAccumulatedSizeCheck = false;
+    public static boolean enableAccumulatedSizeCheck = true;
 
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
@@ -43,7 +44,7 @@ public class GraphPattern implements Serializable {
         boolean isObjectType;
 
         final String type;
-        final String itinerary;
+        String itinerary;
         List<LabelConstraint> labelConstraints;
         List<StructureConstraint> structureConstraints;
 
@@ -58,8 +59,18 @@ public class GraphPattern implements Serializable {
         }
 
         public static Vertex cloneWithNewItineraryPrefix(Vertex v, String itineraryPrefix) {
-            return new Vertex(v.type, itineraryPrefix + "->" + v.itinerary, v.isObjectType,
-                    new LinkedList<>(v.labelConstraints), new LinkedList<>(v.structureConstraints));
+            GraphPattern.Vertex newVertex = SerializationUtils.clone(v);
+            newVertex.itinerary = itineraryPrefix + "->" + v.itinerary;
+            return newVertex;
+        }
+
+        public void reset() {
+            for (LabelConstraint labelConstraint : labelConstraints) {
+                labelConstraint.reset();
+            }
+            for (StructureConstraint structureConstraint : structureConstraints) {
+                structureConstraint.reset();
+            }
         }
 
         public boolean update(ObjectGraph.Vertex vertex, ObjectGraph objectGraph,
@@ -399,22 +410,20 @@ public class GraphPattern implements Serializable {
             return labelConstraintsChange || structureConstraintsChange || subGraphPatternChange;
         }
 
-        public boolean merge(Vertex otherVertex, GraphPattern otherGraphPattern,
+        public FormatCoverageStatus merge(Vertex otherVertex, GraphPattern otherGraphPattern,
                 GraphPattern graphPattern) {
-            boolean changed = false;
+            FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
             // merge label constraints
             assert labelConstraints.size() == otherVertex.labelConstraints.size();
             for (int i = 0; i < labelConstraints.size(); i++) {
-                if (labelConstraints.get(i).merge(otherVertex.labelConstraints.get(i), itinerary))
-                    changed = true;
+                formatCoverageStatus.incorporate(labelConstraints.get(i)
+                        .merge(otherVertex.labelConstraints.get(i), itinerary));
             }
             // merge structure constraints
             assert structureConstraints.size() == otherVertex.structureConstraints.size();
             for (int i = 0; i < structureConstraints.size(); i++) {
-                if (structureConstraints.get(i).merge(otherVertex.structureConstraints.get(i),
-                        itinerary)) {
-                    changed = true;
-                }
+                formatCoverageStatus.incorporate(structureConstraints.get(i)
+                        .merge(otherVertex.structureConstraints.get(i), itinerary));
             }
             for (GraphPattern.Edge edge : otherGraphPattern.graph.outgoingEdgesOf(otherVertex)) {
                 // check whether the edge is in the graphPattern
@@ -422,10 +431,9 @@ public class GraphPattern implements Serializable {
                 for (GraphPattern.Edge patternEdge : graphPattern.graph.outgoingEdgesOf(this)) {
                     if (patternEdge.name.equals(edge.name)) {
                         GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(patternEdge);
-                        if (target.merge(otherGraphPattern.graph.getEdgeTarget(edge),
-                                otherGraphPattern, graphPattern)) {
-                            changed = true;
-                        }
+                        formatCoverageStatus.incorporate(
+                                target.merge(otherGraphPattern.graph.getEdgeTarget(edge),
+                                        otherGraphPattern, graphPattern));
                         // there should only be one edge with the same name
                         found = true;
                         break;
@@ -434,14 +442,15 @@ public class GraphPattern implements Serializable {
                 if (!found) {
                     GraphPattern.Vertex newVertex = SerializationUtils
                             .clone(otherGraphPattern.graph.getEdgeTarget(edge));
+                    newVertex.reset();
                     graphPattern.graph.addVertex(newVertex);
                     graphPattern.graph.addEdge(this, newVertex, edge);
-                    newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge), otherGraphPattern,
-                            graphPattern);
-                    changed = true;
+                    formatCoverageStatus.incorporate(
+                            newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
+                                    otherGraphPattern, graphPattern));
                 }
             }
-            return changed;
+            return formatCoverageStatus;
         }
 
         @Override
@@ -504,7 +513,7 @@ public class GraphPattern implements Serializable {
                 brokenInvs, objId, new HashSet<>());
     }
 
-    public boolean merge(GraphPattern other) {
+    public FormatCoverageStatus merge(GraphPattern other) {
         return root.merge(other.root, other, this);
     }
 
@@ -545,37 +554,41 @@ public class GraphPattern implements Serializable {
             targetValues.add(1);
             labelInvs.add(new RestStringSizeOnce(targetValues));
         } else if (isCollection(typeName)) {
-            structureConstraints
-                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "collection_item"));
+            structureConstraints.add(new OutDegreeConstraint(getCollectionSizeFormatInvariants(),
+                    getCollectionSizeBoundaryInvariants(), "collection_item"));
             if (enableAccumulatedSizeCheck)
-                structureConstraints.add(new AccumulatedSizeConstraint(
-                        getCollectionSizeInvariants(), "collection_item"));
+                structureConstraints
+                        .add(new AccumulatedSizeConstraint(getCollectionSizeFormatInvariants(),
+                                getCollectionSizeBoundaryInvariants(), "collection_item"));
         } else if (isMap(typeName)) {
             // keys
-            structureConstraints
-                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "map_keyItem"));
+            structureConstraints.add(new OutDegreeConstraint(getCollectionSizeFormatInvariants(),
+                    getCollectionSizeBoundaryInvariants(), "map_keyItem"));
             if (enableAccumulatedSizeCheck)
-                structureConstraints.add(new AccumulatedSizeConstraint(
-                        getCollectionSizeInvariants(), "map_keyItem"));
+                structureConstraints
+                        .add(new AccumulatedSizeConstraint(getCollectionSizeFormatInvariants(),
+                                getCollectionSizeBoundaryInvariants(), "map_keyItem"));
             // values
-            structureConstraints
-                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "map_valueItem"));
+            structureConstraints.add(new OutDegreeConstraint(getCollectionSizeFormatInvariants(),
+                    getCollectionSizeBoundaryInvariants(), "map_valueItem"));
             if (enableAccumulatedSizeCheck)
-                structureConstraints.add(new AccumulatedSizeConstraint(
-                        getCollectionSizeInvariants(), "map_valueItem"));
+                structureConstraints
+                        .add(new AccumulatedSizeConstraint(getCollectionSizeFormatInvariants(),
+                                getCollectionSizeBoundaryInvariants(), "map_valueItem"));
         } else if (isArray(typeName)) {
             // array_item
-            structureConstraints
-                    .add(new OutDegreeConstraint(getCollectionSizeInvariants(), "array_item"));
+            structureConstraints.add(new OutDegreeConstraint(getCollectionSizeFormatInvariants(),
+                    getCollectionSizeBoundaryInvariants(), "array_item"));
             if (enableAccumulatedSizeCheck)
-                structureConstraints.add(
-                        new AccumulatedSizeConstraint(getCollectionSizeInvariants(), "array_item"));
+                structureConstraints
+                        .add(new AccumulatedSizeConstraint(getCollectionSizeFormatInvariants(),
+                                getCollectionSizeBoundaryInvariants(), "array_item"));
         } else {
             // object type
             labelInvs.add(new EnumConstant());
             isObjectType = true;
         }
-        valueConstraints.add(new ValueConstraint(labelInvs));
+        valueConstraints.add(new ValueConstraint(labelInvs, new LinkedList<>()));
         return new Vertex(typeName, itinerary, isObjectType, valueConstraints,
                 structureConstraints);
     }
@@ -594,7 +607,7 @@ public class GraphPattern implements Serializable {
         return invariants;
     }
 
-    public static List<UnaryInvariant> getCollectionSizeInvariants() {
+    public static List<UnaryInvariant> getCollectionSizeFormatInvariants() {
         List<UnaryInvariant> invariants = new LinkedList<>();
         invariants.add(new ZeroOnce());
         invariants.add(new OneOnce());
@@ -604,6 +617,11 @@ public class GraphPattern implements Serializable {
         targetValues.add(1);
         invariants.add(new RestOnce(targetValues));
 
+        return invariants;
+    }
+
+    public static List<UnaryInvariant> getCollectionSizeBoundaryInvariants() {
+        List<UnaryInvariant> invariants = new LinkedList<>();
         if (enableSequenceBoundaryCheck) {
             invariants.add(new IntegerLowerBound());
             invariants.add(new IntegerUpperBound());

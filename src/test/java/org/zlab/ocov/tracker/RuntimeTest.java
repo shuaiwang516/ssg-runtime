@@ -73,10 +73,10 @@ public class RuntimeTest {
             out.println("collectInv"); // send a command to the server
             ObjectGraphCoverage response = (ObjectGraphCoverage) in.readObject(); // read the server
             // response.objCoverage.get("org.apache.cassandra.db.RowIndexEntry$IndexedEntry").graph
-            boolean newCov;
+            FormatCoverageStatus newCov;
             if (objectGraphCoverage == null) {
                 objectGraphCoverage = response;
-                newCov = true;
+                newCov = new FormatCoverageStatus(true, true);
             } else {
                 // Add a break point here for checking
                 newCov = objectGraphCoverage.merge(response);

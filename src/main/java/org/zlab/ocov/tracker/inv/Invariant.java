@@ -9,4 +9,6 @@ public abstract class Invariant implements Serializable {
      */
     public abstract boolean merge(Invariant other);
 
+    public abstract void reset();
+
 }

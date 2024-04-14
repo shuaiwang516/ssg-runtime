@@ -19,6 +19,11 @@ public class LongLowerBound extends UnaryInvariant {
     }
 
     @Override
+    public void reset() {
+        lowerBound = Long.MAX_VALUE;
+    }
+
+    @Override
     public boolean checkPure(Object val, LogInfo logInfo) {
         if (val instanceof Long) {
             long tmpVal = (Long) val;

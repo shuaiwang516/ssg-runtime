@@ -19,6 +19,11 @@ public class IntegerUpperBound extends UnaryInvariant {
     }
 
     @Override
+    public void reset() {
+        upperBound = Integer.MIN_VALUE;
+    }
+
+    @Override
     public boolean checkPure(Object val, LogInfo logInfo) {
         // Only check, but not update
         if (val instanceof Integer) {

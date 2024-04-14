@@ -12,8 +12,9 @@ import java.util.Set;
 
 public class InDegreeConstraint extends StructureConstraint {
 
-    public InDegreeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
-        super(unaryInvariants, edgeLabel);
+    public InDegreeConstraint(List<UnaryInvariant> unaryFormatInvariants,
+            List<UnaryInvariant> unaryBoundaryInvariants, String edgeLabel) {
+        super(unaryFormatInvariants, unaryBoundaryInvariants, edgeLabel);
     }
 
     @Override
@@ -26,7 +27,13 @@ public class InDegreeConstraint extends StructureConstraint {
             }
         }
         boolean result = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.checkPure(count, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                result = true;
+            }
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.checkPure(count, logInfo)) {
                 brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
                 result = true;
@@ -50,7 +57,11 @@ public class InDegreeConstraint extends StructureConstraint {
             }
         }
         boolean result = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.add(count, logInfo))
+                result = true;
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.add(count, logInfo))
                 result = true;
         }

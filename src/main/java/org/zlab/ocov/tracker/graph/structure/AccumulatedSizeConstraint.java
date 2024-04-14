@@ -13,8 +13,9 @@ import java.util.Set;
 
 public class AccumulatedSizeConstraint extends StructureConstraint {
 
-    public AccumulatedSizeConstraint(List<UnaryInvariant> unaryInvariants, String edgeLabel) {
-        super(unaryInvariants, edgeLabel);
+    public AccumulatedSizeConstraint(List<UnaryInvariant> unaryFormatInvariants,
+            List<UnaryInvariant> unaryBoundaryInvariants, String edgeLabel) {
+        super(unaryFormatInvariants, unaryBoundaryInvariants, edgeLabel);
     }
 
     @Override
@@ -24,7 +25,13 @@ public class AccumulatedSizeConstraint extends StructureConstraint {
         if (accumulatedSize == null)
             return false;
         boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.checkPure(accumulatedSize, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                changed = true;
+            }
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.checkPure(accumulatedSize, logInfo)) {
                 brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
                 changed = true;
@@ -42,7 +49,13 @@ public class AccumulatedSizeConstraint extends StructureConstraint {
         if (accumulatedSize == null)
             return false;
         boolean result = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.checkPure(accumulatedSize, logInfo)) {
+                brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+                result = true;
+            }
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.checkPure(accumulatedSize, logInfo)) {
                 brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
                 result = true;
@@ -57,7 +70,11 @@ public class AccumulatedSizeConstraint extends StructureConstraint {
         if (accumulatedSize == null)
             return false;
         boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.add(accumulatedSize, logInfo))
+                changed = true;
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.add(accumulatedSize, logInfo))
                 changed = true;
         }
@@ -72,7 +89,11 @@ public class AccumulatedSizeConstraint extends StructureConstraint {
         if (accumulatedSize == null)
             return false;
         boolean changed = false;
-        for (UnaryInvariant invariant : unaryInvariants) {
+        for (UnaryInvariant invariant : unaryFormatInvariants) {
+            if (invariant.add(accumulatedSize, logInfo))
+                changed = true;
+        }
+        for (UnaryInvariant invariant : unaryBoundaryInvariants) {
             if (invariant.add(accumulatedSize, logInfo))
                 changed = true;
         }

@@ -16,4 +16,9 @@ public abstract class OccurOnceInvariant extends UnaryInvariant {
         }
         return false;
     }
+
+    @Override
+    public void reset() {
+        occurOnce = false;
+    }
 }

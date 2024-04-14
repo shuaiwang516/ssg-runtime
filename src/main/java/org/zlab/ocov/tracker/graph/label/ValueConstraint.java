@@ -1,5 +1,6 @@
 package org.zlab.ocov.tracker.graph.label;
 
+import org.zlab.ocov.tracker.FormatCoverageStatus;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.ObjectGraph;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
@@ -10,8 +11,9 @@ import java.util.Set;
 
 public class ValueConstraint extends LabelConstraint {
 
-    public ValueConstraint(List<UnaryInvariant> unaryInvariants) {
-        super(unaryInvariants);
+    public ValueConstraint(List<UnaryInvariant> unaryFormatInvariants,
+            List<UnaryInvariant> unaryBoundaryInvariants) {
+        super(unaryFormatInvariants, unaryBoundaryInvariants);
     }
 
     @Override
@@ -26,21 +28,30 @@ public class ValueConstraint extends LabelConstraint {
     }
 
     @Override
-    public boolean merge(LabelConstraint otherConstraint, String itinerary) {
-        boolean changed = false;
+    public FormatCoverageStatus merge(LabelConstraint otherConstraint, String itinerary) {
+        FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
+
         if (otherConstraint instanceof ValueConstraint) {
             ValueConstraint other = (ValueConstraint) otherConstraint;
-            assert unaryInvariants.size() == other.unaryInvariants.size();
-            for (int i = 0; i < unaryInvariants.size(); i++) {
-                if (unaryInvariants.get(i).merge(other.unaryInvariants.get(i))) {
-                    Runtime.log("Broken Value Constraint: " + unaryInvariants.get(i).toString()
-                            + ", itinerary = " + itinerary);
-                    changed = true;
+            assert unaryFormatInvariants.size() == other.unaryFormatInvariants.size();
+            for (int i = 0; i < unaryFormatInvariants.size(); i++) {
+                if (unaryFormatInvariants.get(i).merge(other.unaryFormatInvariants.get(i))) {
+                    Runtime.log(
+                            "Broken Value Constraint: " + unaryFormatInvariants.get(i).toString()
+                                    + ", itinerary = " + itinerary);
+                    formatCoverageStatus.newFormat = true;
                 }
             }
-            return changed;
+            assert unaryBoundaryInvariants.size() == other.unaryBoundaryInvariants.size();
+            for (int i = 0; i < unaryBoundaryInvariants.size(); i++) {
+                if (unaryBoundaryInvariants.get(i).merge(other.unaryBoundaryInvariants.get(i))) {
+                    Runtime.log(
+                            "Broken Value Constraint: " + unaryBoundaryInvariants.get(i).toString()
+                                    + ", itinerary = " + itinerary);
+                    formatCoverageStatus.boundaryChange = true;
+                }
+            }
         }
-        return false;
+        return formatCoverageStatus;
     }
-
 }

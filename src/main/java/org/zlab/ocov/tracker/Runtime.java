@@ -140,16 +140,6 @@ public class Runtime {
         }
     }
 
-    public static boolean update1(int dumpId) {
-        System.out.println("hello ke from ssg-runtime, dumpId = " + dumpId);
-        return true;
-    }
-
-    public static boolean update2(Object obj) {
-        System.out.println("hello ke from ssg-runtime, obj = " + obj);
-        return true;
-    }
-
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId) {
         if (!enable)
