@@ -12,11 +12,14 @@ import java.util.Random;
 public class Runtime {
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
-    public static final String envVarName = "ENABLE_FORMAT_COVERAGE";
+    public static final String enableEnvName = "ENABLE_FORMAT_COVERAGE";
+    public static final String enableSampleEnvName = "ENABLE_FORMAT_COVERAGE_SAMPLE";
+    public static final String sampleRateEnvName = "FORMAT_COVERAGE_SAMPLE_RATE";
+
     public static final Random rand = new Random();
 
-    public static final boolean sample = false;
-    public static final double sampleRate = 0.2;
+    public static boolean sample = false;
+    public static double sampleRate = 0.2; // default value
 
     /**
      * Collect & update coverage information, dump coverage when program finishes.
@@ -55,13 +58,29 @@ public class Runtime {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
 
             // Only enable when this environment variable is set to true
-            String envVar = System.getenv(envVarName);
+            String envVar = System.getenv(enableEnvName);
             if (!Boolean.parseBoolean(envVar)) {
                 enable = false;
                 log("Invariant Runtime is disabled by environment variable");
                 return;
             }
 
+            // Whether to enable sampling
+            String enableSampleStr = System.getenv(enableSampleEnvName);
+            if (Boolean.parseBoolean(enableSampleStr)) {
+                sample = true;
+                String sampleRateStr = System.getenv(sampleRateEnvName);
+                if (sampleRateStr != null) {
+                    try {
+                        // Convert the environment variable to double
+                        sampleRate = Double.parseDouble(sampleRateStr);
+                    } catch (NumberFormatException e) {
+                        log("Error: SAMPLING_RATE is not a valid double: " + sampleRateStr);
+                    }
+                }
+                log("Sampling is enabled!");
+                log("Sampling Rate = " + sampleRate);
+            }
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
                     branch2CollectionPath);
