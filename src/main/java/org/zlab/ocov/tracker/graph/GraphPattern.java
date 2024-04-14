@@ -155,8 +155,9 @@ public class GraphPattern implements Serializable {
         public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
                 IsSerialize isSerialized, Set<String> brokenInvs, int objId, Set<Integer> visited) {
-            Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = " + itinerary
-                    + ", current time = " + System.currentTimeMillis() + ", objId = " + objId);
+            // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
+            // + itinerary
+            // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId);
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {

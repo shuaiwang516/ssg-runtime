@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.Random;
 
 public class Runtime {
+    public static final boolean debug = false;
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
     public static final String enableEnvName = "ENABLE_FORMAT_COVERAGE";
@@ -78,8 +79,9 @@ public class Runtime {
                         log("Error: SAMPLING_RATE is not a valid double: " + sampleRateStr);
                     }
                 }
-                log("Sampling is enabled!");
-                log("Sampling Rate = " + sampleRate);
+                log("Sampling is enabled: rate = " + sampleRate);
+            } else {
+                log("Sampling is disabled!");
             }
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
@@ -165,11 +167,13 @@ public class Runtime {
                         objectCoverage.update(obj, dumpId);
                     long time3 = System.currentTimeMillis();
 
-                    if ((time3 - time1) / 1000. > 1)
-                        log("slow dump id: " + dumpId);
-                    log("[debug performance problem] dumpId = " + dumpId + "\t, process time = "
-                            + (time3 - time2) / 1000. + "s" + ", total time = "
-                            + (time3 - time1) / 1000. + "s");
+                    if (debug) {
+                        if ((time3 - time1) / 1000. > 1)
+                            log("slow dump id: " + dumpId);
+                        log("[debug performance problem] dumpId = " + dumpId + "\t, process time = "
+                                + (time3 - time2) / 1000. + "s" + ", total time = "
+                                + (time3 - time1) / 1000. + "s");
+                    }
                 }
             }
         } else {
