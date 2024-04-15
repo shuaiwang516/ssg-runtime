@@ -91,15 +91,4 @@ public class Boundary implements Serializable {
         }
         return changed;
     }
-
-    public static class RecordCollection implements Serializable {
-        public int identityHashCode;
-        public int seqId;
-
-        public RecordCollection(int identityHashCode, int seqId) {
-            this.identityHashCode = identityHashCode;
-            this.seqId = seqId;
-        }
-    }
-
 }
