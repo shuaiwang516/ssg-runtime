@@ -147,6 +147,14 @@ public class Runtime {
         if (!enable)
             return obj;
 
+        // if (dumpId != 65
+        // || obj.getClass().getName().equals("org.apache.cassandra.db.RowIndexEntry"))
+        // {
+        // return obj;
+        // }
+        // Runtime.log("Processing object: " + obj.getClass().getName() + " with dumpId:
+        // " + dumpId);
+
         if (objectCoverage != null) {
             if (!sample || isSampled()) {
                 long time1 = System.currentTimeMillis();

@@ -73,6 +73,7 @@ public class GraphPattern implements Serializable {
             }
         }
 
+        // Might be outdated since we uses the second update method...
         public boolean update(ObjectGraph.Vertex vertex, ObjectGraph objectGraph,
                 GraphPattern graphPattern, Map<String, GraphPattern> graphPatternMap,
                 LogInfo logInfo, EqualitySet equalitySet, IsSerialize isSerialized,
@@ -166,9 +167,11 @@ public class GraphPattern implements Serializable {
         public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
                 IsSerialize isSerialized, Set<String> brokenInvs, int objId, Set<Integer> visited) {
+            // if (Runtime.debug)
             // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
             // + itinerary
-            // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId);
+            // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId
+            // + ", obj class = " + (obj == null ? "null" : obj.getClass().getName()));
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
@@ -185,11 +188,20 @@ public class GraphPattern implements Serializable {
             }
             boolean subGraphPatternChange = false;
 
-            if (obj == null || visited.contains(System.identityHashCode(obj)))
+            if (obj == null)
                 return labelConstraintsChange || structureConstraintsChange;
 
             String objectType = obj.getClass().getName();
+            if (visited.contains(System.identityHashCode(obj))) {
+                // Though we do not further track, we still need to process this object
+                // since the this could lead to a different iti for equality set
+                computeSpecialInvariant(equalitySet, isSerialized, obj, obj.getClass().getName(),
+                        itinerary, objId, visited, logInfo);
+                return labelConstraintsChange || structureConstraintsChange;
+            }
+
             if (isObjectType) {
+                // Marker vetrex for polymorphism
                 boolean found = false;
                 Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
                 for (GraphPattern.Edge edge : outgoingEdges) {
@@ -227,17 +239,17 @@ public class GraphPattern implements Serializable {
                         subGraphPatternRoot.update(obj, graphPattern, graphPatternMap, logInfo,
                                 equalitySet, isSerialized, brokenInvs, objId, visited);
                         subGraphPatternChange = true;
+                    } else {
+                        // We won't further track, but still need to process this object
+                        // since it's recorded in serialized objects
+                        computeSpecialInvariant(equalitySet, isSerialized, obj, objectType,
+                                itinerary, objId, visited, logInfo);
                     }
                 }
             } else {
-                // The current object vertex won't be iterated again, process it
-                if (equalitySet != null)
-                    equalitySet.update(obj, objectType, itinerary, objId);
-                if (isSerialized != null) {
-                    if (obj.getClass().isEnum())
-                        isSerialized.updateVisitedEnums(objectType, obj.toString());
-                }
-                visited.add(System.identityHashCode(obj));
+                computeSpecialInvariant(equalitySet, isSerialized, obj, objectType, itinerary,
+                        objId, visited, logInfo);
+
                 // Special process Map/Collection/Array
                 if (obj instanceof Map) {
                     GraphPattern.Vertex mapKeyItemVertex = null;
@@ -302,12 +314,42 @@ public class GraphPattern implements Serializable {
                     }
                 } else if (obj instanceof Collection) {
                     GraphPattern.Vertex collectionItemVertex = null;
+                    GraphPattern.Vertex collectionFirstItemVertex = null;
+                    GraphPattern.Vertex collectionLastItemVertex = null;
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
                     for (GraphPattern.Edge patternEdge : outgoingEdges) {
                         if (patternEdge.name.equals("collection_item")) {
                             collectionItemVertex = graphPattern.graph.getEdgeTarget(patternEdge);
+                        }
+                        if (patternEdge.name.equals("collection_firstItem")) {
+                            collectionFirstItemVertex = graphPattern.graph
+                                    .getEdgeTarget(patternEdge);
+                        }
+                        if (patternEdge.name.equals("collection_lastItem")) {
+                            collectionLastItemVertex = graphPattern.graph
+                                    .getEdgeTarget(patternEdge);
+                        }
+                        if (collectionItemVertex != null && collectionFirstItemVertex != null
+                                && collectionLastItemVertex != null) {
                             break;
                         }
+                    }
+                    boolean firstItemUpdated = false;
+                    boolean lastItemUpdated = false;
+                    if (collectionFirstItemVertex != null) {
+                        Object firstItem = getFirstItemFromCollectionWithOrder(obj);
+                        if (collectionFirstItemVertex.update(firstItem, graphPattern,
+                                graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs,
+                                objId, visited))
+                            subGraphPatternChange = true;
+                        firstItemUpdated = true;
+                    }
+                    if (collectionLastItemVertex != null) {
+                        Object lastItem = getLastItemFromCollectionWithOrder(obj);
+                        if (collectionLastItemVertex.update(lastItem, graphPattern, graphPatternMap,
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId, visited))
+                            subGraphPatternChange = true;
+                        lastItemUpdated = true;
                     }
                     if (collectionItemVertex != null) {
                         int length = ((Collection) obj).size();
@@ -322,8 +364,14 @@ public class GraphPattern implements Serializable {
                             for (int i = 0; i < length; i++)
                                 sampleIdxs.add(i);
                         }
+                        Object[] array = ((Collection) obj).toArray();
                         for (int i : sampleIdxs) {
-                            Object object = ((Collection) obj).toArray()[i];
+                            if ((firstItemUpdated && i == 0)
+                                    || (lastItemUpdated && i == length - 1)) {
+                                // Skip the first and the last item, handled separately
+                                continue;
+                            }
+                            Object object = array[i];
                             if (object == null) {
                                 continue;
                             }
@@ -332,6 +380,7 @@ public class GraphPattern implements Serializable {
                                 subGraphPatternChange = true;
                         }
                     }
+
                 } else if (obj.getClass().isArray()) {
                     GraphPattern.Vertex arrayItemVertex = null;
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
@@ -649,6 +698,56 @@ public class GraphPattern implements Serializable {
         return false;
     }
 
+    public static boolean isCollectionWithOrder(String typeName) {
+        // also make sure set is included
+        return typeName.equals("java.util.List") || typeName.equals("java.util.ArrayList")
+                || typeName.equals("java.util.LinkedList") || typeName.equals("java.util.Vector")
+                || typeName.equals("java.util.Stack") || typeName.equals("java.util.Queue")
+                || typeName.equals("java.util.PriorityQueue") || typeName.equals("java.util.Set")
+                || typeName.equals("java.util.SortedSet")
+                || typeName.equals("java.util.NavigableSet");
+    }
+
+    public static Object getFirstItemFromCollectionWithOrder(Object obj) {
+        if (obj instanceof List) {
+            List list = (List) obj;
+            if (list.size() > 0) {
+                return list.get(0);
+            }
+        } else if (obj instanceof Queue) {
+            Queue queue = (Queue) obj;
+            if (queue.size() > 0) {
+                return queue.peek();
+            }
+        } else if (obj instanceof SortedSet) {
+            SortedSet sortedSet = (SortedSet) obj;
+            if (sortedSet.size() > 0) {
+                return sortedSet.first();
+            }
+        }
+        return null;
+    }
+
+    public static Object getLastItemFromCollectionWithOrder(Object obj) {
+        if (obj instanceof List) {
+            List list = (List) obj;
+            if (list.size() > 0) {
+                return list.get(list.size() - 1);
+            }
+        } else if (obj instanceof Queue) {
+            Queue queue = (Queue) obj;
+            if (queue.size() > 0) {
+                return queue.peek();
+            }
+        } else if (obj instanceof SortedSet) {
+            SortedSet sortedSet = (SortedSet) obj;
+            if (sortedSet.size() > 0) {
+                return sortedSet.last();
+            }
+        }
+        return null;
+    }
+
     public static boolean isMap(String typeName) {
         return typeName.equals("java.util.Map") || typeName.equals("java.util.HashMap")
                 || typeName.equals("java.util.TreeMap") || typeName.equals("java.util.Hashtable")
@@ -697,6 +796,21 @@ public class GraphPattern implements Serializable {
                     graphPattern.graph.addVertex(collectionItemVertex);
                     graphPattern.graph.addEdge(vertex, collectionItemVertex,
                             new Edge("collection_item"));
+
+                    // Special handle the first/last item if there's order
+                    if (isCollectionWithOrder(fieldType)) {
+                        Vertex firstItemVertex = createVertex("ObjectPlaceHolder",
+                                itinerary + ".collection_firstItem");
+                        graphPattern.graph.addVertex(firstItemVertex);
+                        graphPattern.graph.addEdge(vertex, firstItemVertex,
+                                new Edge("collection_firstItem"));
+
+                        Vertex lastItemVertex = createVertex("ObjectPlaceHolder",
+                                itinerary + ".collection_lastItem");
+                        graphPattern.graph.addVertex(lastItemVertex);
+                        graphPattern.graph.addEdge(vertex, lastItemVertex,
+                                new Edge("collection_lastItem"));
+                    }
                 } else if (isMap(fieldType)) {
                     Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder",
                             itinerary + ".map_keyItem");
@@ -776,6 +890,20 @@ public class GraphPattern implements Serializable {
             System.out.print("  "); // Two spaces for each level of indentation
         }
         System.out.println(obj);
+    }
+
+    private static void computeSpecialInvariant(EqualitySet equalitySet, IsSerialize isSerialized,
+            Object obj, String objectType, String itinerary, int objId, Set<Integer> visited,
+            LogInfo logInfo) {
+        // The current object vertex won't be iterated again, process it
+        if (equalitySet != null) {
+            equalitySet.update(obj, objectType, itinerary, objId);
+        }
+        if (isSerialized != null) {
+            if (obj.getClass().isEnum())
+                isSerialized.updateVisitedEnums(objectType, obj.toString());
+        }
+        visited.add(System.identityHashCode(obj));
     }
 
 }

@@ -59,6 +59,7 @@ public class RuntimeTest {
         socket.close();
     }
 
+    // Run this only when debugging
     // @Test
     public void testFetchLoop() throws IOException, ClassNotFoundException {
         fetchInvInfoLoop();

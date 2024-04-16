@@ -90,7 +90,8 @@ public class GenerateTestInput {
         Utils.saveSetToFile(topObjects, "input/topObjects2.json");
     }
 
-    @Test
+    // Do not run this test
+    // @Test
     public void createExampleTopObjectsCassandra() {
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.apache.cassandra.config.CFMetaData");
@@ -358,6 +359,22 @@ public class GenerateTestInput {
         Utils.saveBranch2Collection(branch2Collection,
                 Paths.get("input/branch2CollectionForBoundary.json"));
 
+        helper.save();
+    }
+
+    @Test
+    public void createInputForCollectionFirstLast() {
+        TestHelper helper = new TestHelper("CollectionFirstLast");
+        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassE1", "fList", "java.util.List");
+        helper.addBaseClassInfo(classPrefix + "TargetClassE2", "compClass",
+                classPrefix + "CompClass");
+
+        helper.addTopObject(classPrefix + "TargetClassE1");
+        helper.addTopObject(classPrefix + "TargetClassE2");
+
+        helper.addComparableClass(classPrefix + "CompClass");
         helper.save();
     }
 

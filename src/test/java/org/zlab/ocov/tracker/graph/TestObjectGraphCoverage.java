@@ -6,10 +6,8 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.zlab.ocov.tracker.ObjectCoverage;
-import org.zlab.ocov.tracker.ObjectGraphCoverage;
+import org.zlab.ocov.tracker.*;
 import org.zlab.ocov.tracker.Runtime;
-import org.zlab.ocov.tracker.TestObjectGraph;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -87,6 +85,51 @@ public class TestObjectGraphCoverage {
         obj4.fList.add(tmpF42);
         assert (coverage1.update(obj4));
         assert coverage.merge(coverage1).newFormat;
+    }
+
+    @Test
+    public void testCollectionFirstItem() {
+        String suffix = "CollectionFirstLast";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TestObjectGraph.TargetClassE1 obj1;
+        TestObjectGraph.TargetClassE2 obj2;
+        FormatCoverageStatus status;
+        /* Test1 */
+        obj1 = new TestObjectGraph.TargetClassE1();
+        obj1.fList.add(new TestObjectGraph.CompClass(1));
+        obj1.fList.add(new TestObjectGraph.CompClass(4));
+
+        obj2 = new TestObjectGraph.TargetClassE2(2);
+
+        coverage.update(obj1);
+        coverage.update(obj2);
+        coverage.inferInvariant();
+        status = coverage1.merge(coverage, 0);
+        coverage.clear();
+        assert status.newFormat;
+
+        /* Test2 */
+        obj1 = new TestObjectGraph.TargetClassE1();
+        obj1.fList.add(new TestObjectGraph.CompClass(1));
+        obj1.fList.add(new TestObjectGraph.CompClass(4));
+
+        obj2 = new TestObjectGraph.TargetClassE2(4);
+        coverage.update(obj1);
+        coverage.update(obj2);
+        coverage.inferInvariant();
+
+        status = coverage1.merge(coverage, 1);
+        coverage.clear();
+        assert status.newFormat;
+
     }
 
     @Test

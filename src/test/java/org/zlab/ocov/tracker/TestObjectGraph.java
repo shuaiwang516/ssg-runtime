@@ -50,6 +50,18 @@ public class TestObjectGraph {
         public List<TargetClassF> fList = new LinkedList<>();
     }
 
+    public static class TargetClassE1 {
+        // Define some fields here for testing
+        public List<CompClass> fList = new LinkedList<>();
+    }
+
+    public static class TargetClassE2 {
+        CompClass compClass;
+        public TargetClassE2(int i) {
+            compClass = new CompClass(i);
+        }
+    }
+
     public static abstract class TargetClassF {
         // Define some fields here for testing
         public abstract void foo();

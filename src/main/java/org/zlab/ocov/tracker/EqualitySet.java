@@ -85,22 +85,21 @@ public class EqualitySet implements Serializable {
     }
 
     public void update(Object obj, String className, String itinerary, int objId) {
-        if (comparableClasses.contains(className)) {
-            int hashCode = obj.hashCode();
-            if (!enableAcrossEquality) {
-                Map<Integer, Map<String, Integer>> hashCodeMap0 = equalSetAcrossObj
-                        .computeIfAbsent(className, k -> new HashMap<>());
-                Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
-                        k -> new HashMap<>());
-                itinerarySet0.put(itinerary, objId);
-            }
-
-            Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
+        if (!comparableClasses.contains(className))
+            return;
+        int hashCode = obj.hashCode();
+        if (!enableAcrossEquality) {
+            Map<Integer, Map<String, Integer>> hashCodeMap0 = equalSetAcrossObj
+                    .computeIfAbsent(className, k -> new HashMap<>());
+            Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
                     k -> new HashMap<>());
-            Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode,
-                    k -> new HashSet<>());
-            itinerarySet1.add(itinerary);
+            itinerarySet0.put(itinerary, objId);
         }
+
+        Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
+                k -> new HashMap<>());
+        Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode, k -> new HashSet<>());
+        itinerarySet1.add(itinerary);
     }
 
     public void dumpSameObjectGraph(int dumpId, int objId) {
@@ -425,7 +424,7 @@ public class EqualitySet implements Serializable {
             boolean isStrictSupersetFound = false;
             boolean isSubsetFound = false;
             Set<SetMapping> setsToRemove = new HashSet<>();
-            int dumpId = setFromS2.value;
+            int dumpId = setFromS2.getDumpId();
 
             for (SetMapping setFromS1 : s1) {
                 if (setFromS2.keySet.containsAll(setFromS1.keySet)
@@ -515,12 +514,16 @@ public class EqualitySet implements Serializable {
     public static class SetMapping implements Serializable {
         private static final long serialVersionUID = 20231215L;
 
-        public Set<String> keySet;
-        public Integer value;
+        private Set<String> keySet;
+        private Integer dumpId; // For equality, this stores the dumpId
 
-        public SetMapping(Set<String> keySet, Integer value) {
+        public SetMapping(Set<String> keySet, Integer dumpId) {
             this.keySet = keySet;
-            this.value = value;
+            this.dumpId = dumpId;
+        }
+
+        public int getDumpId() {
+            return dumpId;
         }
 
         // override equals and hashCode: as long as keySet is equal, then the two are
@@ -545,13 +548,13 @@ public class EqualitySet implements Serializable {
         // clone
         @Override
         public SetMapping clone() {
-            return new SetMapping(new HashSet<>(keySet), value);
+            return new SetMapping(new HashSet<>(keySet), dumpId);
         }
 
         // tostring
         @Override
         public String toString() {
-            return String.format("SetMapping: keySet = %s, value = %d", keySet, value);
+            return String.format("SetMapping: keySet = %s, dumpId = %d", keySet, dumpId);
         }
     }
 
