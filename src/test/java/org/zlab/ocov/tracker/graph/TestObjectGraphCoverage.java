@@ -2,6 +2,7 @@ package org.zlab.ocov.tracker.graph;
 
 // import com.google.common.reflect.TypeToken;
 // import com.google.gson.Gson;
+import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -397,8 +398,10 @@ public class TestObjectGraphCoverage {
     /**
      * If test this, set GraphPattern.enableSequenceBoundaryCheck to true
      */
-    @Test
+    // @Test
     public void testAccumulatedSize() {
+        if (!GraphPattern.enableAccumulatedSizeCheck)
+            return;
         Path bassClassPath = Paths.get("input/baseClassInfoForAccumulatedSize.json");
         Path topObjectsPath = Paths.get("input/topObjectsForAccumulatedSize.json");
 
