@@ -25,7 +25,7 @@ public class GraphPattern implements Serializable {
 
     // Likely Invariant Options
     public static boolean enableSequenceBoundaryCheck = true;
-    public static boolean enableAccumulatedSizeCheck = true;
+    public static boolean enableAccumulatedSizeCheck = false;
 
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
