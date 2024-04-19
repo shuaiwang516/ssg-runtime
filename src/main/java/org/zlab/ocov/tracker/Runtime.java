@@ -231,13 +231,22 @@ public class Runtime {
                             while ((inputLine = in.readLine()) != null) {
                                 log("Received command: " + inputLine);
                                 // process the command and generate a response
-                                ObjectGraphCoverage response;
+                                ObjectGraphCoverage response = null;
 
                                 synchronized (objectCoverageLock) {
-                                    response = processCommand(inputLine);
-                                    // Serialize and send the response within the synchronized block
-                                    out.writeObject(response);
-                                    response.clear();
+                                    if (!inputLine.equals("clear")) {
+                                        // If the command is not "clear", process it
+                                        response = processCommand(inputLine);
+                                        // Serialize and send the response within the synchronized
+                                        // block
+                                        out.writeObject(response);
+                                    }
+                                    // clear anyway...
+                                    // response.clear();
+                                    objectCoverage = new ObjectGraphCoverage(baseClassPath,
+                                            topObjectsPath, comparableClassesPath,
+                                            modifiedFieldsPath, modifiedEnumsPath,
+                                            branch2CollectionPath);
                                 }
                                 System.out.println("Sent response: " + response);
                             }
