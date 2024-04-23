@@ -74,6 +74,8 @@ task fatJar(type: ShadowJar) {
     exclude 'junit/**'
     exclude 'org/junit/**'
     exclude 'org/hamcrest/**' // Hamcrest often comes with JUnit
+    // Uncomment this for old version hadoop (3.3.0/3.4.0_15624)
+    // exclude 'com/fasterxml/**'
 }
 
 application {
