@@ -58,10 +58,10 @@ public class GraphPattern implements Serializable {
             this.structureConstraints = structureConstraints;
         }
 
-        public static Vertex cloneWithNewItineraryPrefix(Vertex v, String itineraryPrefix) {
-            GraphPattern.Vertex newVertex = SerializationUtils.clone(v);
-            newVertex.itinerary = itineraryPrefix + "->" + v.itinerary;
-            return newVertex;
+        public static void updateItinerary(GraphPattern graphPattern, String itineraryPrefix) {
+            for (Vertex v : graphPattern.graph.vertexSet()) {
+                v.itinerary = itineraryPrefix + "->" + v.itinerary;
+            }
         }
 
         public void reset() {
@@ -107,28 +107,19 @@ public class GraphPattern implements Serializable {
                 if (!found) {
                     // If not found, create a new one
                     if (graphPatternMap.containsKey(vertex.type)) {
-                        // Include the subgraph's edges and vertices
                         GraphPattern subGraphPattern = SerializationUtils
                                 .clone(graphPatternMap.get(vertex.type));
-
+                        updateItinerary(subGraphPattern, itinerary);
                         for (Vertex v1 : subGraphPattern.graph.vertexSet())
-                            graphPattern.graph
-                                    .addVertex(cloneWithNewItineraryPrefix(v1, itinerary));
+                            graphPattern.graph.addVertex(v1);
                         for (Edge edge : subGraphPattern.graph.edgeSet())
-                            graphPattern.graph.addEdge(
-                                    cloneWithNewItineraryPrefix(
-                                            subGraphPattern.graph.getEdgeSource(edge), itinerary),
-                                    cloneWithNewItineraryPrefix(
-                                            subGraphPattern.graph.getEdgeTarget(edge), itinerary),
-                                    edge);
+                            graphPattern.graph.addEdge(subGraphPattern.graph.getEdgeSource(edge),
+                                    subGraphPattern.graph.getEdgeTarget(edge), edge);
 
                         // Connect two graphs
-                        Vertex subGraphPatternRoot = cloneWithNewItineraryPrefix(
-                                subGraphPattern.root, itinerary);
-
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(vertex.type);
-                        graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
-                        subGraphPatternRoot.update(vertex, objectGraph, graphPattern,
+                        graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
+                        subGraphPattern.root.update(vertex, objectGraph, graphPattern,
                                 graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs);
                         subGraphPatternChange = true;
                     }
@@ -218,25 +209,17 @@ public class GraphPattern implements Serializable {
                         // Include the subgraph's edges and vertices
                         GraphPattern subGraphPattern = SerializationUtils
                                 .clone(graphPatternMap.get(objectType));
-
+                        updateItinerary(subGraphPattern, itinerary);
                         for (Vertex v1 : subGraphPattern.graph.vertexSet())
-                            graphPattern.graph
-                                    .addVertex(cloneWithNewItineraryPrefix(v1, itinerary));
+                            graphPattern.graph.addVertex(v1);
                         for (Edge edge : subGraphPattern.graph.edgeSet())
-                            graphPattern.graph.addEdge(
-                                    cloneWithNewItineraryPrefix(
-                                            subGraphPattern.graph.getEdgeSource(edge), itinerary),
-                                    cloneWithNewItineraryPrefix(
-                                            subGraphPattern.graph.getEdgeTarget(edge), itinerary),
-                                    edge);
+                            graphPattern.graph.addEdge(subGraphPattern.graph.getEdgeSource(edge),
+                                    subGraphPattern.graph.getEdgeTarget(edge), edge);
 
                         // Connect two graphs
-                        Vertex subGraphPatternRoot = cloneWithNewItineraryPrefix(
-                                subGraphPattern.root, itinerary);
-
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
-                        graphPattern.graph.addEdge(this, subGraphPatternRoot, newEdge);
-                        subGraphPatternRoot.update(obj, graphPattern, graphPatternMap, logInfo,
+                        graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
+                        subGraphPattern.root.update(obj, graphPattern, graphPatternMap, logInfo,
                                 equalitySet, isSerialized, brokenInvs, objId, visited);
                         subGraphPatternChange = true;
                     } else {

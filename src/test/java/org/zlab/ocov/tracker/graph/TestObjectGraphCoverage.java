@@ -278,8 +278,8 @@ public class TestObjectGraphCoverage {
         assert !coverage1.merge(coverage).newFormat;
 
         // test a single graph pattern ser/de
-        DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph = coverage1.objCoverage
-                .get(obj1.getClass().getName()).graph;
+        DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph = coverage1.dumpId2ObjCoverage
+                .get(-1).get(obj1.getClass().getName()).graph;
 
         // Gson gson = ObjectGraphCoverage.constructGson();
         // String jsonStr = gson.toJson(graph);

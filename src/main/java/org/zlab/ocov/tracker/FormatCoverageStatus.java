@@ -35,9 +35,7 @@ public class FormatCoverageStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "FormatCoverageStatus{" +
-                "newFormat=" + newFormat +
-                ", boundaryChange=" + boundaryChange +
-                '}';
+        return "FormatCoverageStatus{" + "newFormat=" + newFormat + ", boundaryChange="
+                + boundaryChange + '}';
     }
 }

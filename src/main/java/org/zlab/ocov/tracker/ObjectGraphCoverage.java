@@ -34,7 +34,8 @@ public class ObjectGraphCoverage implements Serializable {
 
     // Core coverage
     // Only contain the top level objects: class name -> class info
-    public Map<String, GraphPattern> objCoverage = new HashMap<>();
+    public Map<Integer, Map<String, GraphPattern>> dumpId2ObjCoverage = new HashMap<>();
+    // public Map<String, GraphPattern> objCoverage = new HashMap<>();
 
     public Set<Integer> visitedObjects = new HashSet<>();
 
@@ -107,20 +108,17 @@ public class ObjectGraphCoverage implements Serializable {
         boundary = new Boundary();
         if (enableInvariantCombination)
             invariantCombination = new InvariantCombination();
+    }
 
-        // Get classInfo
-        for (String className : topObjects) {
-            GraphPattern classInfo = baseClassInfo.get(className);
-            if (classInfo != null) {
-                // Copy the class info to a new object and put it into the map
-                GraphPattern copyClassInfo = SerializationUtils.clone(classInfo);
-                objCoverage.put(className, copyClassInfo);
-            } else {
-                // throw new RuntimeException("ClassInfo not found for " + className);
-                // skip it
-                // Runtime.log("[hklog] ClassInfo not found for " + className);
-            }
+    public GraphPattern getGraphPattern(String className, int dumpId) {
+        if (!dumpId2ObjCoverage.containsKey(dumpId)) {
+            dumpId2ObjCoverage.put(dumpId, new HashMap<>());
         }
+        Map<String, GraphPattern> objCoverage = dumpId2ObjCoverage.get(dumpId);
+        if (!objCoverage.containsKey(className)) {
+            objCoverage.put(className, SerializationUtils.clone(baseClassInfo.get(className)));
+        }
+        return objCoverage.get(className);
     }
 
     public boolean update(Object obj) {
@@ -131,36 +129,22 @@ public class ObjectGraphCoverage implements Serializable {
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
+        if (!topObjects.contains(className) || !baseClassInfo.containsKey(className))
+            return false;
 
         int objId = System.identityHashCode(obj);
         if (avoidRecordObjectWithSameAddress) {
             if (visitedObjects.contains(objId)) {
-                // if (classDupCount.containsKey(className)) {
-                // classDupCount.put(className, classDupCount.get(className) + 1);
-                // } else {
-                // classDupCount.put(className, 1);
-                // }
-                // dupObjectCount++;
                 return false;
             }
             visitedObjects.add(objId);
         }
 
-        // update classDumpCount
-        // if (classDumpCount.containsKey(className)) {
-        // classDumpCount.put(className, classDumpCount.get(className) + 1);
-        // } else {
-        // classDumpCount.put(className, 1);
-        // }
-        // dumpedObjectCount++;
-
-        GraphPattern classInfo = objCoverage.get(className);
+        GraphPattern classInfo = getGraphPattern(className, dumpId);
         if (classInfo == null)
-            return false;
-
+            throw new RuntimeException("ClassInfo not found for " + className);
         // long time1 = System.nanoTime();
-
-        boolean ret = false;
+        boolean ret;
         Set<String> brokenInvs = new HashSet<>();
         LogInfo logInfo = new LogInfo(dumpId);
 
@@ -257,7 +241,7 @@ public class ObjectGraphCoverage implements Serializable {
             visitedObjects.add(objId);
         }
 
-        GraphPattern classInfo = objCoverage.get(className);
+        GraphPattern classInfo = getGraphPattern(className, dumpId);
         if (classInfo == null)
             return false;
 
@@ -268,22 +252,6 @@ public class ObjectGraphCoverage implements Serializable {
 
         objectGraphs.add(objectGraph);
         return true;
-    }
-
-    public void inferInvariantFromAllObjectGraphs() {
-        int dumpId = -1;
-        LogInfo logInfo = new LogInfo(dumpId);
-        for (ObjectGraph objectGraph : objectGraphs) {
-            Set<String> brokenInvs = new HashSet<>();
-            objCoverage.get(objectGraph.root.type).update(objectGraph, baseClassInfo, logInfo,
-                    equalitySet, isSerialized, brokenInvs);
-            if (!brokenInvs.isEmpty() && enableInvariantCombination) {
-                invariantCombination.record(objectGraph.root.identifyHash, brokenInvs);
-            }
-            if (equalitySet != null)
-                equalitySet.dumpSameObjectGraph(dumpId, objectGraph.root.identifyHash);
-        }
-        objectGraphs.clear();
     }
 
     public void debugLog() {
@@ -327,29 +295,42 @@ public class ObjectGraphCoverage implements Serializable {
         FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherObjCoverage == null)
             return formatCoverageStatus;
-        // The coverage's class info should be similar
-        // Let's include all new here
-        // Normal object coverage merge
-        for (String className : otherObjCoverage.objCoverage.keySet()) {
-            GraphPattern otherClassInfo = otherObjCoverage.objCoverage.get(className);
-            if (otherClassInfo == null) {
-                // Skip this
+
+        for (int dumpId : otherObjCoverage.dumpId2ObjCoverage.keySet()) {
+            Map<String, GraphPattern> otherClassInfo = otherObjCoverage.dumpId2ObjCoverage
+                    .get(dumpId);
+            if (otherClassInfo == null)
+                continue;
+
+            if (!dumpId2ObjCoverage.containsKey(dumpId)) {
+                dumpId2ObjCoverage.put(dumpId, new HashMap<>());
+                for (String className : otherClassInfo.keySet()) {
+                    GraphPattern otherGraphPattern = otherClassInfo.get(className);
+                    if (otherGraphPattern == null)
+                        continue;
+                    dumpId2ObjCoverage.get(dumpId).put(className,
+                            SerializationUtils.clone(otherGraphPattern));
+                }
+                formatCoverageStatus.newFormat = true;
                 continue;
             }
-            GraphPattern classInfo = objCoverage.get(className);
-            if (classInfo == null) {
-                // Add it
-                Runtime.log("[hklog] Add new classInfo for " + className);
-                objCoverage.put(className, otherClassInfo);
-                formatCoverageStatus.newFormat = true;
-                // FIXME: Why would this happen? Should we also consider it as a boundary
-                // change?
-            } else {
-                formatCoverageStatus.incorporate(classInfo.merge(otherClassInfo));
+
+            Map<String, GraphPattern> classInfo = dumpId2ObjCoverage.get(dumpId);
+            for (String className : otherClassInfo.keySet()) {
+                GraphPattern otherGraphPattern = otherClassInfo.get(className);
+                if (otherGraphPattern == null)
+                    continue;
+                GraphPattern graphPattern = classInfo.get(className);
+                if (graphPattern == null) {
+                    Runtime.log("[hklog] Add new graphPattern for " + className);
+                    classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
+                    formatCoverageStatus.newFormat = true;
+                } else {
+                    formatCoverageStatus.incorporate(graphPattern.merge(otherGraphPattern));
+                }
             }
         }
         if (equalitySet == null) {
-            // Avoid providing the information for upfuzz
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
                 formatCoverageStatus.newFormat = true;

@@ -270,10 +270,6 @@ public class Runtime {
     }
 
     private static ObjectGraphCoverage processCommand(String command) {
-        // only return the violations
-        // visited objects are cleared
-        if (memorizeAllObjectGraph)
-            objectCoverage.inferInvariantFromAllObjectGraphs();
         objectCoverage.inferInvariant();
         return objectCoverage;
     }
