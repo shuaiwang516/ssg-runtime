@@ -32,4 +32,12 @@ public class FormatCoverageStatus implements Serializable {
     public boolean isChanged() {
         return newFormat || boundaryChange;
     }
+
+    @Override
+    public String toString() {
+        return "FormatCoverageStatus{" +
+                "newFormat=" + newFormat +
+                ", boundaryChange=" + boundaryChange +
+                '}';
+    }
 }

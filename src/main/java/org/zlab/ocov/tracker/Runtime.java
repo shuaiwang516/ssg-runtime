@@ -243,6 +243,7 @@ public class Runtime {
                                     }
                                     // clear anyway...
                                     // response.clear();
+                                    Runtime.log("clear objectCoverage");
                                     objectCoverage = new ObjectGraphCoverage(baseClassPath,
                                             topObjectsPath, comparableClassesPath,
                                             modifiedFieldsPath, modifiedEnumsPath,
