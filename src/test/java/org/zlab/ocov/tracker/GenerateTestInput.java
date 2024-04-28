@@ -378,6 +378,21 @@ public class GenerateTestInput {
         helper.save();
     }
 
+    @Test
+    public void createInputForPreservedString() {
+        TestHelper helper = new TestHelper("PreservedString");
+        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForPreservedString", "ksname",
+                "java.lang.String");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForPreservedStringTopObject", "fList",
+                "java.util.List");
+
+        helper.addTopObject(classPrefix + "TargetClassForPreservedStringTopObject");
+
+        helper.save();
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

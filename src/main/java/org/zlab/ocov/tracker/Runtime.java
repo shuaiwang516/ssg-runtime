@@ -9,7 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class Runtime {
     public static final boolean debug = false;
@@ -38,10 +40,13 @@ public class Runtime {
     public static ObjectGraphCoverage objectCoverage;
     private static final Object objectCoverageLock = new Object();
 
-    public static boolean memorizeAllObjectGraph = false;
-
     public static boolean isSampled() {
         return rand.nextDouble() < sampleRate;
+    }
+
+    public static final Set<String> preservedStrings = new HashSet<>();
+    static {
+        preservedStrings.add("system");
     }
 
     // Invoked by main of target program

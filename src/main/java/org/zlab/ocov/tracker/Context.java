@@ -56,8 +56,12 @@ public class Context implements Serializable {
             graphPattern.update(contextObj, baseClassInfo, new LogInfo(dumpId), equalitySet,
                     isSerialized, brokenInvs, System.identityHashCode(contextObj));
             // FIXME: examine whether the brokenInvs contains a <String: preserved String>
-            if (brokenInvs.contains("preserved String"))
-                containPreservedString = true;
+            for (String brokenInvsStr : brokenInvs) {
+                if (brokenInvsStr.contains("<PreservedStringOnce>")) {
+                    containPreservedString = true;
+                    break;
+                }
+            }
         }
         return containPreservedString;
     }

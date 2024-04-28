@@ -586,7 +586,7 @@ public class GraphPattern implements Serializable {
             targetValues.add(1);
             labelInvs.add(new RestStringSizeOnce(targetValues));
             // TODO: add preserved string set...
-
+            labelInvs.add(new PreservedStringOnce(Runtime.preservedStrings));
         } else if (isCollection(typeName)) {
             structureConstraints.add(new OutDegreeConstraint(getCollectionSizeFormatInvariants(),
                     getCollectionSizeBoundaryInvariants(), "collection_item"));

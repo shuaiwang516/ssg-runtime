@@ -18,7 +18,8 @@ public abstract class UnaryInvariant extends Invariant {
      *
      * If o1 breaks it, our inv mark is as broken and won't record if o2 breaks it.
      *
-     * checkPure will already mark it broken from a clean state.
+     * checkPure will already mark it broken from a clean state. FIXME: this is not
+     * checking from a clean state, but from the current state.
      */
     public abstract boolean checkPure(Object val, LogInfo logInfo);
 
