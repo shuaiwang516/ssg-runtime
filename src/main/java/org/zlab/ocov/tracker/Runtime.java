@@ -146,7 +146,7 @@ public class Runtime {
                 long time1 = System.currentTimeMillis();
                 synchronized (objectCoverageLock) {
                     long time2 = System.currentTimeMillis();
-                    objectCoverage.update(obj, dumpId);
+                    objectCoverage.update(obj, dumpId, contextArgs);
                     long time3 = System.currentTimeMillis();
                     if (debug) {
                         if ((time3 - time1) / 1000. > 1)
