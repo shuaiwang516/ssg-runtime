@@ -17,10 +17,9 @@ public class ObjectGraphCoverage implements Serializable {
     // If object with the same addr occur twice, avoid processing it
     public final static boolean avoidRecordObjectWithSameAddress = false;
 
-    // DumpId -> class name -> graph pattern
+    // DumpId -> classname -> graph pattern (Only top objects)
     public Map<Integer, Map<String, GraphPattern>> dumpId2ObjCoverage = new HashMap<>();
-    // Dump id -> ArgId -> classname -> graph pattern: this could include non-top
-    // objects
+    // DumpId -> ArgId -> classname -> graph pattern (Top/non-top objects)
     public Map<Integer, Map<Integer, Map<String, GraphPattern>>> dumpId2ContextObjCoverage = new HashMap<>();
 
     public Set<Integer> visitedObjects = new HashSet<>();
@@ -30,11 +29,9 @@ public class ObjectGraphCoverage implements Serializable {
 
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
+    public Boundary boundary;
     public InvariantCombination invariantCombination;
 
-    public Boundary boundary;
-
-    // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
 
     int dumpedObjectCount = 0;
@@ -42,9 +39,6 @@ public class ObjectGraphCoverage implements Serializable {
 
     Map<String, Integer> classDupCount = new HashMap<>();
     Map<String, Integer> classDumpCount = new HashMap<>();
-
-    // Debug
-    ObjectGraph tmpObjectGraph;
 
     public ObjectGraphCoverage() {
         // for json
@@ -426,11 +420,6 @@ public class ObjectGraphCoverage implements Serializable {
                 formatCoverageStatus.newFormat = true;
             }
         }
-        if (enableInvariantCombination
-                && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
-            formatCoverageStatus.newFormat = true;
-        }
-        // Boundary
         if (boundary == null) {
             if (otherObjCoverage.boundary != null) {
                 boundary = SerializationUtils.clone(otherObjCoverage.boundary);
@@ -440,6 +429,10 @@ public class ObjectGraphCoverage implements Serializable {
             if (boundary.merge(otherObjCoverage.boundary)) {
                 formatCoverageStatus.boundaryChange = true;
             }
+        }
+        if (enableInvariantCombination
+                && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
+            formatCoverageStatus.newFormat = true;
         }
     }
 
