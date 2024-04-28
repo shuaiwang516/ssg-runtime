@@ -1,19 +1,8 @@
 package org.zlab.ocov.tracker;
 
-// import com.google.gson.Gson;
-// import com.google.gson.GsonBuilder;
-// import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.apache.commons.lang3.SerializationUtils;
-import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.*;
-import org.zlab.ocov.tracker.graph.label.LabelConstraint;
-import org.zlab.ocov.tracker.graph.label.ValueConstraint;
-import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
-import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
-import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
-import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
-import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
@@ -23,19 +12,16 @@ import java.util.*;
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    // ----------------------- Debug -----------------------
-    public final static boolean useFixedObjectGraph = false;
-
     // ----------------------- Config -----------------------
     public final static boolean enableInvariantCombination = false;
-    public final static boolean avoidObjectGraphDump = true;
     // If object with the same addr occur twice, avoid processing it
     public final static boolean avoidRecordObjectWithSameAddress = false;
 
-    // Core coverage
-    // Only contain the top level objects: class name -> class info
+    // DumpId -> class name -> graph pattern
     public Map<Integer, Map<String, GraphPattern>> dumpId2ObjCoverage = new HashMap<>();
-    // public Map<String, GraphPattern> objCoverage = new HashMap<>();
+    // Dump id -> ArgId -> classname -> graph pattern: this could include non-top
+    // objects
+    public Map<Integer, Map<Integer, Map<String, GraphPattern>>> dumpId2ContextObjCoverage = new HashMap<>();
 
     public Set<Integer> visitedObjects = new HashSet<>();
 
@@ -46,15 +32,10 @@ public class ObjectGraphCoverage implements Serializable {
     public IsSerialize isSerialized;
     public InvariantCombination invariantCombination;
 
-    // FIXME: this is not merged
     public Boundary boundary;
 
     // Graph Implementation
     ObjectGraphDumper objectGraphDumper;
-
-    long totalTime1 = 0;
-    long totalTime2 = 0;
-    long totalTime3 = 0;
 
     int dumpedObjectCount = 0;
     int dupObjectCount = 0;
@@ -125,7 +106,7 @@ public class ObjectGraphCoverage implements Serializable {
         return update(obj, -1);
     }
 
-    public boolean update(Object obj, int dumpId) {
+    public boolean update(Object obj, int dumpId, Object... contextArgs) {
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
@@ -143,49 +124,19 @@ public class ObjectGraphCoverage implements Serializable {
         GraphPattern classInfo = getGraphPattern(className, dumpId);
         if (classInfo == null)
             throw new RuntimeException("ClassInfo not found for " + className);
-        // long time1 = System.nanoTime();
         boolean ret;
         Set<String> brokenInvs = new HashSet<>();
         LogInfo logInfo = new LogInfo(dumpId);
 
-        if (avoidObjectGraphDump) {
-            ret = classInfo.update(obj, baseClassInfo, logInfo, equalitySet, isSerialized,
-                    brokenInvs, objId);
-        } else {
-            ObjectGraph objectGraph;
-
-            if (useFixedObjectGraph) {
-                if (tmpObjectGraph == null) {
-                    tmpObjectGraph = objectGraphDumper.dump(obj, dumpId);
-                }
-                objectGraph = tmpObjectGraph;
-            } else {
-                objectGraph = objectGraphDumper.dump(obj, dumpId);
-            }
-
-            // long time2 = System.nanoTime();
-
-            ret = classInfo.update(objectGraph, baseClassInfo, logInfo, equalitySet, isSerialized,
-                    brokenInvs);
-        }
+        ret = classInfo.update(obj, baseClassInfo, logInfo, equalitySet, isSerialized, brokenInvs,
+                objId);
 
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
             invariantCombination.record(objId, brokenInvs);
         }
 
-        // long time3 = System.nanoTime();
-
         if (equalitySet != null)
             equalitySet.dumpSameObjectGraph(dumpId, objId);
-
-        // long time4 = System.nanoTime();
-
-        // totalTime1 += time2 - time1;
-        // totalTime2 += time3 - time2;
-        // totalTime3 += time4 - time3;
-        //
-        // Runtime.log(String.format("Time1: %d ms, Time2: %d ms, Time3: %d ms" +
-        // "", totalTime1/1_000_000, totalTime2/1_000_000, totalTime3/1_000_000));
 
         // debugLog();
         return ret;
@@ -213,10 +164,8 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public void clear() {
-        // try to separate format coverage across tests
+        // Separate format coverage across tests
         visitedObjects.clear();
-        // dumpedObjectCount = 0;
-        // dupObjectCount = 0;
         if (equalitySet != null)
             equalitySet.clear();
         if (isSerialized != null)
@@ -379,49 +328,4 @@ public class ObjectGraphCoverage implements Serializable {
         Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath.toString());
         return new IsSerialize(modifiedFields, modifiedEnums);
     }
-
-    // public static Gson constructGson() {
-    // RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 =
-    // RuntimeTypeAdapterFactory
-    // .of(LabelConstraint.class, "LabelConstraint")
-    // .registerSubtype(ValueConstraint.class, "ValueConstraint");
-    //
-    // RuntimeTypeAdapterFactory<Invariant> typeFactory2 = RuntimeTypeAdapterFactory
-    // .of(Invariant.class, "Invariant")
-    // .registerSubtype(UnaryInvariant.class, "UnaryInvariant");
-    // RuntimeTypeAdapterFactory<UnaryInvariant> typeFactory3 =
-    // RuntimeTypeAdapterFactory
-    // .of(UnaryInvariant.class, "UnaryInvariant")
-    // .registerSubtype(IntegerLowerBound.class, "IntegerLowerBound")
-    // .registerSubtype(IntegerUpperBound.class, "IntegerUpperBound")
-    // .registerSubtype(EmptyStringOnce.class, "EmptyStringOnce")
-    // .registerSubtype(TrueOnce.class, "TrueOnce")
-    // .registerSubtype(RestOnce.class, "RestOnce")
-    // .registerSubtype(FalseOnce.class, "FalseOnce")
-    // .registerSubtype(NegativeOneOnce.class, "NegativeOneOnce")
-    // .registerSubtype(OneCharStringOnce.class, "OneCharStringOnce")
-    // .registerSubtype(NullOnce.class, "NullOnce")
-    // .registerSubtype(OneOnce.class, "OneOnce")
-    // .registerSubtype(ZeroOnce.class, "ZeroOnce")
-    // .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
-    // .registerSubtype(EnumConstant.class, "EnumConstant")
-    // .registerSubtype(LongLowerBound.class, "LongLowerBound")
-    // .registerSubtype(LongUpperBound.class, "LongUpperBound");
-    //
-    // RuntimeTypeAdapterFactory<StructureConstraint> typeFactory4 =
-    // RuntimeTypeAdapterFactory
-    // .of(StructureConstraint.class, "StructureConstraint")
-    // .registerSubtype(InDegreeConstraint.class, "InDegreeConstraint")
-    // .registerSubtype(OutDegreeConstraint.class, "OutDegreeConstraint")
-    // .registerSubtype(AccumulatedSizeConstraint.class,
-    // "AccumulatedSizeConstraint");
-    //
-    // return new GsonBuilder().registerTypeAdapterFactory(typeFactory1)
-    // .registerTypeAdapterFactory(typeFactory2).registerTypeAdapterFactory(typeFactory3)
-    // .registerTypeAdapterFactory(typeFactory4)
-    // .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
-    // .registerTypeAdapter(DirectedMultigraph.class, new
-    // GraphDeserializer()).create();
-    // }
-
 }

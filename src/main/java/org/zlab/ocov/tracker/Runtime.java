@@ -24,12 +24,6 @@ public class Runtime {
     public static boolean sample = false;
     public static double sampleRate = 0.2; // default value
 
-    /**
-     * Collect & update coverage information, dump coverage when program finishes.
-     * TODO: These paths need to be configured with input arguments
-     * /Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-2.2.8/serializedFields_alg1.json
-     * /Users/hanke/Desktop/Project/ssg-runtime/input/topObjects_cass.json
-     */
     public static Path baseClassPath = Paths.get("/tmp/serializedFields_alg1.json");
     public static Path topObjectsPath = Paths.get("/tmp/topObjects.json");
     public static Path comparableClassesPath = Paths.get("/tmp/comparableClasses.json");
@@ -44,16 +38,11 @@ public class Runtime {
     public static ObjectGraphCoverage objectCoverage;
     private static final Object objectCoverageLock = new Object();
 
-    public static long totalTime1 = 0;
-    public static int count = 0;
-
     public static boolean memorizeAllObjectGraph = false;
 
     public static boolean isSampled() {
         return rand.nextDouble() < sampleRate;
     }
-
-    // private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     // Invoked by main of target program
     public static void init() {
@@ -143,30 +132,17 @@ public class Runtime {
     }
 
     // id uniquely identify the program location for dumping
-    public static Object update(Object obj, int dumpId) {
+    public static Object update(Object obj, int dumpId, Object... contextArgs) {
         if (!enable)
             return obj;
-
-        // if (dumpId != 65
-        // || obj.getClass().getName().equals("org.apache.cassandra.db.RowIndexEntry"))
-        // {
-        // return obj;
-        // }
-        // Runtime.log("Processing object: " + obj.getClass().getName() + " with dumpId:
-        // " + dumpId);
 
         if (objectCoverage != null) {
             if (!sample || isSampled()) {
                 long time1 = System.currentTimeMillis();
                 synchronized (objectCoverageLock) {
-
                     long time2 = System.currentTimeMillis();
-                    if (memorizeAllObjectGraph)
-                        objectCoverage.dump(obj, dumpId);
-                    else
-                        objectCoverage.update(obj, dumpId);
+                    objectCoverage.update(obj, dumpId);
                     long time3 = System.currentTimeMillis();
-
                     if (debug) {
                         if ((time3 - time1) / 1000. > 1)
                             log("slow dump id: " + dumpId);
@@ -211,62 +187,60 @@ public class Runtime {
 
     public static void formatCoverageTracker() throws IOException {
         Thread serverThread = new Thread(() -> {
-            try {
-                ServerSocket serverSocket = new ServerSocket(PORT);
+            try (ServerSocket serverSocket = new ServerSocket(PORT)) {
                 while (true) {
                     log("[hklog] Invariant Runtime waiting!");
                     Socket clientSocket = serverSocket.accept();
-                    // handle client connection in a new thread
-                    new Thread(() -> {
-                        try {
-                            log("Client connected from "
-                                    + clientSocket.getInetAddress().getHostAddress());
-
-                            BufferedReader in = new BufferedReader(
-                                    new InputStreamReader(clientSocket.getInputStream()));
-                            ObjectOutputStream out = new ObjectOutputStream(
-                                    clientSocket.getOutputStream());
-
-                            String inputLine;
-                            while ((inputLine = in.readLine()) != null) {
-                                log("Received command: " + inputLine);
-                                // process the command and generate a response
-                                ObjectGraphCoverage response = null;
-
-                                synchronized (objectCoverageLock) {
-                                    if (!inputLine.equals("clear")) {
-                                        // If the command is not "clear", process it
-                                        response = processCommand(inputLine);
-                                        // Serialize and send the response within the synchronized
-                                        // block
-                                        out.writeObject(response);
-                                    }
-                                    // clear anyway...
-                                    // response.clear();
-                                    Runtime.log("clear objectCoverage");
-                                    objectCoverage = new ObjectGraphCoverage(baseClassPath,
-                                            topObjectsPath, comparableClassesPath,
-                                            modifiedFieldsPath, modifiedEnumsPath,
-                                            branch2CollectionPath);
-                                }
-                                System.out.println("Sent response: " + response);
-                            }
-                        } catch (IOException e) {
-                            System.out.println("Error in client connection: " + e);
-                        } finally {
-                            try {
-                                clientSocket.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start(); // start the new thread
+                    new Thread(new ClientHandler(clientSocket)).start();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
         serverThread.start();
+    }
+
+    private static class ClientHandler implements Runnable {
+        private final Socket clientSocket;
+
+        public ClientHandler(Socket clientSocket) {
+            this.clientSocket = clientSocket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
+                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    log("Received command: " + inputLine);
+                    ObjectGraphCoverage response = null;
+
+                    synchronized (objectCoverageLock) {
+                        if (!inputLine.equals("clear")) {
+                            response = processCommand(inputLine);
+                            out.writeObject(response);
+                        }
+                        Runtime.log("clear objectCoverage");
+                        objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
+                                branch2CollectionPath);
+                    }
+                    System.out.println("Sent response: " + response);
+                }
+            } catch (IOException e) {
+                System.out.println("Error in client connection: " + e);
+            } finally {
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private static ObjectGraphCoverage processCommand(String command) {
