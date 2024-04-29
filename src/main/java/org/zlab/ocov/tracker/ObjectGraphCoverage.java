@@ -1,19 +1,8 @@
 package org.zlab.ocov.tracker;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.apache.commons.lang3.SerializationUtils;
-import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.*;
-import org.zlab.ocov.tracker.graph.label.LabelConstraint;
-import org.zlab.ocov.tracker.graph.label.ValueConstraint;
-import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
-import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
-import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
-import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
-import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;

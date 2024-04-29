@@ -1,16 +1,9 @@
 package org.zlab.ocov.tracker.graph;
 
-// import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.zlab.ocov.Utils;
-import org.zlab.ocov.tracker.*;
-import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
 import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
@@ -19,12 +12,14 @@ import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
 import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.zlab.ocov.tracker.*;
+import org.zlab.ocov.tracker.Runtime;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class TestObjectGraphCoverage {
@@ -769,7 +764,7 @@ public class TestObjectGraphCoverage {
         curCoverage.update(obj2, 0, contextObj2);
         assert !allCoverage.merge(curCoverage).newFormat;
 
-        Gson gson = Utils.constructGson();
+        Gson gson = constructGson();
         String jsonStr = gson.toJson(allCoverage);
         // System.out.println(jsonStr);
         ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr, ObjectGraphCoverage.class);
@@ -789,4 +784,43 @@ public class TestObjectGraphCoverage {
         assert set.contains(s2);
     }
 
+    public static Gson constructGson() {
+        RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
+                .of(LabelConstraint.class, "LabelConstraint")
+                .registerSubtype(ValueConstraint.class, "ValueConstraint");
+
+        RuntimeTypeAdapterFactory<Invariant> typeFactory2 = RuntimeTypeAdapterFactory
+                .of(Invariant.class, "Invariant")
+                .registerSubtype(UnaryInvariant.class, "UnaryInvariant");
+        RuntimeTypeAdapterFactory<UnaryInvariant> typeFactory3 = RuntimeTypeAdapterFactory
+                .of(UnaryInvariant.class, "UnaryInvariant")
+                .registerSubtype(IntegerLowerBound.class, "IntegerLowerBound")
+                .registerSubtype(IntegerUpperBound.class, "IntegerUpperBound")
+                .registerSubtype(EmptyStringOnce.class, "EmptyStringOnce")
+                .registerSubtype(TrueOnce.class, "TrueOnce")
+                .registerSubtype(RestOnce.class, "RestOnce")
+                .registerSubtype(FalseOnce.class, "FalseOnce")
+                .registerSubtype(NegativeOneOnce.class, "NegativeOneOnce")
+                .registerSubtype(OneCharStringOnce.class, "OneCharStringOnce")
+                .registerSubtype(NullOnce.class, "NullOnce")
+                .registerSubtype(OneOnce.class, "OneOnce")
+                .registerSubtype(ZeroOnce.class, "ZeroOnce")
+                .registerSubtype(PreservedStringOnce.class, "PreservedStringOnce")
+                .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
+                .registerSubtype(EnumConstant.class, "EnumConstant")
+                .registerSubtype(LongLowerBound.class, "LongLowerBound")
+                .registerSubtype(LongUpperBound.class, "LongUpperBound");
+
+        RuntimeTypeAdapterFactory<StructureConstraint> typeFactory4 = RuntimeTypeAdapterFactory
+                .of(StructureConstraint.class, "StructureConstraint")
+                .registerSubtype(InDegreeConstraint.class, "InDegreeConstraint")
+                .registerSubtype(OutDegreeConstraint.class, "OutDegreeConstraint")
+                .registerSubtype(AccumulatedSizeConstraint.class, "AccumulatedSizeConstraint");
+
+        return new GsonBuilder().registerTypeAdapterFactory(typeFactory1)
+                .registerTypeAdapterFactory(typeFactory2).registerTypeAdapterFactory(typeFactory3)
+                .registerTypeAdapterFactory(typeFactory4)
+                .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
+                .registerTypeAdapter(DirectedMultigraph.class, new GraphDeserializer()).create();
+    }
 }
