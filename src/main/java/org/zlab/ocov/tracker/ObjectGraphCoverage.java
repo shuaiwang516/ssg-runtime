@@ -1,8 +1,19 @@
 package org.zlab.ocov.tracker;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.apache.commons.lang3.SerializationUtils;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.*;
+import org.zlab.ocov.tracker.graph.label.LabelConstraint;
+import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
+import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
+import org.zlab.ocov.tracker.inv.Invariant;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
@@ -18,7 +29,7 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean avoidRecordObjectWithSameAddress = false;
 
     // DumpId -> classname -> graph pattern (Only top objects)
-    public Map<Integer, Map<Context, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
+    public Map<Integer, Map<Boolean, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
 
     public Set<Integer> visitedObjects = new HashSet<>();
 
@@ -83,11 +94,11 @@ public class ObjectGraphCoverage implements Serializable {
             invariantCombination = new InvariantCombination();
     }
 
-    public GraphPattern getGraphPattern(String className, int dumpId, Context context) {
+    public GraphPattern getGraphPattern(String className, int dumpId, Boolean context) {
         if (!dumpId2ObjCoverageWithContext.containsKey(dumpId)) {
             dumpId2ObjCoverageWithContext.put(dumpId, new HashMap<>());
         }
-        Map<Context, Map<String, GraphPattern>> contextObjCoverage = dumpId2ObjCoverageWithContext
+        Map<Boolean, Map<String, GraphPattern>> contextObjCoverage = dumpId2ObjCoverageWithContext
                 .get(dumpId);
         if (!contextObjCoverage.containsKey(context)) {
             contextObjCoverage.put(context, new HashMap<>());
@@ -120,7 +131,7 @@ public class ObjectGraphCoverage implements Serializable {
         }
 
         boolean changed = false;
-        Context context = getContext(dumpId, contextArgs);
+        Boolean context = getContext(dumpId, contextArgs);
         if (updateTopObjectGraphPattern(dumpId, context, obj, className, objId))
             changed = true;
 
@@ -128,13 +139,11 @@ public class ObjectGraphCoverage implements Serializable {
         return changed;
     }
 
-    private Context getContext(int dumpId, Object... contextArgs) {
-        boolean flag = Context.compute(dumpId, baseClassInfo, equalitySet, isSerialized,
-                contextArgs);
-        return new Context(flag);
+    private Boolean getContext(int dumpId, Object... contextArgs) {
+        return Context.compute(dumpId, baseClassInfo, equalitySet, isSerialized, contextArgs);
     }
 
-    public boolean updateTopObjectGraphPattern(int dumpId, Context context, Object obj,
+    public boolean updateTopObjectGraphPattern(int dumpId, Boolean context, Object obj,
             String className, int objId) {
         GraphPattern classInfo = getGraphPattern(className, dumpId, context);
         if (classInfo == null)
@@ -192,7 +201,7 @@ public class ObjectGraphCoverage implements Serializable {
     // Only record, and infer at last
     List<ObjectGraph> objectGraphs = new ArrayList<>();
 
-    public boolean dump(Object obj, int dumpId, Context context) {
+    public boolean dump(Object obj, int dumpId, Boolean context) {
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
@@ -272,14 +281,14 @@ public class ObjectGraphCoverage implements Serializable {
     private void mergeTopGraphPattern(ObjectGraphCoverage otherObjCoverage,
             FormatCoverageStatus formatCoverageStatus) {
         for (int dumpId : otherObjCoverage.dumpId2ObjCoverageWithContext.keySet()) {
-            Map<Context, Map<String, GraphPattern>> otherObjCoverageWithContext = otherObjCoverage.dumpId2ObjCoverageWithContext
+            Map<Boolean, Map<String, GraphPattern>> otherObjCoverageWithContext = otherObjCoverage.dumpId2ObjCoverageWithContext
                     .get(dumpId);
             if (otherObjCoverageWithContext == null)
                 continue;
 
             if (!dumpId2ObjCoverageWithContext.containsKey(dumpId)) {
                 dumpId2ObjCoverageWithContext.put(dumpId, new HashMap<>());
-                for (Context context : otherObjCoverageWithContext.keySet()) {
+                for (Boolean context : otherObjCoverageWithContext.keySet()) {
                     Map<String, GraphPattern> otherClassInfo = otherObjCoverageWithContext
                             .get(context);
                     if (otherClassInfo == null)
@@ -297,9 +306,9 @@ public class ObjectGraphCoverage implements Serializable {
                 continue;
             }
 
-            Map<Context, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverageWithContext
+            Map<Boolean, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverageWithContext
                     .get(dumpId);
-            for (Context context : otherObjCoverageWithContext.keySet()) {
+            for (Boolean context : otherObjCoverageWithContext.keySet()) {
                 Map<String, GraphPattern> otherClassInfo = otherObjCoverageWithContext.get(context);
                 if (otherClassInfo == null)
                     continue;

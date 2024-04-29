@@ -1,13 +1,24 @@
 package org.zlab.ocov.tracker.graph;
 
 // import com.google.common.reflect.TypeToken;
-// import com.google.gson.Gson;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.*;
 import org.zlab.ocov.tracker.Runtime;
+import org.zlab.ocov.tracker.graph.label.LabelConstraint;
+import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
+import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
+import org.zlab.ocov.tracker.inv.Invariant;
+import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -588,12 +599,6 @@ public class TestObjectGraphCoverage {
         coverage.inferInvariant();
         assert !coverage1.merge(coverage).newFormat;
         coverage.clear();
-
-        // Gson gson = ObjectGraphCoverage.constructGson();
-        // String jsonStr = gson.toJson(coverage1);
-        // System.out.println(jsonStr);
-        // ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr,
-        // ObjectGraphCoverage.class);
     }
 
     @Test
@@ -763,6 +768,11 @@ public class TestObjectGraphCoverage {
 
         curCoverage.update(obj2, 0, contextObj2);
         assert !allCoverage.merge(curCoverage).newFormat;
+
+        Gson gson = Utils.constructGson();
+        String jsonStr = gson.toJson(allCoverage);
+        // System.out.println(jsonStr);
+        ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr, ObjectGraphCoverage.class);
     }
 
     @Test

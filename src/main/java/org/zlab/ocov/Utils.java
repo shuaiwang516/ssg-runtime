@@ -2,6 +2,20 @@ package org.zlab.ocov;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.jgrapht.graph.DirectedMultigraph;
+import org.zlab.ocov.tracker.graph.GraphDeserializer;
+import org.zlab.ocov.tracker.graph.GraphSerializer;
+import org.zlab.ocov.tracker.graph.label.LabelConstraint;
+import org.zlab.ocov.tracker.graph.label.ValueConstraint;
+import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
+import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
+import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
+import org.zlab.ocov.tracker.inv.Invariant;
+import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -163,4 +177,43 @@ public class Utils {
         }
     }
 
+    public static Gson constructGson() {
+        RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
+                .of(LabelConstraint.class, "LabelConstraint")
+                .registerSubtype(ValueConstraint.class, "ValueConstraint");
+
+        RuntimeTypeAdapterFactory<Invariant> typeFactory2 = RuntimeTypeAdapterFactory
+                .of(Invariant.class, "Invariant")
+                .registerSubtype(UnaryInvariant.class, "UnaryInvariant");
+        RuntimeTypeAdapterFactory<UnaryInvariant> typeFactory3 = RuntimeTypeAdapterFactory
+                .of(UnaryInvariant.class, "UnaryInvariant")
+                .registerSubtype(IntegerLowerBound.class, "IntegerLowerBound")
+                .registerSubtype(IntegerUpperBound.class, "IntegerUpperBound")
+                .registerSubtype(EmptyStringOnce.class, "EmptyStringOnce")
+                .registerSubtype(TrueOnce.class, "TrueOnce")
+                .registerSubtype(RestOnce.class, "RestOnce")
+                .registerSubtype(FalseOnce.class, "FalseOnce")
+                .registerSubtype(NegativeOneOnce.class, "NegativeOneOnce")
+                .registerSubtype(OneCharStringOnce.class, "OneCharStringOnce")
+                .registerSubtype(NullOnce.class, "NullOnce")
+                .registerSubtype(OneOnce.class, "OneOnce")
+                .registerSubtype(ZeroOnce.class, "ZeroOnce")
+                .registerSubtype(PreservedStringOnce.class, "PreservedStringOnce")
+                .registerSubtype(RestStringSizeOnce.class, "RestStringSizeOnce")
+                .registerSubtype(EnumConstant.class, "EnumConstant")
+                .registerSubtype(LongLowerBound.class, "LongLowerBound")
+                .registerSubtype(LongUpperBound.class, "LongUpperBound");
+
+        RuntimeTypeAdapterFactory<StructureConstraint> typeFactory4 = RuntimeTypeAdapterFactory
+                .of(StructureConstraint.class, "StructureConstraint")
+                .registerSubtype(InDegreeConstraint.class, "InDegreeConstraint")
+                .registerSubtype(OutDegreeConstraint.class, "OutDegreeConstraint")
+                .registerSubtype(AccumulatedSizeConstraint.class, "AccumulatedSizeConstraint");
+
+        return new GsonBuilder().registerTypeAdapterFactory(typeFactory1)
+                .registerTypeAdapterFactory(typeFactory2).registerTypeAdapterFactory(typeFactory3)
+                .registerTypeAdapterFactory(typeFactory4)
+                .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
+                .registerTypeAdapter(DirectedMultigraph.class, new GraphDeserializer()).create();
+    }
 }
