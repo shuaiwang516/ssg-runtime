@@ -16,6 +16,7 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean enableInvariantCombination = false;
     // If object with the same addr occur twice, avoid processing it
     public final static boolean avoidRecordObjectWithSameAddress = false;
+    public final static boolean usePredicate = false;
 
     // DumpId -> classname -> graph pattern (Only top objects)
     public Map<Integer, Map<Boolean, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
@@ -129,7 +130,10 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     private Boolean getContext(int dumpId, Object... contextArgs) {
-        return Context.compute(dumpId, baseClassInfo, equalitySet, isSerialized, contextArgs);
+        if (usePredicate)
+            return Context.compute(dumpId, baseClassInfo, equalitySet, isSerialized, contextArgs);
+        else
+            return false;
     }
 
     public boolean updateTopObjectGraphPattern(int dumpId, Boolean context, Object obj,

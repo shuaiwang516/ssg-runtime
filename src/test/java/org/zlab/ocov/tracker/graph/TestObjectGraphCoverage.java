@@ -727,6 +727,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testPreservedString() {
+        if (!ObjectGraphCoverage.usePredicate)
+            return;
         /**
          * Context obj: with "system" => index block is 2 => new format! Context obj:
          * without "system => index block is 2 => new format!

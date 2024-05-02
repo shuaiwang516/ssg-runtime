@@ -12,7 +12,7 @@ import java.util.Set;
 public class Context implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    private boolean flag;
+    private final boolean flag;
 
     public Context(boolean flag) {
         this.flag = flag;
@@ -44,7 +44,6 @@ public class Context implements Serializable {
             EqualitySet equalitySet, IsSerialize isSerialized, Object... contextArgs) {
         if (contextArgs == null || contextArgs.length == 0)
             return false;
-        boolean containPreservedString = false;
         for (Object contextObj : contextArgs) {
             if (contextObj == null)
                 continue;
@@ -58,11 +57,10 @@ public class Context implements Serializable {
             // FIXME: examine whether the brokenInvs contains a <String: preserved String>
             for (String brokenInvsStr : brokenInvs) {
                 if (brokenInvsStr.contains("<PreservedStringOnce>")) {
-                    containPreservedString = true;
-                    break;
+                    return true;
                 }
             }
         }
-        return containPreservedString;
+        return false;
     }
 }
