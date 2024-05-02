@@ -67,8 +67,8 @@ public class ObjectGraphCoverage implements Serializable {
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
             Path branch2CollectionPath) {
         classInfoOri = Utils.loadMapFromFile(baseClassInfoPath.toString());
-        baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
         topObjects = Utils.loadSetFromFile(topObjectsPath.toString());
+        baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
         Set<String> comparableClasses = null;
         if (comparableClassesPath != null && comparableClassesPath.toFile().exists()) {
             comparableClasses = Utils.loadSetFromFile(comparableClassesPath.toString());
@@ -108,9 +108,12 @@ public class ObjectGraphCoverage implements Serializable {
         if (obj == null)
             return;
         String className = obj.getClass().getName();
-        if (!topObjects.contains(className) || !baseClassInfo.containsKey(className))
+        if (!topObjects.contains(className) || !baseClassInfo.containsKey(className)) {
+            Runtime.log("Log1: Monitor creation context for " + className + " not in topObjects");
+            Runtime.log("Top objects: " + topObjects);
             return;
-
+        }
+        Runtime.log("Log2: Monitor creation context for " + className);
         int topAddr = System.identityHashCode(obj);
         ObjectGraphTraverser objectGraphTraverser = new ObjectGraphTraverser(classInfoOri);
         objectGraphTraverser.traverse(obj);

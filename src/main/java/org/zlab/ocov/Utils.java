@@ -115,6 +115,10 @@ public class Utils {
                 || type.equals("java.lang.Byte");
     }
 
+    public static boolean isStringType(String type) {
+        return type.equals("java.lang.String");
+    }
+
     public static List<Integer> sampleIdxFromSize(int size, int sampleSize) {
         List<Integer> idxs = new java.util.ArrayList<>();
         int minSize = Math.min(size, sampleSize);
@@ -168,12 +172,38 @@ public class Utils {
         StringBuilder sb = new StringBuilder();
         for (StackTraceElement stackTraceElement : stackTraceElements) {
             // remove the elements under package org.zlab.ocov
-            if (!stackTraceElement.getClassName().startsWith("org.zlab.ocov")) {
+            if (stackTraceElement.toString().startsWith("org.zlab.ocov")) {
                 continue;
             }
-            sb.append(stackTraceElement.toString());
+            sb.append(stackTraceElement);
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    public static Map<String, Map<String, String>> replaceDollar(
+            Map<String, Map<String, String>> map) {
+        // ClassName -> <fieldname, type>
+        // replace doller with dot for both classname and type
+        Map<String, Map<String, String>> newMap = new java.util.HashMap<>();
+        for (Map.Entry<String, Map<String, String>> entry : map.entrySet()) {
+            String className = entry.getKey().replace('$', '.');
+            Map<String, String> fields = new java.util.HashMap<>();
+            for (Map.Entry<String, String> field : entry.getValue().entrySet()) {
+                String fieldName = field.getKey();
+                String type = field.getValue().replace('$', '.');
+                fields.put(fieldName, type);
+            }
+            newMap.put(className, fields);
+        }
+        return newMap;
+    }
+
+    public static Set<String> replaceDollarWithDot(Set<String> set) {
+        Set<String> newSet = new java.util.HashSet<>();
+        for (String str : set) {
+            newSet.add(str.replace('$', '.'));
+        }
+        return newSet;
     }
 }

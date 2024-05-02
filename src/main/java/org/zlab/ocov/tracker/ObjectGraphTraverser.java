@@ -23,13 +23,14 @@ public class ObjectGraphTraverser {
 
     public void traverse(Object obj) {
         if (obj == null || visited.contains(System.identityHashCode(obj))
-                || Utils.isPrimitiveType(obj.getClass().getName())) {
+                || isSkippedType(obj.getClass().getName())) {
             return;
         }
         visited.add(System.identityHashCode(obj));
 
         Class<?> clazz = obj.getClass();
 
+        Runtime.log("Traversing object: " + clazz.getName() + " " + System.identityHashCode(obj));
         // Check for and handle Arrays
         if (clazz.isArray()) {
             int length = Array.getLength(obj);
@@ -43,8 +44,7 @@ public class ObjectGraphTraverser {
             }
             for (int i : sampleIdxs) {
                 Object arrayElement = Array.get(obj, i);
-                if (arrayElement == null
-                        || Utils.isPrimitiveType(arrayElement.getClass().getName())) {
+                if (arrayElement == null || isSkippedType(arrayElement.getClass().getName())) {
                     continue;
                 }
                 traverse(arrayElement);
@@ -59,17 +59,17 @@ public class ObjectGraphTraverser {
                 for (int i = 0; i < length; i++)
                     sampleIdxs.add(i);
             }
+            Runtime.log("Traversing map: " + clazz.getName() + ", sampleIdxs: " + sampleIdxs);
             for (int i : sampleIdxs) {
                 Map.Entry<?, ?> entry = (Map.Entry<?, ?>) ((java.util.Map) obj).entrySet()
                         .toArray()[i];
                 if (entry == null) {
                     continue;
                 }
-                if (entry.getKey() != null
-                        && Utils.isPrimitiveType(entry.getKey().getClass().getName()))
+                if (entry.getKey() != null && !isSkippedType(entry.getKey().getClass().getName()))
                     traverse(entry.getKey());
                 if (entry.getValue() != null
-                        && Utils.isPrimitiveType(entry.getValue().getClass().getName()))
+                        && !isSkippedType(entry.getValue().getClass().getName()))
                     traverse(entry.getValue());
             }
         } else if (obj instanceof Collection) {
@@ -85,23 +85,26 @@ public class ObjectGraphTraverser {
             for (int i : sampleIdxs) {
                 Object collectionElement = ((Collection<?>) obj).toArray()[i];
                 if (collectionElement == null
-                        || Utils.isPrimitiveType(collectionElement.getClass().getName())) {
+                        || isSkippedType(collectionElement.getClass().getName())) {
                     continue;
                 }
                 traverse(collectionElement);
             }
         } else {
             // Handle all other Object types via their fields
+            if (!classInfoOri.containsKey(clazz.getName())) {
+                Runtime.log("Class not found in classInfoOri: " + clazz.getName());
+                return;
+            }
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
-                assert classInfoOri.containsKey(clazz.getName());
                 if (!classInfoOri.get(clazz.getName()).containsKey(field.getName()))
                     continue;
-
                 field.setAccessible(true);
                 try {
                     Object fieldValue = field.get(obj);
-                    if (fieldValue != null && !Utils.isPrimitiveType(field.getType().getName())) {
+                    if (fieldValue != null && !isSkippedType(field.getType().getName())) {
+                        Runtime.log("Traversing: " + clazz.getName() + "." + field.getName());
                         traverse(fieldValue);
                     }
                 } catch (IllegalAccessException e) {
@@ -109,5 +112,9 @@ public class ObjectGraphTraverser {
                 }
             }
         }
+    }
+
+    private boolean isSkippedType(String className) {
+        return Utils.isPrimitiveType(className) || Utils.isStringType(className);
     }
 }
