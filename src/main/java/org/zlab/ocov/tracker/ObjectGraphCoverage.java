@@ -23,6 +23,11 @@ public class ObjectGraphCoverage implements Serializable {
 
     public Set<Integer> visitedObjects = new HashSet<>();
 
+    // Creation context
+    private final Map<Integer, Integer> objAddress2TopObjAddress = new HashMap<>();
+    private final Map<Integer, String> topObj2CreationStacktrace = new HashMap<>();
+
+    private Map<String, Map<String, String>> classInfoOri;
     public Map<String, GraphPattern> baseClassInfo;
     public Set<String> topObjects;
 
@@ -61,8 +66,7 @@ public class ObjectGraphCoverage implements Serializable {
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
             Path branch2CollectionPath) {
-        Map<String, Map<String, String>> classInfoOri = Utils
-                .loadMapFromFile(baseClassInfoPath.toString());
+        classInfoOri = Utils.loadMapFromFile(baseClassInfoPath.toString());
         baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
         topObjects = Utils.loadSetFromFile(topObjectsPath.toString());
         Set<String> comparableClasses = null;
@@ -98,6 +102,28 @@ public class ObjectGraphCoverage implements Serializable {
             objCoverage.put(className, SerializationUtils.clone(baseClassInfo.get(className)));
         }
         return objCoverage.get(className);
+    }
+
+    public boolean monitorCreationContext(Object obj) {
+        if (obj == null)
+            return false;
+        String className = obj.getClass().getName();
+        if (!topObjects.contains(className) || !baseClassInfo.containsKey(className))
+            return false;
+
+        int topAddr = System.identityHashCode(obj);
+        ObjectGraphTraverser objectGraphTraverser = new ObjectGraphTraverser(classInfoOri);
+        objectGraphTraverser.traverse(obj);
+        Set<Integer> visited = objectGraphTraverser.getVisited();
+
+        // update obj2TopObj
+        for (int addr : visited) {
+            objAddress2TopObjAddress.put(addr, topAddr);
+        }
+
+        // update topObj2CreationStacktrace
+        topObj2CreationStacktrace.put(topAddr, Utils.getStackTrace());
+        return true;
     }
 
     public boolean update(Object obj) {

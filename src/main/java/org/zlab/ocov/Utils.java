@@ -162,4 +162,18 @@ public class Utils {
                     "Unsupported type for boundary: " + obj.getClass().getName());
         }
     }
+
+    public static String getStackTrace() {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement stackTraceElement : stackTraceElements) {
+            // remove the elements under package org.zlab.ocov
+            if (!stackTraceElement.getClassName().startsWith("org.zlab.ocov")) {
+                continue;
+            }
+            sb.append(stackTraceElement.toString());
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }

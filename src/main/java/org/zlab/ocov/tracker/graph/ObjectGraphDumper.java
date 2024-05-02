@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.zlab.ocov.Utils.isPrimitiveType;
 import static org.zlab.ocov.tracker.Runtime.log;
 
 public class ObjectGraphDumper implements Serializable {
@@ -144,7 +145,7 @@ public class ObjectGraphDumper implements Serializable {
         // check whether it's a primitive type
         Class<?> className = obj.getClass();
         String classNameStr = className.getName();
-        if (isPrimitive(classNameStr) || className.isEnum()) {
+        if (isPrimitiveType(classNameStr) || className.isEnum()) {
             // Directly return this object
             return obj;
         } else {
@@ -158,14 +159,6 @@ public class ObjectGraphDumper implements Serializable {
 
     public boolean isSerializedField(String className, String fieldName) {
         return classInfo.containsKey(className) && classInfo.get(className).containsKey(fieldName);
-    }
-
-    public static boolean isPrimitive(String className) {
-        return className.equals("java.lang.Integer") || className.equals("java.lang.Long")
-                || className.equals("java.lang.Float") || className.equals("java.lang.Double")
-                || className.equals("java.lang.Boolean") || className.equals("java.lang.Character")
-                || className.equals("java.lang.Byte") || className.equals("java.lang.Short")
-                || className.equals("java.lang.String");
     }
 
     public static Integer invokeSizeMethodIfExists(Object obj) {

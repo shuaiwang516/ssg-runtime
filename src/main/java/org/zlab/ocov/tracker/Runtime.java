@@ -136,29 +136,35 @@ public class Runtime {
         }
     }
 
+    public static Object monitorCreationContext(Object obj) {
+        if (!enable || obj == null)
+            return obj;
+        synchronized (objectCoverageLock) {
+            objectCoverage.monitorCreationContext(obj);
+        }
+        return obj;
+    }
+
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId, Object... contextArgs) {
-        if (!enable)
+        if (!enable || obj == null || (sample && !isSampled()))
             return obj;
 
-        if (objectCoverage != null) {
-            if (!sample || isSampled()) {
-                long time1 = System.currentTimeMillis();
-                synchronized (objectCoverageLock) {
-                    long time2 = System.currentTimeMillis();
-                    objectCoverage.update(obj, dumpId, contextArgs);
-                    long time3 = System.currentTimeMillis();
-                    if (debug) {
-                        if ((time3 - time1) / 1000. > 1)
-                            log("slow dump id: " + dumpId);
-                        log("[debug performance problem] dumpId = " + dumpId + "\t, process time = "
-                                + (time3 - time2) / 1000. + "s" + ", total time = "
-                                + (time3 - time1) / 1000. + "s");
-                    }
-                }
+        long time1 = System.currentTimeMillis();
+
+        synchronized (objectCoverageLock) {
+            long time2 = System.currentTimeMillis();
+
+            objectCoverage.update(obj, dumpId, contextArgs);
+
+            long time3 = System.currentTimeMillis();
+            if (debug) {
+                if ((time3 - time1) / 1000. > 1)
+                    log("slow dump id: " + dumpId);
+                log("[debug performance problem] dumpId = " + dumpId + "\t, process time = "
+                        + (time3 - time2) / 1000. + "s" + ", total time = "
+                        + (time3 - time1) / 1000. + "s");
             }
-        } else {
-            log("objectCoverage is null, Invariant Runtime is not initialized properly!");
         }
         return obj;
     }
