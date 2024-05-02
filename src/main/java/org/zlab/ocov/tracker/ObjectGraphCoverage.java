@@ -16,10 +16,10 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean enableInvariantCombination = false;
     // If object with the same addr occur twice, avoid processing it
     public final static boolean avoidRecordObjectWithSameAddress = false;
-    public final static boolean usePredicate = false;
+    public final static boolean useContextFromArgs = true;
 
     // DumpId -> classname -> graph pattern (Only top objects)
-    public Map<Integer, Map<Boolean, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
+    public Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
 
     public Set<Integer> visitedObjects = new HashSet<>();
 
@@ -88,11 +88,11 @@ public class ObjectGraphCoverage implements Serializable {
             invariantCombination = new InvariantCombination();
     }
 
-    public GraphPattern getGraphPattern(String className, int dumpId, Boolean context) {
+    public GraphPattern getGraphPattern(String className, int dumpId, String context) {
         if (!dumpId2ObjCoverageWithContext.containsKey(dumpId)) {
             dumpId2ObjCoverageWithContext.put(dumpId, new HashMap<>());
         }
-        Map<Boolean, Map<String, GraphPattern>> contextObjCoverage = dumpId2ObjCoverageWithContext
+        Map<String, Map<String, GraphPattern>> contextObjCoverage = dumpId2ObjCoverageWithContext
                 .get(dumpId);
         if (!contextObjCoverage.containsKey(context)) {
             contextObjCoverage.put(context, new HashMap<>());
@@ -104,12 +104,12 @@ public class ObjectGraphCoverage implements Serializable {
         return objCoverage.get(className);
     }
 
-    public boolean monitorCreationContext(Object obj) {
+    public void monitorCreationContext(Object obj) {
         if (obj == null)
-            return false;
+            return;
         String className = obj.getClass().getName();
         if (!topObjects.contains(className) || !baseClassInfo.containsKey(className))
-            return false;
+            return;
 
         int topAddr = System.identityHashCode(obj);
         ObjectGraphTraverser objectGraphTraverser = new ObjectGraphTraverser(classInfoOri);
@@ -123,7 +123,6 @@ public class ObjectGraphCoverage implements Serializable {
 
         // update topObj2CreationStacktrace
         topObj2CreationStacktrace.put(topAddr, Utils.getStackTrace());
-        return true;
     }
 
     public boolean update(Object obj) {
@@ -147,7 +146,7 @@ public class ObjectGraphCoverage implements Serializable {
         }
 
         boolean changed = false;
-        Boolean context = getContext(dumpId, contextArgs);
+        String context = getCreationContextFromArgs(contextArgs);
         if (updateTopObjectGraphPattern(dumpId, context, obj, className, objId))
             changed = true;
 
@@ -155,14 +154,26 @@ public class ObjectGraphCoverage implements Serializable {
         return changed;
     }
 
-    private Boolean getContext(int dumpId, Object... contextArgs) {
-        if (usePredicate)
-            return Context.compute(dumpId, baseClassInfo, equalitySet, isSerialized, contextArgs);
-        else
-            return false;
+    private String getCreationContextFromArgs(Object... contextArgs) {
+        if (!useContextFromArgs)
+            return "";
+        StringBuilder sb = new StringBuilder();
+        for (Object contextObj : contextArgs) {
+            if (contextObj == null)
+                continue;
+            String className = contextObj.getClass().getName();
+            if (!baseClassInfo.containsKey(className))
+                continue;
+            int addr = System.identityHashCode(contextObj);
+            if (objAddress2TopObjAddress.containsKey(addr)
+                    && topObj2CreationStacktrace.containsKey(objAddress2TopObjAddress.get(addr))) {
+                sb.append(topObj2CreationStacktrace.get(objAddress2TopObjAddress.get(addr)));
+            }
+        }
+        return sb.toString();
     }
 
-    public boolean updateTopObjectGraphPattern(int dumpId, Boolean context, Object obj,
+    public boolean updateTopObjectGraphPattern(int dumpId, String context, Object obj,
             String className, int objId) {
         GraphPattern classInfo = getGraphPattern(className, dumpId, context);
         if (classInfo == null)
@@ -220,7 +231,7 @@ public class ObjectGraphCoverage implements Serializable {
     // Only record, and infer at last
     List<ObjectGraph> objectGraphs = new ArrayList<>();
 
-    public boolean dump(Object obj, int dumpId, Boolean context) {
+    public boolean dump(Object obj, int dumpId, String context) {
         if (obj == null)
             return false;
         String className = obj.getClass().getName();
@@ -300,14 +311,14 @@ public class ObjectGraphCoverage implements Serializable {
     private void mergeTopGraphPattern(ObjectGraphCoverage otherObjCoverage,
             FormatCoverageStatus formatCoverageStatus) {
         for (int dumpId : otherObjCoverage.dumpId2ObjCoverageWithContext.keySet()) {
-            Map<Boolean, Map<String, GraphPattern>> otherObjCoverageWithContext = otherObjCoverage.dumpId2ObjCoverageWithContext
+            Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext = otherObjCoverage.dumpId2ObjCoverageWithContext
                     .get(dumpId);
             if (otherObjCoverageWithContext == null)
                 continue;
 
             if (!dumpId2ObjCoverageWithContext.containsKey(dumpId)) {
                 dumpId2ObjCoverageWithContext.put(dumpId, new HashMap<>());
-                for (Boolean context : otherObjCoverageWithContext.keySet()) {
+                for (String context : otherObjCoverageWithContext.keySet()) {
                     Map<String, GraphPattern> otherClassInfo = otherObjCoverageWithContext
                             .get(context);
                     if (otherClassInfo == null)
@@ -325,9 +336,9 @@ public class ObjectGraphCoverage implements Serializable {
                 continue;
             }
 
-            Map<Boolean, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverageWithContext
+            Map<String, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverageWithContext
                     .get(dumpId);
-            for (Boolean context : otherObjCoverageWithContext.keySet()) {
+            for (String context : otherObjCoverageWithContext.keySet()) {
                 Map<String, GraphPattern> otherClassInfo = otherObjCoverageWithContext.get(context);
                 if (otherClassInfo == null)
                     continue;

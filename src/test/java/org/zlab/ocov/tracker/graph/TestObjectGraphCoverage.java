@@ -726,53 +726,6 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
-    public void testPreservedString() {
-        if (!ObjectGraphCoverage.usePredicate)
-            return;
-        /**
-         * Context obj: with "system" => index block is 2 => new format! Context obj:
-         * without "system => index block is 2 => new format!
-         */
-        String suffix = "PreservedString";
-
-        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
-        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
-
-        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
-        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
-
-        TestObjectGraph.TargetClassForPreservedString contextObj1 = new TestObjectGraph.TargetClassForPreservedString(
-                "system");
-        TestObjectGraph.TargetClassForPreservedStringTopObject obj1 = new TestObjectGraph.TargetClassForPreservedStringTopObject();
-        obj1.fList.add(0);
-        obj1.fList.add(1);
-
-        curCoverage.update(obj1, 0, contextObj1);
-        assert allCoverage.merge(curCoverage).newFormat;
-
-        curCoverage.update(obj1, 0, contextObj1);
-        assert !allCoverage.merge(curCoverage).newFormat;
-
-        // Change context...
-        TestObjectGraph.TargetClassForPreservedString contextObj2 = new TestObjectGraph.TargetClassForPreservedString(
-                "user");
-        TestObjectGraph.TargetClassForPreservedStringTopObject obj2 = new TestObjectGraph.TargetClassForPreservedStringTopObject();
-        obj2.fList.add(0);
-        obj2.fList.add(1);
-
-        curCoverage.update(obj2, 0, contextObj2);
-        assert allCoverage.merge(curCoverage).newFormat;
-
-        curCoverage.update(obj2, 0, contextObj2);
-        assert !allCoverage.merge(curCoverage).newFormat;
-
-        Gson gson = constructGson();
-        String jsonStr = gson.toJson(allCoverage);
-        // System.out.println(jsonStr);
-        ObjectGraphCoverage coverageFromGson = gson.fromJson(jsonStr, ObjectGraphCoverage.class);
-    }
-
-    @Test
     public void test() {
         Set<String> s1 = new HashSet<>();
         s1.add("a");
