@@ -107,6 +107,7 @@ public class ObjectGraphCoverage implements Serializable {
     public void monitorCreationContext(Object obj) {
         if (obj == null)
             return;
+        // long time1 = System.currentTimeMillis();
         String className = obj.getClass().getName();
         if (!topObjects.contains(className) || !baseClassInfo.containsKey(className)) {
             Runtime.log("Log1: Monitor creation context for " + className + " not in topObjects");
@@ -123,9 +124,14 @@ public class ObjectGraphCoverage implements Serializable {
         for (int addr : visited) {
             objAddress2TopObjAddress.put(addr, topAddr);
         }
+        // long time2 = System.currentTimeMillis();
 
         // update topObj2CreationStacktrace
         topObj2CreationStacktrace.put(topAddr, Utils.getStackTrace());
+        // long time3 = System.currentTimeMillis();
+        // Runtime.log("Traverse time= " + (time2 - time1) / 1000. + "s, stacktrace time
+        // = "
+        // + (time3 - time2) / 1000. + "s");
     }
 
     public boolean update(Object obj) {

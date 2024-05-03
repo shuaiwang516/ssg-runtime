@@ -30,7 +30,8 @@ public class ObjectGraphTraverser {
 
         Class<?> clazz = obj.getClass();
 
-        Runtime.log("Traversing object: " + clazz.getName() + " " + System.identityHashCode(obj));
+        // Runtime.log("Traversing object: " + clazz.getName() + " " +
+        // System.identityHashCode(obj));
         // Check for and handle Arrays
         if (clazz.isArray()) {
             int length = Array.getLength(obj);
@@ -59,7 +60,6 @@ public class ObjectGraphTraverser {
                 for (int i = 0; i < length; i++)
                     sampleIdxs.add(i);
             }
-            Runtime.log("Traversing map: " + clazz.getName() + ", sampleIdxs: " + sampleIdxs);
             for (int i : sampleIdxs) {
                 Map.Entry<?, ?> entry = (Map.Entry<?, ?>) ((java.util.Map) obj).entrySet()
                         .toArray()[i];
@@ -93,7 +93,6 @@ public class ObjectGraphTraverser {
         } else {
             // Handle all other Object types via their fields
             if (!classInfoOri.containsKey(clazz.getName())) {
-                Runtime.log("Class not found in classInfoOri: " + clazz.getName());
                 return;
             }
             Field[] fields = clazz.getDeclaredFields();
@@ -104,7 +103,7 @@ public class ObjectGraphTraverser {
                 try {
                     Object fieldValue = field.get(obj);
                     if (fieldValue != null && !isSkippedType(field.getType().getName())) {
-                        Runtime.log("Traversing: " + clazz.getName() + "." + field.getName());
+                        // Runtime.log("Traversing: " + clazz.getName() + "." + field.getName());
                         traverse(fieldValue);
                     }
                 } catch (IllegalAccessException e) {
