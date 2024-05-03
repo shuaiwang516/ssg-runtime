@@ -110,11 +110,8 @@ public class ObjectGraphCoverage implements Serializable {
         // long time1 = System.currentTimeMillis();
         String className = obj.getClass().getName();
         if (!topObjects.contains(className) || !baseClassInfo.containsKey(className)) {
-            Runtime.log("Log1: Monitor creation context for " + className + " not in topObjects");
-            Runtime.log("Top objects: " + topObjects);
             return;
         }
-        Runtime.log("Log2: Monitor creation context for " + className);
         int topAddr = System.identityHashCode(obj);
         ObjectGraphTraverser objectGraphTraverser = new ObjectGraphTraverser(classInfoOri);
         objectGraphTraverser.traverse(obj);
@@ -263,39 +260,6 @@ public class ObjectGraphCoverage implements Serializable {
 
         objectGraphs.add(objectGraph);
         return true;
-    }
-
-    public void debugLog() {
-        Runtime.log(String.format("Dumped object count: %d, Dup object count: %d",
-                dumpedObjectCount, dupObjectCount));
-        // print classDupCount, sorted with the value and then print from max to min
-        // Convert the map to a list of entries
-        Runtime.log("Class Dup count:");
-        List<Map.Entry<String, Integer>> list = new ArrayList<>(classDupCount.entrySet());
-        list.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
-        for (Map.Entry<String, Integer> entry : list) {
-            Runtime.log(entry.getKey() + ": " + entry.getValue());
-        }
-        Runtime.log("");
-
-        Runtime.log("Class Dump count:");
-        list = new ArrayList<>(classDumpCount.entrySet());
-        list.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
-        for (Map.Entry<String, Integer> entry : list) {
-            Runtime.log(entry.getKey() + ": " + entry.getValue());
-        }
-        Runtime.log("");
-
-        Map<Integer, String> timesMap = new HashMap<>();
-        for (String cName : classDupCount.keySet()) {
-            timesMap.put(classDupCount.get(cName) / classDumpCount.get(cName), cName);
-        }
-
-        Runtime.log("Ratio:");
-        timesMap.entrySet().stream().sorted(Map.Entry.<Integer, String>comparingByKey().reversed())
-                .forEach(entry -> Runtime.log(entry.getKey() + ": " + entry.getValue()));
-
-        Runtime.log("");
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {
