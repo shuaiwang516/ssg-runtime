@@ -136,8 +136,8 @@ public class Runtime {
         }
     }
 
-    public static Object monitorCreationContext(Object obj) {
-        if (!enable || obj == null)
+    public static Object monitorCreationContext(Object obj, int dumpId) {
+        if (!enable || obj == null || objectCoverage == null)
             return obj;
         synchronized (objectCoverageLock) {
             objectCoverage.monitorCreationContext(obj);
@@ -147,7 +147,7 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId, Object... contextArgs) {
-        if (!enable || obj == null || (sample && !isSampled()))
+        if (!enable || obj == null || (sample && !isSampled()) || objectCoverage == null)
             return obj;
 
         long time1 = System.currentTimeMillis();
