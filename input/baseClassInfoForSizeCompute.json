@@ -1,1 +1,1 @@
-{"org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase":{"a":"org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA"},"org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA":{"size":"int"}}
+{"org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeA":{"size":"int"},"org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeBase":{"a":"org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeA"}}

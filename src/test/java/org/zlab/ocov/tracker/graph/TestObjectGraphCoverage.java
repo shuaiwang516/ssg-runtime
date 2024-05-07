@@ -39,22 +39,22 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
                 topObjectsPath);
 
-        TestObjectGraph.TargetClassForEnum targetClassForEnum = new TestObjectGraph.TargetClassForEnum();
+        TargetClass.TargetClassForEnum targetClassForEnum = new TargetClass.TargetClassForEnum();
         assert objectGraphCoverage.update(targetClassForEnum);
         assert !objectGraphCoverage.update(targetClassForEnum);
         assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
         assert !objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
 
-        TestObjectGraph.TargetClassForEnum targetClassForEnum1 = new TestObjectGraph.TargetClassForEnum();
-        targetClassForEnum1.e = TestObjectGraph.TargetEnum.B;
+        TargetClass.TargetClassForEnum targetClassForEnum1 = new TargetClass.TargetClassForEnum();
+        targetClassForEnum1.e = TargetClass.TargetEnum.B;
 
         assert objectGraphCoverage.update(targetClassForEnum1);
         assert !objectGraphCoverage.update(targetClassForEnum1);
         assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
         assert !objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
 
-        TestObjectGraph.TargetClassForEnum targetClassForEnum2 = new TestObjectGraph.TargetClassForEnum();
-        targetClassForEnum2.e = TestObjectGraph.TargetEnum.A;
+        TargetClass.TargetClassForEnum targetClassForEnum2 = new TargetClass.TargetClassForEnum();
+        targetClassForEnum2.e = TargetClass.TargetEnum.A;
         assert objectGraphCoverage.update(targetClassForEnum2);
         assert !objectGraphCoverage.update(targetClassForEnum2);
         assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
@@ -69,22 +69,22 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraph.TargetClassE obj2 = new TestObjectGraph.TargetClassE();
-        obj2.fList.add(new TestObjectGraph.TargetClassF1());
+        TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
+        obj2.fList.add(new TargetClass.TargetClassF1());
         assert (coverage.update(obj2));
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassE obj3 = new TestObjectGraph.TargetClassE();
-        TestObjectGraph.TargetClassF1 tmpF31 = new TestObjectGraph.TargetClassF1();
+        TargetClass.TargetClassE obj3 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF31 = new TargetClass.TargetClassF1();
         tmpF31.f1 = 0;
         obj3.fList.add(tmpF31);
         assert (coverage1.update(obj3));
         assert coverage.merge(coverage1).newFormat;
         // coverage1.objCoverage.get(obj3.getClass().getName()).print();
 
-        TestObjectGraph.TargetClassE obj4 = new TestObjectGraph.TargetClassE();
-        TestObjectGraph.TargetClassF1 tmpF41 = new TestObjectGraph.TargetClassF1();
-        TestObjectGraph.TargetClassF1 tmpF42 = new TestObjectGraph.TargetClassF1();
+        TargetClass.TargetClassE obj4 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF41 = new TargetClass.TargetClassF1();
+        TargetClass.TargetClassF1 tmpF42 = new TargetClass.TargetClassF1();
         tmpF41.f1 = 0;
         obj4.fList.add(tmpF41);
         tmpF42.f1 = 0;
@@ -105,15 +105,15 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
-        TestObjectGraph.TargetClassE1 obj1;
-        TestObjectGraph.TargetClassE2 obj2;
+        TargetClass.TargetClassE1 obj1;
+        TargetClass.TargetClassE2 obj2;
         FormatCoverageStatus status;
         /* Test1 */
-        obj1 = new TestObjectGraph.TargetClassE1();
-        obj1.fList.add(new TestObjectGraph.CompClass(1));
-        obj1.fList.add(new TestObjectGraph.CompClass(4));
+        obj1 = new TargetClass.TargetClassE1();
+        obj1.fList.add(new TargetClass.CompClass(1));
+        obj1.fList.add(new TargetClass.CompClass(4));
 
-        obj2 = new TestObjectGraph.TargetClassE2(2);
+        obj2 = new TargetClass.TargetClassE2(2);
 
         coverage.update(obj1);
         coverage.update(obj2);
@@ -123,11 +123,11 @@ public class TestObjectGraphCoverage {
         assert status.newFormat;
 
         /* Test2 */
-        obj1 = new TestObjectGraph.TargetClassE1();
-        obj1.fList.add(new TestObjectGraph.CompClass(1));
-        obj1.fList.add(new TestObjectGraph.CompClass(4));
+        obj1 = new TargetClass.TargetClassE1();
+        obj1.fList.add(new TargetClass.CompClass(1));
+        obj1.fList.add(new TargetClass.CompClass(4));
 
-        obj2 = new TestObjectGraph.TargetClassE2(4);
+        obj2 = new TargetClass.TargetClassE2(4);
         coverage.update(obj1);
         coverage.update(obj2);
         coverage.inferInvariant();
@@ -146,14 +146,14 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraph.TargetClassWithMap obj1 = new TestObjectGraph.TargetClassWithMap();
+        TargetClass.TargetClassWithMap obj1 = new TargetClass.TargetClassWithMap();
         assert (coverage.update(obj1));
 
-        TestObjectGraph.TargetClassWithMap obj2 = new TestObjectGraph.TargetClassWithMap();
+        TargetClass.TargetClassWithMap obj2 = new TargetClass.TargetClassWithMap();
         assert (!coverage.update(obj2));
 
-        TestObjectGraph.TargetClassWithMap obj3 = new TestObjectGraph.TargetClassWithMap();
-        obj3.map.put(1, new TestObjectGraph.TargetClassF1());
+        TargetClass.TargetClassWithMap obj3 = new TargetClass.TargetClassWithMap();
+        obj3.map.put(1, new TargetClass.TargetClassF1());
         assert (coverage.update(obj3));
 
         assert coverage1.merge(coverage).newFormat;
@@ -169,24 +169,24 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraph.TargetClassA obj1 = new TestObjectGraph.TargetClassA();
+        TargetClass.TargetClassA obj1 = new TargetClass.TargetClassA();
         assert (coverage.update(obj1));
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassA obj2 = new TestObjectGraph.TargetClassA();
+        TargetClass.TargetClassA obj2 = new TargetClass.TargetClassA();
         assert (!coverage.update(obj2));
         assert !coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassA obj3 = new TestObjectGraph.TargetClassA();
+        TargetClass.TargetClassA obj3 = new TargetClass.TargetClassA();
         obj3.bObj.i = 1;
         assert (coverage.update(obj3));
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassD obj4 = new TestObjectGraph.TargetClassD();
+        TargetClass.TargetClassD obj4 = new TargetClass.TargetClassD();
         assert (coverage.update(obj4));
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassD obj5 = new TestObjectGraph.TargetClassD();
+        TargetClass.TargetClassD obj5 = new TargetClass.TargetClassD();
         obj5.bObj.i = 1;
         assert (coverage.update(obj5));
         assert coverage1.merge(coverage).newFormat;
@@ -199,10 +199,10 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
         ObjectGraphCoverage coverage2 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
 
-        TestObjectGraph.TargetClassD obj1 = new TestObjectGraph.TargetClassD();
+        TargetClass.TargetClassD obj1 = new TargetClass.TargetClassD();
         assert (coverage1.update(obj1));
 
-        TestObjectGraph.TargetClassD obj2 = new TestObjectGraph.TargetClassD();
+        TargetClass.TargetClassD obj2 = new TargetClass.TargetClassD();
         obj2.a = 0;
         assert (coverage2.update(obj2));
         assert coverage1.merge(coverage2).newFormat;
@@ -221,12 +221,12 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
                 comparableClassesPath);
 
-        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         assert (coverage.update(obj1));
         assert !(coverage.update(obj1));
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassEquality obj2 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj2 = new TargetClass.TargetClassEquality();
         obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj2);
         assert coverage1.merge(coverage).newFormat;
@@ -246,36 +246,36 @@ public class TestObjectGraphCoverage {
         // obj1--->compClass == obj2--->compClass
 
         // 2, 3
-        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
         assert coverage1.merge(coverage).newFormat;
 
         // 2, 3
-        TestObjectGraph.TargetClassEquality obj6 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj6 = new TargetClass.TargetClassEquality();
         coverage.update(obj6);
 
         // 4, 5
-        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj5 = new TargetClass.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
         obj5.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj5);
 
         // 10, 2
-        TestObjectGraph.TargetClassEquality obj2 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj2 = new TargetClass.TargetClassEquality();
         obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 10;
         obj2.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj2);
         assert coverage1.merge(coverage).newFormat;
 
         // 4, 5
-        TestObjectGraph.TargetClassEquality obj3 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj3 = new TargetClass.TargetClassEquality();
         obj3.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
         obj3.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj3);
         assert !coverage1.merge(coverage).newFormat;
 
         // obj3--->compClass == obj3--->compClass
-        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj4);
         assert coverage1.merge(coverage).newFormat;
@@ -308,12 +308,12 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // 2,3
-        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
         assert coverage1.merge(coverage).newFormat;
 
         // 6,4
-        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
         obj4.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj4);
@@ -321,7 +321,7 @@ public class TestObjectGraphCoverage {
         assert !coverage1.merge(coverage).newFormat;
 
         // 9, 4
-        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj5 = new TargetClass.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 9;
         obj5.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj5);
@@ -341,11 +341,11 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // 2,3
-        TestObjectGraph.TargetClassEquality obj1 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
 
         // 6,6
-        TestObjectGraph.TargetClassEquality obj4 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
         obj4.targetClassEqualityC.compClass.a = 6;
         coverage.update(obj4);
@@ -355,7 +355,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj4);
 
         // 5,2
-        TestObjectGraph.TargetClassEquality obj5 = new TestObjectGraph.TargetClassEquality();
+        TargetClass.TargetClassEquality obj5 = new TargetClass.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
         obj5.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj5);
@@ -386,17 +386,17 @@ public class TestObjectGraphCoverage {
          * manually create a Map<String, Set<String>> as modifiedFields.json and test it
          * Later, we create a Set<String> to test enums
          */
-        TestObjectGraph.TargetClassForEnum obj1 = new TestObjectGraph.TargetClassForEnum();
+        TargetClass.TargetClassForEnum obj1 = new TargetClass.TargetClassForEnum();
         coverage.update(obj1);
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassForEnum obj2 = new TestObjectGraph.TargetClassForEnum();
-        obj2.e = TestObjectGraph.TargetEnum.A;
+        TargetClass.TargetClassForEnum obj2 = new TargetClass.TargetClassForEnum();
+        obj2.e = TargetClass.TargetEnum.A;
         coverage.update(obj2);
         assert coverage1.merge(coverage).newFormat;
 
-        TestObjectGraph.TargetClassForEnum obj3 = new TestObjectGraph.TargetClassForEnum();
-        obj3.e = TestObjectGraph.TargetEnum.A;
+        TargetClass.TargetClassForEnum obj3 = new TargetClass.TargetClassForEnum();
+        obj3.e = TargetClass.TargetEnum.A;
         coverage.update(obj3);
         assert !coverage1.merge(coverage).newFormat;
     }
@@ -411,13 +411,13 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
                 topObjectsPath);
 
-        TestObjectGraph.TargetClassWithSizeBase targetClassWithSizeBase = new TestObjectGraph.TargetClassWithSizeBase();
+        TargetClass.TargetClassWithSizeBase targetClassWithSizeBase = new TargetClass.TargetClassWithSizeBase();
 
         assert objectGraphCoverage.update(targetClassWithSizeBase);
 
         assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
 
-        TestObjectGraph.TargetClassWithSizeBase targetClassWithSizeBase1 = new TestObjectGraph.TargetClassWithSizeBase();
+        TargetClass.TargetClassWithSizeBase targetClassWithSizeBase1 = new TargetClass.TargetClassWithSizeBase();
         targetClassWithSizeBase1.a.size = 0;
 
         assert objectGraphCoverage.update(targetClassWithSizeBase1);
@@ -458,12 +458,12 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
                 topObjectsPath);
 
-        TestObjectGraph.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase = new TestObjectGraph.TargetClassAccumulateSizeBase();
+        TargetClass.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase = new TargetClass.TargetClassAccumulateSizeBase();
 
         assert objectGraphCoverage.update(targetClassAccumulateSizeBase);
         assert objectGraphCoverage1.merge(objectGraphCoverage).boundaryChange;
 
-        TestObjectGraph.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase1 = new TestObjectGraph.TargetClassAccumulateSizeBase();
+        TargetClass.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase1 = new TargetClass.TargetClassAccumulateSizeBase();
         targetClassAccumulateSizeBase1.a.ids.get(0).value = 100;
         targetClassAccumulateSizeBase1.a.ids.get(1).value = 200;
 
@@ -485,7 +485,7 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // Test1: base obj
-        TestObjectGraph.TargetClassInvCombinationBase obj = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj = new TargetClass.TargetClassInvCombinationBase();
         coverage.update(obj);
         coverage.inferInvariant();
         assert coverage1.merge(coverage).newFormat;
@@ -493,7 +493,7 @@ public class TestObjectGraphCoverage {
 
         // Test2
         // o1: break inv1
-        TestObjectGraph.TargetClassInvCombinationBase obj1 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj1 = new TargetClass.TargetClassInvCombinationBase();
         obj1.a.value = 0;
         coverage.update(obj1);
         coverage.inferInvariant();
@@ -501,7 +501,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // o2: break inv2
-        TestObjectGraph.TargetClassInvCombinationBase obj2 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj2 = new TargetClass.TargetClassInvCombinationBase();
         obj2.b.value = 1;
         coverage.update(obj2);
         coverage.inferInvariant();
@@ -509,7 +509,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // o3: break inv1 and inv2 at the same time
-        TestObjectGraph.TargetClassInvCombinationBase obj3 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj3 = new TargetClass.TargetClassInvCombinationBase();
         obj3.a.value = 0;
         obj3.b.value = 1;
         coverage.update(obj3);
@@ -541,14 +541,14 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // Test0: base obj
-        TestObjectGraph.TargetClassInvCombinationBase obj = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj = new TargetClass.TargetClassInvCombinationBase();
         coverage.update(obj);
         coverage.inferInvariant();
         assert coverage1.merge(coverage).newFormat;
         coverage.clear();
 
         // Test1: o1: break inv1
-        TestObjectGraph.TargetClassInvCombinationBase obj1 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj1 = new TargetClass.TargetClassInvCombinationBase();
         obj1.a.value = 0;
         coverage.update(obj1);
         coverage.inferInvariant();
@@ -556,7 +556,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // Test2: o2: break inv2
-        TestObjectGraph.TargetClassInvCombinationBase obj2 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj2 = new TargetClass.TargetClassInvCombinationBase();
         obj2.b.value = 1;
         coverage.update(obj2);
         coverage.inferInvariant();
@@ -564,7 +564,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // Test3: o1 == o2
-        TestObjectGraph.TargetClassInvCombinationBase obj3 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj3 = new TargetClass.TargetClassInvCombinationBase();
         obj3.a.compClass.a = 4;
         coverage.update(obj3);
         coverage.inferInvariant();
@@ -574,7 +574,7 @@ public class TestObjectGraphCoverage {
         // Test4: o1 == o2
         // o1: break inv1
         // o2: break inv2
-        TestObjectGraph.TargetClassInvCombinationBase obj4 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj4 = new TargetClass.TargetClassInvCombinationBase();
         obj4.a.compClass.a = 4;
         obj4.a.value = 0;
         obj4.b.value = 1;
@@ -584,7 +584,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // Test5: o1 == o2
-        TestObjectGraph.TargetClassInvCombinationBase obj5 = new TestObjectGraph.TargetClassInvCombinationBase();
+        TargetClass.TargetClassInvCombinationBase obj5 = new TargetClass.TargetClassInvCombinationBase();
         obj5.a.compClass.a = 4;
         obj5.a.value = 0;
         obj5.b.value = 1;
@@ -616,10 +616,10 @@ public class TestObjectGraphCoverage {
         /**
          * Across two objects, itinerary is the same CompClass: Base->a->a occur twice
          */
-        TestObjectGraph.TargetClassMultiEqualBase obj1 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj1 = new TargetClass.TargetClassMultiEqualBase();
         obj1.b.comp1.a = 4;
         coverage.update(obj1);
-        TestObjectGraph.TargetClassMultiEqualBase obj2 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj2 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj2);
 
         coverage.inferInvariant();
@@ -630,10 +630,10 @@ public class TestObjectGraphCoverage {
         /**
          * Across two objects, itinerary is the same CompClass1: Base->b->a occur twice
          */
-        TestObjectGraph.TargetClassMultiEqualBase obj3 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj3 = new TargetClass.TargetClassMultiEqualBase();
         obj3.a.comp.a = 4;
         coverage.update(obj3);
-        TestObjectGraph.TargetClassMultiEqualBase obj4 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj4 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj4);
 
         coverage.inferInvariant();
@@ -645,9 +645,9 @@ public class TestObjectGraphCoverage {
          * The two invariant happens at the same time CompClass: Base->a->a occur twice
          * CompClass1: Base->b->a occur twice
          */
-        TestObjectGraph.TargetClassMultiEqualBase obj5 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj5 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj5);
-        TestObjectGraph.TargetClassMultiEqualBase obj6 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj6 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj6);
 
         coverage.inferInvariant();
@@ -655,9 +655,9 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // add it again?
-        TestObjectGraph.TargetClassMultiEqualBase obj7 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj7 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj7);
-        TestObjectGraph.TargetClassMultiEqualBase obj8 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj8 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj8);
 
         coverage.inferInvariant();
@@ -681,10 +681,10 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // first equality
-        TestObjectGraph.TargetClassMultiEqualBase obj1 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj1 = new TargetClass.TargetClassMultiEqualBase();
         obj1.b.comp1.a = 4;
         coverage.update(obj1);
-        TestObjectGraph.TargetClassMultiEqualBase1 obj2 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        TargetClass.TargetClassMultiEqualBase1 obj2 = new TargetClass.TargetClassMultiEqualBase1();
         coverage.update(obj2);
 
         coverage.inferInvariant();
@@ -692,10 +692,10 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // second equality
-        TestObjectGraph.TargetClassMultiEqualBase obj3 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj3 = new TargetClass.TargetClassMultiEqualBase();
         obj3.a.comp.a = 4;
         coverage.update(obj3);
-        TestObjectGraph.TargetClassMultiEqualBase1 obj4 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        TargetClass.TargetClassMultiEqualBase1 obj4 = new TargetClass.TargetClassMultiEqualBase1();
         coverage.update(obj4);
 
         coverage.inferInvariant();
@@ -703,9 +703,9 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // both equality
-        TestObjectGraph.TargetClassMultiEqualBase obj5 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj5 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj5);
-        TestObjectGraph.TargetClassMultiEqualBase1 obj6 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        TargetClass.TargetClassMultiEqualBase1 obj6 = new TargetClass.TargetClassMultiEqualBase1();
         coverage.update(obj6);
 
         coverage.inferInvariant();
@@ -713,9 +713,9 @@ public class TestObjectGraphCoverage {
         coverage.clear();
 
         // add it again?
-        TestObjectGraph.TargetClassMultiEqualBase obj7 = new TestObjectGraph.TargetClassMultiEqualBase();
+        TargetClass.TargetClassMultiEqualBase obj7 = new TargetClass.TargetClassMultiEqualBase();
         coverage.update(obj7);
-        TestObjectGraph.TargetClassMultiEqualBase1 obj8 = new TestObjectGraph.TargetClassMultiEqualBase1();
+        TargetClass.TargetClassMultiEqualBase1 obj8 = new TargetClass.TargetClassMultiEqualBase1();
         coverage.update(obj8);
 
         coverage.inferInvariant();
@@ -789,9 +789,9 @@ public class TestObjectGraphCoverage {
                 comparableClassesPath);
 
         // test1 (base test)
-        TestObjectGraph.TargetClassEqualityA obj1 = new TestObjectGraph.TargetClassEqualityA();
+        TargetClass.TargetClassEqualityA obj1 = new TargetClass.TargetClassEqualityA();
         obj1.targetClassEqualityAA.compClass.a = 5;
-        TestObjectGraph.TargetClassEqualityA.staticComp.a = 0;
+        TargetClass.TargetClassEqualityA.staticComp.a = 0;
         curCoverage.update(obj1);
 
         curCoverage.inferInvariant();
@@ -799,18 +799,27 @@ public class TestObjectGraphCoverage {
         curCoverage.clear();
 
         // test2
-        TestObjectGraph.TargetClassEqualityA obj2 = new TestObjectGraph.TargetClassEqualityA();
-        TestObjectGraph.TargetClassEqualityA.staticComp.a = 0;
+        TargetClass.TargetClassEqualityA obj2 = new TargetClass.TargetClassEqualityA();
+        TargetClass.TargetClassEqualityA.staticComp.a = 0;
         obj2.targetClassEqualityAA.compClass.a = 5;
         curCoverage.update(obj2);
 
-        TestObjectGraph.TargetClassEqualityA obj3 = new TestObjectGraph.TargetClassEqualityA();
+        TargetClass.TargetClassEqualityA obj3 = new TargetClass.TargetClassEqualityA();
         obj2.targetClassEqualityAA.compClass.a = 4;
-        TestObjectGraph.TargetClassEqualityA.staticComp.a = 0;
+        TargetClass.TargetClassEqualityA.staticComp.a = 0;
         curCoverage.update(obj3);
 
         curCoverage.inferInvariant();
         assert !allCoverage.merge(curCoverage, 1).newFormat;
         curCoverage.clear();
+    }
+
+    @Test
+    public void testFormatCoverageWithStackTrace() {
+        /**
+         * Two objects with different stack trace but same type, we want to make sure
+         * they can be classified.
+         */
+
     }
 }

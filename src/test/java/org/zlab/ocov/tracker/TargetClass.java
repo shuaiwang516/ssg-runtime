@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class TestObjectGraph {
+public class TargetClass {
 
     public static class TargetClassA {
         // Define some fields here for testing

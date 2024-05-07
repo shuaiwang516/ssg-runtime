@@ -13,80 +13,79 @@ public class TestInputGeneration {
     @Test
     public void createExampleInput() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassA
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassA", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassA").put("a", "int");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassA").put("b", "int");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassA").put("bObj",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassB");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassA
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassA", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassA").put("a", "int");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassA").put("b", "int");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassA").put("bObj",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassB");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassB
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassB", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassB").put("i", "int");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassB").put("ids",
+        // org.zlab.ocov.tracker.TargetClass$TargetClassB
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassB", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassB").put("i", "int");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassB").put("ids",
                 "java.util.List");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassC
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassC", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassC").put("c", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassC
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassC", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassC").put("c", "int");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassD
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassD", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassD").put("a", "int");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassD").put("bObj",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassB");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassD").put("dObj",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassD");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassD
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassD", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassD").put("a", "int");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassD").put("bObj",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassB");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassD").put("dObj",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassD");
         Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo.json");
 
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassA");
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassD");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassA");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassD");
         Utils.saveSetToFile(topObjects, "input/topObjects.json");
     }
 
     @Test
     public void createExampleInput1() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassE
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassE", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassE").put("fList",
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
                 "java.util.List");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1").put("f1", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassF2
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF2", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF2").put("f2", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassF2
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF2", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF2").put("f2", "int");
         Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo1.json");
 
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassE");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassE");
         Utils.saveSetToFile(topObjects, "input/topObjects1.json");
     }
 
     @Test
     public void createExampleInputForMap() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassE
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithMap",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithMap").put("map",
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassWithMap", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassWithMap").put("map",
                 "java.util.Map");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1").put("f1", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassF2
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF2", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF2").put("f2", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassF2
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF2", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF2").put("f2", "int");
         Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo2.json");
 
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithMap");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassWithMap");
         Utils.saveSetToFile(topObjects, "input/topObjects2.json");
     }
 
@@ -104,27 +103,26 @@ public class TestInputGeneration {
     @Test
     public void createExampleInputForEnum() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassE
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum").put("e",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetEnum");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum").put("f1",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1");
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1").put("f1", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum").put("e",
+                "org.zlab.ocov.tracker.TargetClass$TargetEnum");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum").put("f1",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassF1");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
         Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForEnum.json");
 
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum");
         Utils.saveSetToFile(topObjects, "input/topObjectsForEnum.json");
     }
 
     @Test
     public void createExampleInputForEquality() {
         TestHelper helper = new TestHelper("Equality");
-        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
 
         helper.addBaseClassInfo(classPrefix + "TargetClassEquality", "targetClassEqualityA",
                 classPrefix + "TargetClassEqualityA");
@@ -152,23 +150,22 @@ public class TestInputGeneration {
     @Test
     public void createExampleInputForIsSerialized() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassE
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum").put("e",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetEnum");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum").put("f1",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1");
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassF1").put("f1", "int");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum").put("e",
+                "org.zlab.ocov.tracker.TargetClass$TargetEnum");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum").put("f1",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassF1");
+        // org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
 
         // baseClassInfo
         Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForIsSerialized.json");
 
         // top objects
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum");
         Utils.saveSetToFile(topObjects, "input/topObjectsForIsSerialized.json");
 
         // comparable classes
@@ -177,14 +174,13 @@ public class TestInputGeneration {
 
         // modified fields
         Map<String, Set<String>> modifiedFields = new HashMap<>();
-        modifiedFields.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum",
-                new HashSet<>());
-        modifiedFields.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassForEnum").add("f1");
+        modifiedFields.put("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum", new HashSet<>());
+        modifiedFields.get("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum").add("f1");
         Utils.saveModifiedFields(modifiedFields, "input/modifiedFieldsForIsSerialized.json");
 
         // enum
         Set<String> modifiedEnums = new HashSet<>();
-        modifiedEnums.add("org.zlab.ocov.tracker.TestObjectGraph$TargetEnum");
+        modifiedEnums.add("org.zlab.ocov.tracker.TargetClass$TargetEnum");
         Utils.saveSetToFile(modifiedEnums, "input/modifiedEnumsForIsSerialized.json");
     }
 
@@ -195,22 +191,22 @@ public class TestInputGeneration {
         String comparableFilePath = "input/comparableClassesForSizeCompute.json";
 
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassE
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase",
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeBase",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase").put("a",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeBase").put("a",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeA");
 
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeA",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeA").put("size",
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeA").put("size",
                 "int");
 
         // baseClassInfo
         Utils.saveMapToFile(baseClassInfo, baseFilePath);
         // top objects
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassWithSizeBase");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassWithSizeBase");
         Utils.saveSetToFile(topObjects, topFilePath);
         // comparable classes
         Set<String> comparableClasses = new HashSet<>();
@@ -224,26 +220,26 @@ public class TestInputGeneration {
         String comparableFilePath = "input/comparableClassesForAccumulatedSize.json";
 
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeBase",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase")
-                .put("a", "org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeBase")
+                .put("a", "org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeA");
 
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeA",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeA")
-                .put("ids", "java.util.List");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeA").put("ids",
+                "java.util.List");
 
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeB",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeB",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeB")
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeB")
                 .put("value", "java.lang.Integer");
 
         // baseClassInfo
         Utils.saveMapToFile(baseClassInfo, baseFilePath);
         // top objects
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassAccumulateSizeBase");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeBase");
         Utils.saveSetToFile(topObjects, topFilePath);
         // comparable classes
         Set<String> comparableClasses = new HashSet<>();
@@ -257,47 +253,47 @@ public class TestInputGeneration {
         String comparableFilePath = "input/comparableClassesForInvCombination.json";
 
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationBase",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase")
-                .put("a", "org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase")
-                .put("b", "org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationBase")
+                .put("a", "org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationA");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationBase")
+                .put("b", "org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationB");
 
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationA",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA")
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationA")
                 .put("value", "java.lang.Integer");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationA")
-                .put("compClass", "org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationA")
+                .put("compClass", "org.zlab.ocov.tracker.TargetClass$CompClass");
 
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB",
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationB",
                 new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB")
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationB")
                 .put("value", "java.lang.Integer");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationB")
-                .put("compClass", "org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationB")
+                .put("compClass", "org.zlab.ocov.tracker.TargetClass$CompClass");
 
         // CompClass
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$CompClass", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$CompClass").put("a", "int");
+        baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$CompClass", new HashMap<>());
+        baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$CompClass").put("a", "int");
 
         // baseClassInfo
         Utils.saveMapToFile(baseClassInfo, baseFilePath);
         // top objects
         Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassInvCombinationBase");
+        topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationBase");
         Utils.saveSetToFile(topObjects, topFilePath);
         // comparable classes
         Set<String> comparableClasses = new HashSet<>();
-        comparableClasses.add("org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+        comparableClasses.add("org.zlab.ocov.tracker.TargetClass$CompClass");
         Utils.saveSetToFile(comparableClasses, comparableFilePath);
     }
 
     @Test
     public void createExampleInputForMultiEqual() {
         TestHelper helper = new TestHelper("MultiEqual");
-        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
 
         helper.addBaseClassInfo(classPrefix + "TargetClassMultiEqualBase", "a",
                 classPrefix + "TargetClassMultiEqualA");
@@ -346,7 +342,7 @@ public class TestInputGeneration {
     @Test
     public void createInputForCollectionFirstLast() {
         TestHelper helper = new TestHelper("CollectionFirstLast");
-        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
 
         helper.addBaseClassInfo(classPrefix + "TargetClassE1", "fList", "java.util.List");
         helper.addBaseClassInfo(classPrefix + "TargetClassE2", "compClass",
@@ -362,7 +358,7 @@ public class TestInputGeneration {
     @Test
     public void createInputForPreservedString() {
         TestHelper helper = new TestHelper("PreservedString");
-        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
 
         helper.addBaseClassInfo(classPrefix + "TargetClassForPreservedString", "ksname",
                 "java.lang.String");

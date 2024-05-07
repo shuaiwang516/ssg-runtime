@@ -2,13 +2,11 @@ package org.zlab.ocov.tracker.graph;
 
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
-import org.zlab.ocov.tracker.TestObjectGraph;
+import org.zlab.ocov.tracker.TargetClass;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class TestObjectGraphDumper {
 
@@ -29,10 +27,10 @@ public class TestObjectGraphDumper {
                 .loadMapFromFile(bassClassPath.toString());
         ObjectGraphDumper dumper = new ObjectGraphDumper(classInfo);
 
-        TestObjectGraph.TargetClassE obj1 = new TestObjectGraph.TargetClassE();
-        obj1.fList.add(new TestObjectGraph.TargetClassF2());
-        obj1.fList.add(new TestObjectGraph.TargetClassF2());
-        obj1.fList.add(new TestObjectGraph.TargetClassF2());
+        TargetClass.TargetClassE obj1 = new TargetClass.TargetClassE();
+        obj1.fList.add(new TargetClass.TargetClassF2());
+        obj1.fList.add(new TargetClass.TargetClassF2());
+        obj1.fList.add(new TargetClass.TargetClassF2());
 
         ObjectGraph objectGraph = dumper.dump(obj1, -1);
 

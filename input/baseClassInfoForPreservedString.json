@@ -1,1 +1,1 @@
-{"org.zlab.ocov.tracker.TestObjectGraph$TargetClassForPreservedString":{"ksname":"java.lang.String"},"org.zlab.ocov.tracker.TestObjectGraph$TargetClassForPreservedStringTopObject":{"fList":"java.util.List"}}
+{"org.zlab.ocov.tracker.TargetClass$TargetClassForPreservedStringTopObject":{"fList":"java.util.List"},"org.zlab.ocov.tracker.TargetClass$TargetClassForPreservedString":{"ksname":"java.lang.String"}}

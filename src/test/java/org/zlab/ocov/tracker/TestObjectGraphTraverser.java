@@ -18,7 +18,7 @@ public class TestObjectGraphTraverser {
         Map<String, Map<String, String>> classInfoOri = Utils
                 .loadMapFromFile("input/baseClassInfo.json");
         ObjectGraphTraverser traverser = new ObjectGraphTraverser(classInfoOri);
-        TestObjectGraph.TargetClassA a = new TestObjectGraph.TargetClassA();
+        TargetClass.TargetClassA a = new TargetClass.TargetClassA();
         traverser.traverse(a);
         Set<Integer> visited = traverser.getVisited();
         assert visited.size() == 3;
