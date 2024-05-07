@@ -165,22 +165,31 @@ public class ObjectGraphCoverage implements Serializable {
             return "";
         StringBuilder sb = new StringBuilder();
         for (Object contextObj : contextArgs) {
-            if (contextObj == null)
-                continue;
-            String className = contextObj.getClass().getName();
-            if (!baseClassInfo.containsKey(className))
-                continue;
-            int addr = System.identityHashCode(contextObj);
-            if (objAddress2TopObjAddress.containsKey(addr)
-                    && topObj2CreationStacktrace.containsKey(objAddress2TopObjAddress.get(addr))) {
-                sb.append(topObj2CreationStacktrace.get(objAddress2TopObjAddress.get(addr)));
-            }
+            sb.append(getCreationContext(contextObj));
         }
         return sb.toString();
     }
 
+    private String getCreationContext(Object obj) {
+        if (obj == null)
+            return "";
+
+        String className = obj.getClass().getName();
+        if (!baseClassInfo.containsKey(className))
+            return "";
+        int addr = System.identityHashCode(obj);
+        if (objAddress2TopObjAddress.containsKey(addr)
+                && topObj2CreationStacktrace.containsKey(objAddress2TopObjAddress.get(addr))) {
+            return topObj2CreationStacktrace.get(objAddress2TopObjAddress.get(addr));
+        }
+        return "";
+    }
+
     public boolean updateTopObjectGraphPattern(int dumpId, String context, Object obj,
             String className, int objId) {
+        // Combine context stack trace with top object's stack trace
+        context = context + getCreationContext(obj);
+
         GraphPattern classInfo = getGraphPattern(className, dumpId, context);
         if (classInfo == null)
             throw new RuntimeException("ClassInfo not found for " + className);
