@@ -31,12 +31,12 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testCreateGraphPattern() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForEnum.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForEnum.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEnum.json");
 
-        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(bassClassPath,
+        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(baseClassPath,
                 topObjectsPath);
-        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
+        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(baseClassPath,
                 topObjectsPath);
 
         TargetClass.TargetClassForEnum targetClassForEnum = new TargetClass.TargetClassForEnum();
@@ -63,11 +63,11 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testCollection() {
-        Path bassClassPath = Paths.get("input/baseClassInfo1.json");
+        Path baseClassPath = Paths.get("input/baseClassInfo1.json");
         Path topObjectsPath = Paths.get("input/topObjects1.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
 
         TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
         obj2.fList.add(new TargetClass.TargetClassF1());
@@ -140,11 +140,11 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testMap() {
-        Path bassClassPath = Paths.get("input/baseClassInfo2.json");
+        Path baseClassPath = Paths.get("input/baseClassInfo2.json");
         Path topObjectsPath = Paths.get("input/topObjects2.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
 
         TargetClass.TargetClassWithMap obj1 = new TargetClass.TargetClassWithMap();
         assert (coverage.update(obj1));
@@ -163,11 +163,11 @@ public class TestObjectGraphCoverage {
     @Test
     public void testSubObject() {
         // obj1 and obj2 share same format, obj3 is different
-        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path baseClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
 
         TargetClass.TargetClassA obj1 = new TargetClass.TargetClassA();
         assert (coverage.update(obj1));
@@ -194,10 +194,10 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testCoverageMerge() {
-        Path bassClassPath = Paths.get("input/baseClassInfo.json");
+        Path baseClassPath = Paths.get("input/baseClassInfo.json");
         Path topObjectsPath = Paths.get("input/topObjects.json");
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
-        ObjectGraphCoverage coverage2 = new ObjectGraphCoverage(bassClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage2 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
 
         TargetClass.TargetClassD obj1 = new TargetClass.TargetClassD();
         assert (coverage1.update(obj1));
@@ -212,13 +212,13 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEquality() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
@@ -234,13 +234,13 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEqualityForSameObjectGraph() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // obj1--->compClass == obj2--->compClass
@@ -298,13 +298,13 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEqualitySameItineraryAcrossObjectGraph() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // 2,3
@@ -331,13 +331,13 @@ public class TestObjectGraphCoverage {
     // @Test
     public void testEqualityAcrossObjectGraph() {
         // FIXME!
-        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // 2,3
@@ -367,15 +367,15 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testIsSerialized() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForIsSerialized.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForIsSerialized.json");
         Path topObjectsPath = Paths.get("input/topObjectsForIsSerialized.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForIsSerialized.json");
         Path modifiedFieldsPath = Paths.get("input/modifiedFieldsForIsSerialized.json");
         Path modifiedEnumsPath = Paths.get("input/modifiedEnumsForIsSerialized.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath);
         /**
          * Check whether isSerialized will alert us if we meet a new class being
@@ -403,12 +403,12 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testSizeCompute() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForSizeCompute.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForSizeCompute.json");
         Path topObjectsPath = Paths.get("input/topObjectsForSizeCompute.json");
 
-        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(bassClassPath,
+        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(baseClassPath,
                 topObjectsPath);
-        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
+        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(baseClassPath,
                 topObjectsPath);
 
         TargetClass.TargetClassWithSizeBase targetClassWithSizeBase = new TargetClass.TargetClassWithSizeBase();
@@ -450,12 +450,12 @@ public class TestObjectGraphCoverage {
     public void testAccumulatedSize() {
         if (!GraphPattern.enableAccumulatedSizeCheck)
             return;
-        Path bassClassPath = Paths.get("input/baseClassInfoForAccumulatedSize.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForAccumulatedSize.json");
         Path topObjectsPath = Paths.get("input/topObjectsForAccumulatedSize.json");
 
-        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(bassClassPath,
+        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(baseClassPath,
                 topObjectsPath);
-        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(bassClassPath,
+        ObjectGraphCoverage objectGraphCoverage1 = new ObjectGraphCoverage(baseClassPath,
                 topObjectsPath);
 
         TargetClass.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase = new TargetClass.TargetClassAccumulateSizeBase();
@@ -475,13 +475,13 @@ public class TestObjectGraphCoverage {
     public void testInvCombinationSingleObject() {
         if (!ObjectGraphCoverage.enableInvariantCombination)
             return;
-        Path bassClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
         Path topObjectsPath = Paths.get("input/topObjectsForInvCombination.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForInvCombination.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // Test1: base obj
@@ -531,13 +531,13 @@ public class TestObjectGraphCoverage {
          *
          * T4 Class1, o1 break inv1 Class2, o2 break inv2 <Equality> o1 == o2
          */
-        Path bassClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForInvCombination.json");
         Path topObjectsPath = Paths.get("input/topObjectsForInvCombination.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForInvCombination.json");
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // Test0: base obj
@@ -602,14 +602,14 @@ public class TestObjectGraphCoverage {
          * There are 2 objects, and there are multiple equality between them
          */
         String suffix = "MultiEqual";
-        Path bassClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
         Path comparableClassesPath = Paths
                 .get(String.format("input/comparableClassesFor%s.json", suffix));
 
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // first equality
@@ -779,13 +779,13 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEqualityForStaticField() {
-        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
 
-        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
-        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
         // test1 (base test)
@@ -820,6 +820,82 @@ public class TestObjectGraphCoverage {
          * Two objects with different stack trace but same type, we want to make sure
          * they can be classified.
          */
+        String suffix = "Stacktrace";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
 
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        f1(curCoverage, allCoverage, true);
+        f2(curCoverage, allCoverage, true);
+    }
+
+    public void f1(ObjectGraphCoverage curCoverage, ObjectGraphCoverage allCoverage,
+            boolean newFormat) {
+        TargetClass.TargetClassForStacktrace obj = new TargetClass.TargetClassForStacktrace();
+        curCoverage.monitorCreationContext(obj);
+        obj.fList.add(1);
+
+        curCoverage.update(obj);
+        assert allCoverage.merge(curCoverage, 0).newFormat == newFormat;
+        curCoverage.clear();
+    }
+
+    public void f2(ObjectGraphCoverage curCoverage, ObjectGraphCoverage allCoverage,
+            boolean newFormat) {
+        TargetClass.TargetClassForStacktrace obj = new TargetClass.TargetClassForStacktrace();
+        curCoverage.monitorCreationContext(obj);
+        obj.fList.add(1);
+
+        curCoverage.update(obj);
+        assert allCoverage.merge(curCoverage, 1).newFormat == newFormat;
+        curCoverage.clear();
+    }
+
+    @Test
+    public void testFormatCoverageWithStackTrace1() {
+        /**
+         * Two objects with the same creation stack trace should use the same graph
+         * pattern
+         */
+        String suffix = "Stacktrace";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        f3(curCoverage, allCoverage);
+    }
+
+    public void f3(ObjectGraphCoverage curCoverage, ObjectGraphCoverage allCoverage) {
+        TargetClass.TargetClassForStacktrace obj1 = new TargetClass.TargetClassForStacktrace();
+        curCoverage.monitorCreationContext(obj1);
+        String stackTraceString = curCoverage.getObjectCreationStacktrace()
+                .get(System.identityHashCode(obj1));
+        obj1.fList.add(1);
+
+        curCoverage.update(obj1);
+        assert allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
+
+        TargetClass.TargetClassForStacktrace obj2 = new TargetClass.TargetClassForStacktrace();
+        curCoverage.monitorCreationContext(obj2);
+        curCoverage.getObjectCreationStacktrace().put(System.identityHashCode(obj2),
+                stackTraceString);
+        obj2.fList.add(1);
+
+        curCoverage.update(obj2);
+        assert !allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
     }
 }

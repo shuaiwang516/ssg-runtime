@@ -256,15 +256,7 @@ public class TargetClass {
         public TargetClassMultiEqualB b = new TargetClassMultiEqualB();
     }
 
-    public static class TargetClassForPreservedString {
-        private final String ksname;
-
-        public TargetClassForPreservedString(String ksname) {
-            this.ksname = ksname;
-        }
-    }
-
-    public static class TargetClassForPreservedStringTopObject {
+    public static class TargetClassForStacktrace {
         public List<Integer> fList = new LinkedList<>();
     }
 
@@ -272,5 +264,4 @@ public class TargetClass {
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();
     }
-
 }

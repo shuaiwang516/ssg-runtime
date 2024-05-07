@@ -38,12 +38,6 @@ public class ObjectGraphCoverage implements Serializable {
 
     ObjectGraphDumper objectGraphDumper;
 
-    int dumpedObjectCount = 0;
-    int dupObjectCount = 0;
-
-    Map<String, Integer> classDupCount = new HashMap<>();
-    Map<String, Integer> classDumpCount = new HashMap<>();
-
     public ObjectGraphCoverage() {
         // for json
     }
@@ -381,6 +375,11 @@ public class ObjectGraphCoverage implements Serializable {
                 && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
             formatCoverageStatus.newFormat = true;
         }
+    }
+
+    // Test usage only
+    public Map<Integer, String> getObjectCreationStacktrace() {
+        return topObj2CreationStacktrace;
     }
 
     public static IsSerialize constructIsSerialize(Path modifiedFieldsPath,

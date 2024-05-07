@@ -171,10 +171,6 @@ public class Utils {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         StringBuilder sb = new StringBuilder();
         for (StackTraceElement stackTraceElement : stackTraceElements) {
-            // remove the elements under package org.zlab.ocov
-            if (stackTraceElement.toString().startsWith("org.zlab.ocov")) {
-                continue;
-            }
             sb.append(stackTraceElement);
             sb.append("\n");
         }

@@ -370,6 +370,18 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createInputForStacktrace() {
+        TestHelper helper = new TestHelper("StackTrace");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForStacktrace", "fList",
+                "java.util.List");
+
+        helper.addTopObject(classPrefix + "TargetClassForStacktrace");
+        helper.save();
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo
