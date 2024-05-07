@@ -212,8 +212,6 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEquality() {
-        // FIXME: what's the return value of update()??? This is not clear for equality
-        // update.
         Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
@@ -777,5 +775,42 @@ public class TestObjectGraphCoverage {
                 .registerTypeAdapterFactory(typeFactory4)
                 .registerTypeAdapter(DirectedMultigraph.class, new GraphSerializer())
                 .registerTypeAdapter(DirectedMultigraph.class, new GraphDeserializer()).create();
+    }
+
+    @Test
+    public void testEqualityForStaticField() {
+        Path bassClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(bassClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        // test1 (base test)
+        TestObjectGraph.TargetClassEqualityA obj1 = new TestObjectGraph.TargetClassEqualityA();
+        obj1.targetClassEqualityAA.compClass.a = 5;
+        TestObjectGraph.TargetClassEqualityA.staticComp.a = 0;
+        curCoverage.update(obj1);
+
+        curCoverage.inferInvariant();
+        assert allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
+
+        // test2
+        TestObjectGraph.TargetClassEqualityA obj2 = new TestObjectGraph.TargetClassEqualityA();
+        TestObjectGraph.TargetClassEqualityA.staticComp.a = 0;
+        obj2.targetClassEqualityAA.compClass.a = 5;
+        curCoverage.update(obj2);
+
+        TestObjectGraph.TargetClassEqualityA obj3 = new TestObjectGraph.TargetClassEqualityA();
+        obj2.targetClassEqualityAA.compClass.a = 4;
+        TestObjectGraph.TargetClassEqualityA.staticComp.a = 0;
+        curCoverage.update(obj3);
+
+        curCoverage.inferInvariant();
+        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        curCoverage.clear();
     }
 }

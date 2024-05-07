@@ -108,6 +108,7 @@ public class TestObjectGraph {
     }
 
     public static class TargetClassEqualityA {
+        public static CompClass staticComp = new CompClass(1);
         public TargetClassEqualityAA targetClassEqualityAA = new TargetClassEqualityAA();
     }
 

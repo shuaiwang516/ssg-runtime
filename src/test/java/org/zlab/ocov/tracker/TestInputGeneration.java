@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class GenerateTestInput {
+public class TestInputGeneration {
     @Test
     public void createExampleInput() {
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
@@ -123,49 +123,30 @@ public class GenerateTestInput {
 
     @Test
     public void createExampleInputForEquality() {
-        Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassEquality
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEquality",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEquality").put(
-                "targetClassEqualityA",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityA");
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEquality").put(
-                "targetClassEqualityC",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityC");
+        TestHelper helper = new TestHelper("Equality");
+        String classPrefix = "org.zlab.ocov.tracker.TestObjectGraph$";
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityA
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityA",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityA").put(
-                "targetClassEqualityAA",
-                "org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityAA");
+        helper.addBaseClassInfo(classPrefix + "TargetClassEquality", "targetClassEqualityA",
+                classPrefix + "TargetClassEqualityA");
+        helper.addBaseClassInfo(classPrefix + "TargetClassEquality", "targetClassEqualityC",
+                classPrefix + "TargetClassEqualityC");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityAA
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityAA",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityAA")
-                .put("compClass", "org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+        helper.addBaseClassInfo(classPrefix + "TargetClassEqualityA", "targetClassEqualityAA",
+                classPrefix + "TargetClassEqualityAA");
+        helper.addBaseClassInfo(classPrefix + "TargetClassEqualityA", "staticComp",
+                classPrefix + "CompClass");
+        helper.addBaseClassInfo(classPrefix + "TargetClassEqualityAA", "compClass",
+                classPrefix + "CompClass");
+        helper.addBaseClassInfo(classPrefix + "TargetClassEqualityC", "compClass",
+                classPrefix + "CompClass");
 
-        // org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityC
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityC",
-                new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEqualityC")
-                .put("compClass", "org.zlab.ocov.tracker.TestObjectGraph$CompClass");
+        helper.addBaseClassInfo(classPrefix + "CompClass", "a", "int");
 
-        // CompClass
-        baseClassInfo.put("org.zlab.ocov.tracker.TestObjectGraph$CompClass", new HashMap<>());
-        baseClassInfo.get("org.zlab.ocov.tracker.TestObjectGraph$CompClass").put("a", "int");
+        helper.addTopObject(classPrefix + "TargetClassEquality");
+        helper.addTopObject(classPrefix + "TargetClassEqualityA");
+        helper.addComparableClass(classPrefix + "CompClass");
 
-        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForEquality.json");
-
-        Set<String> topObjects = new HashSet<>();
-        topObjects.add("org.zlab.ocov.tracker.TestObjectGraph$TargetClassEquality");
-        Utils.saveSetToFile(topObjects, "input/topObjectsForEquality.json");
-
-        Set<String> comparableClasses = new HashSet<>();
-        comparableClasses.add("org.zlab.ocov.tracker.TestObjectGraph$CompClass");
-        Utils.saveSetToFile(comparableClasses, "input/comparableClassesForEquality.json");
+        helper.save();
     }
 
     @Test
@@ -440,5 +421,4 @@ public class GenerateTestInput {
             Utils.saveSetToFile(comparableClasses, comparableClassesPath);
         }
     }
-
 }
