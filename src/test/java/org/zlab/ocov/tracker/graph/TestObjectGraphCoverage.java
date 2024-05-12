@@ -898,4 +898,99 @@ public class TestObjectGraphCoverage {
         assert !allCoverage.merge(curCoverage, 0).newFormat;
         curCoverage.clear();
     }
+
+    @Test
+    public void testLinkedType() {
+        String suffix = "LinkedType";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = null;
+
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TargetClass.TargetClassForLinkedType obj1 = new TargetClass.TargetClassForLinkedType(0);
+        TargetClass.TargetClassForLinkedType child1 = new TargetClass.TargetClassForLinkedType(0);
+        // child shouldn't be processed!
+        obj1.next = child1;
+
+        curCoverage.update(obj1);
+        assert allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
+
+        TargetClass.TargetClassForLinkedType obj2 = new TargetClass.TargetClassForLinkedType(0);
+        TargetClass.TargetClassForLinkedType child2 = new TargetClass.TargetClassForLinkedType(1);
+        // child shouldn't be processed!
+        obj2.next = child2;
+
+        curCoverage.update(obj2);
+        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        curCoverage.clear();
+    }
+
+    @Test
+    public void testLinkedType1() {
+        String suffix = "LinkedType1";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = null;
+
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TargetClass.TargetClassForLinkedType1 obj1 = new TargetClass.TargetClassForLinkedType1(0);
+        TargetClass.TargetClassForLinkedType1 child1 = new TargetClass.TargetClassForLinkedType1(0);
+        // child shouldn't be processed!
+        obj1.children.add(child1);
+
+        curCoverage.update(obj1);
+        assert allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
+
+        TargetClass.TargetClassForLinkedType1 obj2 = new TargetClass.TargetClassForLinkedType1(0);
+        TargetClass.TargetClassForLinkedType1 child2 = new TargetClass.TargetClassForLinkedType1(1);
+        // child shouldn't be processed!
+        obj2.children.add(child2);
+
+        curCoverage.update(obj2);
+        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        curCoverage.clear();
+    }
+
+    @Test
+    public void testLinkedType2() {
+        String suffix = "LinkedType2";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = null;
+
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TargetClass.TargetClassForLinkedType2 obj1 = new TargetClass.TargetClassForLinkedType2(0);
+        TargetClass.TargetClassForLinkedType2 child1 = new TargetClass.TargetClassForLinkedType2(0);
+        // child shouldn't be processed!
+        obj1.children = new TargetClass.TargetClassForLinkedType2[1];
+        obj1.children[0] = child1;
+
+        curCoverage.update(obj1);
+        assert allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
+
+        TargetClass.TargetClassForLinkedType2 obj2 = new TargetClass.TargetClassForLinkedType2(0);
+        TargetClass.TargetClassForLinkedType2 child2 = new TargetClass.TargetClassForLinkedType2(1);
+        // child shouldn't be processed!
+        obj2.children = new TargetClass.TargetClassForLinkedType2[1];
+        obj2.children[0] = child2;
+
+        curCoverage.update(obj2);
+        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        curCoverage.clear();
+    }
 }

@@ -260,6 +260,33 @@ public class TargetClass {
         public List<Integer> fList = new LinkedList<>();
     }
 
+    public static class TargetClassForLinkedType {
+        public int a;
+        public TargetClassForLinkedType next = null;
+
+        public TargetClassForLinkedType(int a) {
+            this.a = a;
+        }
+    }
+
+    public static class TargetClassForLinkedType1 {
+        public int a;
+        public List<TargetClassForLinkedType1> children = new LinkedList<>();
+
+        public TargetClassForLinkedType1(int a) {
+            this.a = a;
+        }
+    }
+
+    public static class TargetClassForLinkedType2 {
+        public int a;
+        public TargetClassForLinkedType2[] children;
+
+        public TargetClassForLinkedType2(int a) {
+            this.a = a;
+        }
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

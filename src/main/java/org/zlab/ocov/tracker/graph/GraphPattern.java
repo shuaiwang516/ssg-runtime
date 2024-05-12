@@ -123,7 +123,9 @@ public class GraphPattern implements Serializable {
                 }
                 if (!found) {
                     // If not found, create a new one
-                    if (graphPatternMap.containsKey(objectType)) {
+                    // Skip it if it's recursive type (linked list...)
+                    if (graphPatternMap.containsKey(objectType)
+                            && !itinerary.contains(objectType)) {
                         // Include the subgraph's edges and vertices
                         GraphPattern subGraphPattern = SerializationUtils
                                 .clone(graphPatternMap.get(objectType));

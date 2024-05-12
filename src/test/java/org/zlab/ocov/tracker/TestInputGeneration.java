@@ -382,6 +382,45 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createInputForLinkedType() {
+        TestHelper helper = new TestHelper("LinkedType");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType", "next",
+                classPrefix + "TargetClassForLinkedType");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType", "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForLinkedType");
+        helper.save();
+    }
+
+    @Test
+    public void createInputForLinkedType1() {
+        TestHelper helper = new TestHelper("LinkedType1");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType1", "children",
+                "java.util.List");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType1", "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForLinkedType1");
+        helper.save();
+    }
+
+    @Test
+    public void createInputForLinkedType2() {
+        TestHelper helper = new TestHelper("LinkedType2");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType2", "children",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassForLinkedType2[]");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType2", "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForLinkedType2");
+        helper.save();
+    }
+
     // @Test
     public void test() {
         // Example input for baseClassInfo
