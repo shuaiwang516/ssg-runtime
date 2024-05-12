@@ -421,6 +421,25 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createInputForLinkedType3() {
+        TestHelper helper = new TestHelper("LinkedType3");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType3", "next",
+                classPrefix + "TargetClassForLinkedType3$TargetClassForLinkedType4");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType3", "a", "int");
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType3$TargetClassForLinkedType4",
+                "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForLinkedType3");
+        helper.save();
+    }
+
+    // class
+    // org.zlab.ocov.tracker.TargetClass$TargetClassForLinkedType3$TargetClassForLinkedType4
+
     // @Test
     public void test() {
         // Example input for baseClassInfo

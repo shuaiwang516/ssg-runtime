@@ -287,6 +287,23 @@ public class TargetClass {
         }
     }
 
+    public static class TargetClassForLinkedType3 {
+        public int a;
+        public TargetClassForLinkedType4 next = null;
+
+        public TargetClassForLinkedType3(int a) {
+            this.a = a;
+        }
+
+        public static class TargetClassForLinkedType4 {
+            public int a;
+
+            public TargetClassForLinkedType4(int a) {
+                this.a = a;
+            }
+        }
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

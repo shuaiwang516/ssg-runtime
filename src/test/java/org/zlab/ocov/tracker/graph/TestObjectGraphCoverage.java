@@ -993,4 +993,37 @@ public class TestObjectGraphCoverage {
         assert !allCoverage.merge(curCoverage, 1).newFormat;
         curCoverage.clear();
     }
+
+    @Test
+    public void testLinkedType3() {
+        String suffix = "LinkedType3";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = null;
+
+        ObjectGraphCoverage curCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage allCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TargetClass.TargetClassForLinkedType3 obj1 = new TargetClass.TargetClassForLinkedType3(0);
+        TargetClass.TargetClassForLinkedType3.TargetClassForLinkedType4 child1 = new TargetClass.TargetClassForLinkedType3.TargetClassForLinkedType4(
+                0);
+        // child should be processed!
+        obj1.next = child1;
+
+        curCoverage.update(obj1);
+        assert allCoverage.merge(curCoverage, 0).newFormat;
+        curCoverage.clear();
+
+        TargetClass.TargetClassForLinkedType3 obj2 = new TargetClass.TargetClassForLinkedType3(0);
+        TargetClass.TargetClassForLinkedType3.TargetClassForLinkedType4 child2 = new TargetClass.TargetClassForLinkedType3.TargetClassForLinkedType4(
+                1);
+        // child should be processed!
+        obj2.next = child2;
+
+        curCoverage.update(obj2);
+        assert allCoverage.merge(curCoverage, 1).newFormat;
+        curCoverage.clear();
+    }
 }
