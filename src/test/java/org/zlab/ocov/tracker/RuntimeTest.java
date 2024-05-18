@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.file.Paths;
 
 public class RuntimeTest {
 
@@ -67,6 +68,7 @@ public class RuntimeTest {
 
     public void fetchInvInfoLoop() throws IOException, ClassNotFoundException {
         ObjectGraphCoverage objectGraphCoverage = null;
+        Runtime.initWriter(Paths.get("/tmp/testCoverage.log"));
         while (true) {
             Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());

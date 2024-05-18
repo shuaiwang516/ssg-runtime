@@ -7,7 +7,7 @@ import java.util.*;
 
 public class EqualitySet implements Serializable {
     private static final long serialVersionUID = 20231215L;
-    public static boolean enableAcrossEquality = false;
+    private static final boolean finegrainedEqualityCheck = false;
 
     public Set<String> comparableClasses;
 
@@ -22,12 +22,14 @@ public class EqualitySet implements Serializable {
     /**
      * Equality within one object graph - Itinerary is different
      */
+    public static final boolean enableSameObjEquality = true;
     public Map<String, Map<Integer, Set<String>>> equalSetSameObj = new HashMap<>();
     public Map<String, Set<SetMapping>> equalSetSameObjDedup = new HashMap<>();
 
     /**
      * Equality across object graphs - Itinerary is different
      */
+    public static final boolean enableAcrossEquality = true;
     public Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj = new HashMap<>();
     public Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
@@ -35,6 +37,7 @@ public class EqualitySet implements Serializable {
      * Equality across object graphs - Itinerary is the same Integer means its
      * occurrence
      */
+    public static final boolean enableSameItineraryAcrossObj = true;
     public Map<String, Map<Integer, Map<String, Set<Integer>>>> equalSetSameItineraryAcrossObj = new HashMap<>();
     public Map<String, Set<String>> equalSetSameItineraryAcrossObjDedup = new HashMap<>();
 
@@ -52,7 +55,7 @@ public class EqualitySet implements Serializable {
     }
 
     public void clear() {
-        if (enableAcrossEquality)
+        if (finegrainedEqualityCheck)
             itinerarySingleTopObjects.clear();
         else
             equalSetAcrossObj.clear();
@@ -64,18 +67,21 @@ public class EqualitySet implements Serializable {
         equalSetSameItineraryAcrossObjDedup.clear();
     }
 
-    public void update(ObjectGraph.Vertex vertex, String className, String itinerary, int objId) {
-        if (comparableClasses.contains(className)) {
-            assert vertex.value instanceof Integer;
-            int hashCode = (int) vertex.value;
-            if (!enableAcrossEquality) {
+    public void update(Object obj, String className, String itinerary, int objId) {
+        if (!comparableClasses.contains(className))
+            return;
+        int hashCode = obj.hashCode();
+        if (enableAcrossEquality) {
+            if (!finegrainedEqualityCheck) {
                 Map<Integer, Map<String, Integer>> hashCodeMap0 = equalSetAcrossObj
                         .computeIfAbsent(className, k -> new HashMap<>());
                 Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
                         k -> new HashMap<>());
                 itinerarySet0.put(itinerary, objId);
             }
+        }
 
+        if (enableSameObjEquality) {
             Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
                     k -> new HashMap<>());
             Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode,
@@ -84,34 +90,17 @@ public class EqualitySet implements Serializable {
         }
     }
 
-    public void update(Object obj, String className, String itinerary, int objId) {
-        if (!comparableClasses.contains(className))
-            return;
-        int hashCode = obj.hashCode();
-        if (!enableAcrossEquality) {
-            Map<Integer, Map<String, Integer>> hashCodeMap0 = equalSetAcrossObj
-                    .computeIfAbsent(className, k -> new HashMap<>());
-            Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
-                    k -> new HashMap<>());
-            itinerarySet0.put(itinerary, objId);
-        }
-
-        Map<Integer, Set<String>> hashCodeMap1 = equalSetSameObj.computeIfAbsent(className,
-                k -> new HashMap<>());
-        Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode, k -> new HashSet<>());
-        itinerarySet1.add(itinerary);
-    }
-
     public void dumpSameObjectGraph(int dumpId, int objId) {
         if (!equalSetSameObj.isEmpty()) {
             mergeCompClass2EqualityDedup(equalSetSameObjDedup, dedup(equalSetSameObj), false,
                     logPrefixSameObject, dumpId);
 
-            if (enableAcrossEquality)
+            if (finegrainedEqualityCheck)
                 itinerarySingleTopObjects.add(new ItinerarySingleTopObject(equalSetSameObj));
 
             // update equalSetSameItineraryAcrossObj
-            updateEqualSetSameItineraryAcrossObjDedup(equalSetSameObj, objId);
+            if (enableSameItineraryAcrossObj)
+                updateEqualSetSameItineraryAcrossObjDedup(equalSetSameObj, objId);
 
             equalSetSameObj = new HashMap<>();
         }
@@ -123,7 +112,7 @@ public class EqualitySet implements Serializable {
      * equalSetSameItineraryAcrossObj - Check whether the iti is already included in
      * equalSetSameItineraryAcrossObjDedup - If not, check whether it's already
      * included in equalSetSameItineraryAcrossObj - If yes, add the iti to the set
-     * In the end, we maintain Map<String, Set<String> dedup
+     * In the end, we maintain Map<String, Set<String>> dedup
      */
     public void updateEqualSetSameItineraryAcrossObjDedup(
             Map<String, Map<Integer, Set<String>>> equalSetSameObj, int objId) {
@@ -157,7 +146,7 @@ public class EqualitySet implements Serializable {
     public Map<String, Set<Set<String>>> dedupAcrossObjectGraph() {
         Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
-        if (enableAcrossEquality) {
+        if (finegrainedEqualityCheck) {
             // Compute equality only once when merging
             Map<String, Map<Integer, Set<Set<String>>>> equalSetAcrossObjTmp = new HashMap<>();
 
