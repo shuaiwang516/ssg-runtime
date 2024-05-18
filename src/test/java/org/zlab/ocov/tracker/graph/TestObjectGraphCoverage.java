@@ -252,6 +252,7 @@ public class TestObjectGraphCoverage {
         // 2, 3
         TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
+        coverage.inferInvariant();
         assert coverage1.merge(coverage).newFormat;
 
         // 2, 3
@@ -269,6 +270,8 @@ public class TestObjectGraphCoverage {
         obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 10;
         obj2.targetClassEqualityC.compClass.a = 2;
         coverage.update(obj2);
+
+        coverage.inferInvariant();
         assert coverage1.merge(coverage).newFormat;
 
         // 4, 5
@@ -276,12 +279,14 @@ public class TestObjectGraphCoverage {
         obj3.targetClassEqualityA.targetClassEqualityAA.compClass.a = 4;
         obj3.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj3);
+        coverage.inferInvariant();
         assert !coverage1.merge(coverage).newFormat;
 
         // obj3--->compClass == obj3--->compClass
         TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj4);
+        coverage.inferInvariant();
         assert coverage1.merge(coverage).newFormat;
         assert !coverage1.merge(coverage).newFormat;
 
