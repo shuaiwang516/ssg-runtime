@@ -437,20 +437,6 @@ public class TestInputGeneration {
         helper.save();
     }
 
-    // class
-    // org.zlab.ocov.tracker.TargetClass$TargetClassForLinkedType3$TargetClassForLinkedType4
-
-    // @Test
-    public void test() {
-        // Example input for baseClassInfo
-        ObjectCoverage coverage = new ObjectCoverage(Runtime.baseClassPath, Runtime.topObjectsPath);
-
-        System.out.println("ret1 = "
-                + coverage.baseClassInfo.containsKey("org.apache.cassandra.db.AtomicBTreeColumns"));
-        System.out.println("ret2 = "
-                + coverage.baseClassInfo.get("org.apache.cassandra.db.AtomicBTreeColumns"));
-    }
-
     public static class TestHelper {
         public Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         public Set<String> topObjects = new HashSet<>();
