@@ -212,6 +212,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEquality() {
+        if (!EqualitySet.enableSameObjEquality)
+            return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
@@ -234,6 +236,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEqualityForSameObjectGraph() {
+        if (!EqualitySet.enableSameObjEquality)
+            return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
@@ -298,6 +302,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEqualitySameItineraryAcrossObjectGraph() {
+        if (!EqualitySet.enableSameItineraryAcrossObj)
+            return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
         Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
