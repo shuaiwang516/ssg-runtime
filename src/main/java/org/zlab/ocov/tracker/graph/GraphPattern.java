@@ -326,8 +326,7 @@ public class GraphPattern implements Serializable {
                             Field[] fields = currentClass.getDeclaredFields();
                             for (Field field : fields) {
                                 // skip static or final fields
-                                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
-                                        || java.lang.reflect.Modifier.isFinal(field.getModifiers()))
+                                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()))
                                     continue;
                                 field.setAccessible(true);
                                 // Field Information
