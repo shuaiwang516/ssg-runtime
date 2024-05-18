@@ -1,23 +1,19 @@
 package org.zlab.ocov.tracker;
 
-import org.zlab.ocov.tracker.graph.ObjectGraph;
-
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * There's certain overlapping between the following three conditions, one
+ * example is test: testEqualityAcrossObjectGraph. Set enableAcrossEquality to
+ * true can fix it, but it runs into performance problem.
+ */
 public class EqualitySet implements Serializable {
     private static final long serialVersionUID = 20231215L;
     private static final boolean finegrainedEqualityCheck = false;
 
     public Set<String> comparableClasses;
-
     public List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
-
-    /**
-     * Currently there's certain overlapping between the following three conditions,
-     * one example is test: testEqualityAcrossObjectGraph. Set enableAcrossEquality
-     * to true can fix it, but it runs into performance problem.
-     */
 
     /**
      * Equality within one object graph - Itinerary is different
