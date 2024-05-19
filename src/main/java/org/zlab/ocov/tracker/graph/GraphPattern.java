@@ -793,7 +793,7 @@ public class GraphPattern implements Serializable {
             LogInfo logInfo) {
         // The current object vertex won't be iterated again, process it
         if (equalitySet != null) {
-            equalitySet.update(obj, objectType, itinerary, objId);
+            equalitySet.update(obj, objectType, itinerary, objId, logInfo);
         }
         if (isSerialized != null) {
             if (obj.getClass().isEnum())

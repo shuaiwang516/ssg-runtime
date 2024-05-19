@@ -1,5 +1,7 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.tracker.inv.unary.LogInfo;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -63,7 +65,7 @@ public class EqualitySet implements Serializable {
         equalSetSameItineraryAcrossObjDedup.clear();
     }
 
-    public void update(Object obj, String className, String itinerary, int objId) {
+    public void update(Object obj, String className, String itinerary, int objId, LogInfo logInfo) {
         if (!comparableClasses.contains(className))
             return;
         int hashCode = obj.hashCode();
@@ -73,7 +75,7 @@ public class EqualitySet implements Serializable {
                         .computeIfAbsent(className, k -> new HashMap<>());
                 Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
                         k -> new HashMap<>());
-                itinerarySet0.put(itinerary, objId);
+                itinerarySet0.put(logInfo.dumpId + ":" + itinerary, objId);
             }
         }
 
