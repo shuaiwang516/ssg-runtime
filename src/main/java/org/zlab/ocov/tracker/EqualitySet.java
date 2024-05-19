@@ -18,7 +18,7 @@ public class EqualitySet implements Serializable {
     /**
      * Equality within one object graph - Itinerary is different
      */
-    public static final boolean enableSameObjEquality = true;
+    public static final boolean enableSameObjEquality = false;
     public Map<String, Map<Integer, Set<String>>> equalSetSameObj = new HashMap<>();
     public Map<String, Set<SetMapping>> equalSetSameObjDedup = new HashMap<>();
 

@@ -67,8 +67,11 @@ public class RuntimeTest {
     }
 
     public void fetchInvInfoLoop() throws IOException, ClassNotFoundException {
-        ObjectGraphCoverage objectGraphCoverage = null;
+        ObjectGraphCoverage objectGraphCoverage = new ObjectGraphCoverage(Runtime.baseClassPath,
+                Runtime.topObjectsPath, Runtime.comparableClassesPath, null, null);
+
         Runtime.initWriter(Paths.get("/tmp/testCoverage.log"));
+        int testId = 0;
         while (true) {
             Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -78,11 +81,13 @@ public class RuntimeTest {
             // response.objCoverage.get("org.apache.cassandra.db.RowIndexEntry$IndexedEntry").graph
             FormatCoverageStatus newCov;
             if (objectGraphCoverage == null) {
+                Runtime.log("objectGraphCoverage is null, directly copy the response");
+                testId++;
                 objectGraphCoverage = response;
                 newCov = new FormatCoverageStatus(true, true);
             } else {
                 // Add a break point here for checking
-                newCov = objectGraphCoverage.merge(response);
+                newCov = objectGraphCoverage.merge(response, testId++);
             }
             System.out.println("newCov = " + newCov);
             out.close();
