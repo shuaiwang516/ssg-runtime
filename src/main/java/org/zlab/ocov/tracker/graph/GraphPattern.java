@@ -76,7 +76,6 @@ public class GraphPattern implements Serializable {
         public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
                 IsSerialize isSerialized, Set<String> brokenInvs, int objId, Set<Integer> visited) {
-            // if (Runtime.debug)
             // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
             // + itinerary
             // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId
@@ -103,7 +102,7 @@ public class GraphPattern implements Serializable {
             String objectType = obj.getClass().getName();
             if (visited.contains(System.identityHashCode(obj))) {
                 // Though we do not further track, we still need to process this object
-                // since the this could lead to a different iti for equality set
+                // since this could lead to a different iti for equality set
                 computeSpecialInvariant(equalitySet, isSerialized, obj, obj.getClass().getName(),
                         itinerary, objId, visited, logInfo);
                 return labelConstraintsChange || structureConstraintsChange;
@@ -645,6 +644,7 @@ public class GraphPattern implements Serializable {
     }
 
     public static boolean isMap(String typeName) {
+        // java.util.concurrent.ConcurrentNavigableMap
         return typeName.equals("java.util.Map") || typeName.equals("java.util.HashMap")
                 || typeName.equals("java.util.TreeMap") || typeName.equals("java.util.Hashtable")
                 || typeName.equals("java.util.LinkedHashMap")
@@ -652,7 +652,9 @@ public class GraphPattern implements Serializable {
                 || typeName.equals("java.util.IdentityHashMap")
                 || typeName.equals("java.util.EnumMap")
                 || typeName.equals("java.util.ConcurrentHashMap")
-                || typeName.equals("java.util.ConcurrentSkipListMap");
+                || typeName.equals("java.util.concurrent.ConcurrentMap")
+                || typeName.equals("java.util.concurrent.ConcurrentNavigableMap")
+                || typeName.equals("java.util.concurrent.ConcurrentSkipListMap");
     }
 
     public static boolean isArray(String typeName) {
@@ -801,5 +803,4 @@ public class GraphPattern implements Serializable {
         }
         visited.add(System.identityHashCode(obj));
     }
-
 }

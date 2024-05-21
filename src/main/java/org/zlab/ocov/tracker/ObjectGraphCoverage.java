@@ -189,7 +189,7 @@ public class ObjectGraphCoverage implements Serializable {
             throw new RuntimeException("ClassInfo not found for " + className);
 
         Set<String> brokenInvs = new HashSet<>();
-        LogInfo logInfo = new LogInfo(dumpId);
+        LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
 
         boolean changed = classInfo.update(obj, baseClassInfo, logInfo, equalitySet, isSerialized,
                 brokenInvs, objId);

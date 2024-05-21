@@ -17,6 +17,7 @@ public class Runtime {
     public static final boolean debug = false;
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
+    public static boolean enableBoundaryCheck = false;
     public static final String enableEnvName = "ENABLE_FORMAT_COVERAGE";
     public static final String enableSampleEnvName = "ENABLE_FORMAT_COVERAGE_SAMPLE";
     public static final String sampleRateEnvName = "FORMAT_COVERAGE_SAMPLE_RATE";
@@ -155,6 +156,9 @@ public class Runtime {
         synchronized (objectCoverageLock) {
             long time2 = System.currentTimeMillis();
 
+            // Runtime.log("dumpId: " + dumpId + ", obj type = : " +
+            // obj.getClass().getName());
+
             objectCoverage.update(obj, dumpId, contextArgs);
 
             long time3 = System.currentTimeMillis();
@@ -170,7 +174,7 @@ public class Runtime {
     }
 
     public static boolean updateBranch(Object lhsOp, Object rhsOp, String operator, int dumpId) {
-        if (enable && objectCoverage != null) {
+        if (enable && enableBoundaryCheck && objectCoverage != null) {
             synchronized (objectCoverageLock) {
                 return objectCoverage.updateBranch(lhsOp, rhsOp, operator, dumpId);
             }

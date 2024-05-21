@@ -734,20 +734,6 @@ public class TestObjectGraphCoverage {
         coverage.clear();
     }
 
-    @Test
-    public void test() {
-        Set<String> s1 = new HashSet<>();
-        s1.add("a");
-        s1.add("b");
-        Set<String> s2 = new HashSet<>();
-        s2.add("b");
-        s2.add("a");
-
-        Set<Set<String>> set = new HashSet<>();
-        set.add(s1);
-        assert set.contains(s2);
-    }
-
     public static Gson constructGson() {
         RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
                 .of(LabelConstraint.class, "LabelConstraint")
@@ -1036,5 +1022,15 @@ public class TestObjectGraphCoverage {
         curCoverage.update(obj2);
         assert allCoverage.merge(curCoverage, 1).newFormat;
         curCoverage.clear();
+    }
+
+    // @Test
+    public void test() {
+        String a = "";
+        System.out.println(a.hashCode());
+        String b = "tmp";
+        String c = "tmp";
+        System.out.println(b.hashCode());
+        System.out.println(c.hashCode());
     }
 }
