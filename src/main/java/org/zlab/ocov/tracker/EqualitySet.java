@@ -66,31 +66,17 @@ public class EqualitySet implements Serializable {
     }
 
     /**
-     * Equalty format: [contextHashcode, dumpId, itinerary]
+     * Equality format: [contextHashcode, dumpId, itinerary]
      */
     public void update(Object obj, String className, String itinerary, int objId, LogInfo logInfo) {
         if (!comparableClasses.contains(className))
             return;
         int hashCode = obj.hashCode();
-        // DEBUG
-        // if (logInfo.dumpId == 3 && itinerary.equals(
-        // "org.apache.cassandra.db.RowIndexEntry$IndexedEntry.columnsIndex.collection_item->org.apache.cassandra.io.sstable.IndexHelper$IndexInfo.lastName->org.apache.cassandra.db.composites.CompoundSparseCellName.columnName"))
-        // {
-        // Runtime.log("EqualitySet1: update value = " + obj.toString());
-        // }
-        // if (logInfo.dumpId == 27 && itinerary.equals(
-        // "org.apache.cassandra.db.Mutation.modifications.map_valueItem->org.apache.cassandra.db.ArrayBackedSortedColumns.metadata->org.apache.cassandra.config.CFMetaData.regularColumns.collection_lastItem->org.apache.cassandra.config.ColumnDefinition.name"))
-        // {
-        // Runtime.log("EqualitySet2: update value = " + obj.toString());
-        // }
-        //
-        // if (logInfo.dumpId == 26 && itinerary.equals(
-        // "org.apache.cassandra.db.Mutation.modifications.map_valueItem->org.apache.cassandra.db.ArrayBackedSortedColumns.metadata->org.apache.cassandra.config.CFMetaData.regularColumns.collection_lastItem->org.apache.cassandra.config.ColumnDefinition.name"))
-        // {
-        // Runtime.log("EqualitySet3: update value = " + obj.toString());
-        // }
 
-        Runtime.log("EqualitySet: update value = " + obj.toString());
+        // DEBUG
+        // Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " +
+        // itinerary
+        // + ", dumpId = " + logInfo.dumpId);
 
         if (enableAcrossEquality) {
             if (!finegrainedEqualityCheck) {
@@ -98,9 +84,8 @@ public class EqualitySet implements Serializable {
                         .computeIfAbsent(className, k -> new HashMap<>());
                 Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
                         k -> new HashMap<>());
-                // itinerarySet0.put(logInfo.contextHashCode + ":" + logInfo.dumpId + ":" +
-                // itinerary, objId);
-                itinerarySet0.put(logInfo.dumpId + ":" + itinerary, objId);
+                itinerarySet0.put(logInfo.contextHashCode + ":" + logInfo.dumpId + ":" + itinerary,
+                        objId);
             }
         }
 

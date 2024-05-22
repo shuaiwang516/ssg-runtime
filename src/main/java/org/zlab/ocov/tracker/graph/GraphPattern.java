@@ -75,7 +75,7 @@ public class GraphPattern implements Serializable {
 
         public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
-                IsSerialize isSerialized, Set<String> brokenInvs, int objId, Set<Integer> visited) {
+                IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
             // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
             // + itinerary
             // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId
@@ -100,13 +100,6 @@ public class GraphPattern implements Serializable {
                 return labelConstraintsChange || structureConstraintsChange;
 
             String objectType = obj.getClass().getName();
-            if (visited.contains(System.identityHashCode(obj))) {
-                // Though we do not further track, we still need to process this object
-                // since this could lead to a different iti for equality set
-                computeSpecialInvariant(equalitySet, isSerialized, obj, obj.getClass().getName(),
-                        itinerary, objId, visited, logInfo);
-                return labelConstraintsChange || structureConstraintsChange;
-            }
 
             if (isObjectType) {
                 // Marker vetrex for polymorphism
@@ -117,7 +110,7 @@ public class GraphPattern implements Serializable {
                     if (target.type.equals(objectType)) {
                         found = true;
                         subGraphPatternChange = target.update(obj, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId, visited);
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId);
                     }
                 }
                 if (!found) {
@@ -139,18 +132,18 @@ public class GraphPattern implements Serializable {
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
                         graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
                         subGraphPattern.root.update(obj, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized, brokenInvs, objId, visited);
+                                equalitySet, isSerialized, brokenInvs, objId);
                         subGraphPatternChange = true;
                     } else {
                         // We won't further track, but still need to process this object
                         // since it's recorded in serialized objects
                         computeSpecialInvariant(equalitySet, isSerialized, obj, objectType,
-                                itinerary, objId, visited, logInfo);
+                                itinerary, objId, logInfo);
                     }
                 }
             } else {
                 computeSpecialInvariant(equalitySet, isSerialized, obj, objectType, itinerary,
-                        objId, visited, logInfo);
+                        objId, logInfo);
 
                 // Special process Map/Collection/Array
                 if (obj instanceof Map) {
@@ -187,7 +180,7 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId, visited))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -210,7 +203,7 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId, visited))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -242,14 +235,14 @@ public class GraphPattern implements Serializable {
                         Object firstItem = getFirstItemFromCollectionWithOrder(obj);
                         if (collectionFirstItemVertex.update(firstItem, graphPattern,
                                 graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs,
-                                objId, visited))
+                                objId))
                             subGraphPatternChange = true;
                         firstItemUpdated = true;
                     }
                     if (collectionLastItemVertex != null) {
                         Object lastItem = getLastItemFromCollectionWithOrder(obj);
                         if (collectionLastItemVertex.update(lastItem, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId, visited))
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId))
                             subGraphPatternChange = true;
                         lastItemUpdated = true;
                     }
@@ -278,7 +271,7 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (collectionItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId, visited))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -313,7 +306,7 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (arrayItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId, visited))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -342,7 +335,7 @@ public class GraphPattern implements Serializable {
                                                 .getEdgeTarget(patternEdge);
                                         if (target.update(value, graphPattern, graphPatternMap,
                                                 logInfo, equalitySet, isSerialized, brokenInvs,
-                                                objId, visited)) {
+                                                objId)) {
                                             subGraphPatternChange = true;
                                         }
                                         // there should only be one edge with the same name
@@ -452,7 +445,7 @@ public class GraphPattern implements Serializable {
     public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
             EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
         return root.update(obj, this, graphPatternMap, logInfo, equalitySet, isSerialized,
-                brokenInvs, objId, new HashSet<>());
+                brokenInvs, objId);
     }
 
     public FormatCoverageStatus merge(GraphPattern other) {
@@ -791,8 +784,7 @@ public class GraphPattern implements Serializable {
     }
 
     private static void computeSpecialInvariant(EqualitySet equalitySet, IsSerialize isSerialized,
-            Object obj, String objectType, String itinerary, int objId, Set<Integer> visited,
-            LogInfo logInfo) {
+            Object obj, String objectType, String itinerary, int objId, LogInfo logInfo) {
         // The current object vertex won't be iterated again, process it
         if (equalitySet != null) {
             equalitySet.update(obj, objectType, itinerary, objId, logInfo);
@@ -801,6 +793,5 @@ public class GraphPattern implements Serializable {
             if (obj.getClass().isEnum())
                 isSerialized.updateVisitedEnums(objectType, obj.toString());
         }
-        visited.add(System.identityHashCode(obj));
     }
 }

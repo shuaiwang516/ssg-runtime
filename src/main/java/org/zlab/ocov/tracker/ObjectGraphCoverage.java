@@ -294,22 +294,6 @@ public class ObjectGraphCoverage implements Serializable {
 
             if (!dumpId2ObjCoverageWithContext.containsKey(dumpId)) {
                 dumpId2ObjCoverageWithContext.put(dumpId, new HashMap<>());
-                for (String context : otherObjCoverageWithContext.keySet()) {
-                    Map<String, GraphPattern> otherClassInfo = otherObjCoverageWithContext
-                            .get(context);
-                    if (otherClassInfo == null)
-                        continue;
-                    for (String className : otherClassInfo.keySet()) {
-                        GraphPattern otherGraphPattern = otherClassInfo.get(className);
-                        if (otherGraphPattern == null)
-                            continue;
-                        dumpId2ObjCoverageWithContext.get(dumpId).put(context, new HashMap<>());
-                        dumpId2ObjCoverageWithContext.get(dumpId).get(context).put(className,
-                                SerializationUtils.clone(otherGraphPattern));
-                    }
-                }
-                formatCoverageStatus.newFormat = true;
-                continue;
             }
 
             Map<String, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverageWithContext
