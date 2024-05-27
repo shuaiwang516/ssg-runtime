@@ -157,7 +157,8 @@ public class Runtime {
             long time2 = System.currentTimeMillis();
 
             // Runtime.log("dumpId: " + dumpId + ", obj type = : " +
-            // obj.getClass().getName());
+            // obj.getClass().getName()
+            // + ", hashcode = " + System.identityHashCode(obj));
 
             objectCoverage.update(obj, dumpId, contextArgs);
 

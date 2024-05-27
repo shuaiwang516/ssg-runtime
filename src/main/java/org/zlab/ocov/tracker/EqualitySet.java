@@ -20,7 +20,7 @@ public class EqualitySet implements Serializable {
     /**
      * Equality within one object graph - Itinerary is different
      */
-    public static final boolean enableSameObjEquality = false;
+    public static final boolean enableSameObjEquality = true;
     public Map<String, Map<Integer, Set<String>>> equalSetSameObj = new HashMap<>();
     public Map<String, Set<SetMapping>> equalSetSameObjDedup = new HashMap<>();
 
@@ -41,6 +41,7 @@ public class EqualitySet implements Serializable {
 
     static final String logPrefixAcrossObject = "Equality: across object graphs";
     static final String logPrefixSameObject = "Equality: same object graph";
+    static final String logPrefixAcrossObjectSameItinerary = "Equality: across object graphs with same itinerary";
 
     public EqualitySet() {
         // for json
@@ -74,9 +75,8 @@ public class EqualitySet implements Serializable {
         int hashCode = obj.hashCode();
 
         // DEBUG
-        // Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " +
-        // itinerary
-        // + ", dumpId = " + logInfo.dumpId);
+        Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " + itinerary
+                + ", dumpId = " + logInfo.dumpId);
 
         if (enableAcrossEquality) {
             if (!finegrainedEqualityCheck) {
@@ -230,7 +230,7 @@ public class EqualitySet implements Serializable {
             changed = true;
         }
         if (mergeEqualityWithSameItinerary(equalSetSameItineraryAcrossObjDedup,
-                other.equalSetSameItineraryAcrossObjDedup)) {
+                other.equalSetSameItineraryAcrossObjDedup, logPrefixAcrossObjectSameItinerary)) {
             changed = true;
         }
         return changed;
@@ -249,9 +249,9 @@ public class EqualitySet implements Serializable {
             } else {
                 equalSetDedup1.put(compClass, deepCopy(equalSetDedup2.get(compClass)));
                 if (useLog) {
-                    Runtime.log(String.format(
-                            "<Equality: new set, diff itinerary> class = %s, set = %s", compClass,
-                            equalSetDedup2.get(compClass)));
+                    Runtime.log(
+                            String.format("<%s: first occur for compClass> class = %s, set = %s",
+                                    logPrefix, compClass, equalSetDedup2.get(compClass)));
                 }
                 changed = true;
             }
@@ -279,9 +279,9 @@ public class EqualitySet implements Serializable {
                 }
                 equalSetDedup1.put(compClass, tmpMap);
                 if (useLog) {
-                    Runtime.log(String.format(
-                            "<Equality: new set, diff itinerary> class = %s, set = %s", compClass,
-                            equalSetDedup2.get(compClass)));
+                    Runtime.log(
+                            String.format("<%s: first occur for compClass> class = %s, set = %s",
+                                    logPrefix, compClass, equalSetDedup2.get(compClass)));
                 }
                 changed = true;
             }
@@ -305,7 +305,7 @@ public class EqualitySet implements Serializable {
     }
 
     public static boolean mergeEqualityWithSameItinerary(Map<String, Set<String>> equalSetDedup1,
-            Map<String, Set<String>> equalSetDedup2) {
+            Map<String, Set<String>> equalSetDedup2, String logPrefix) {
         // merge 2 into 1
         boolean changed = false;
 
@@ -326,16 +326,14 @@ public class EqualitySet implements Serializable {
                 // 1 and 2 are not subsets of each other
                 // merge 2 into 1
                 itinerarySet1.addAll(itinerarySet2);
-                Runtime.log(
-                        String.format("<Equality: larger set, same itinerary> class = %s, set = %s",
-                                compClass, itinerarySet1));
+                Runtime.log(String.format("<%s: larger set, same itinerary> class = %s, set = %s",
+                        logPrefix, compClass, itinerarySet1));
                 changed = true;
             } else {
                 if (!equalSetDedup2.get(compClass).isEmpty()) {
                     equalSetDedup1.put(compClass, new HashSet<>(equalSetDedup2.get(compClass)));
-                    Runtime.log(String.format(
-                            "<Equality: new set, same itinerary> class = %s, set = %s", compClass,
-                            equalSetDedup2.get(compClass)));
+                    Runtime.log(String.format("<%s: new set, same itinerary> class = %s, set = %s",
+                            logPrefix, compClass, equalSetDedup2.get(compClass)));
                     changed = true;
                 }
             }
@@ -392,9 +390,8 @@ public class EqualitySet implements Serializable {
                 if (!isSubsetFound) {
                     // A distinguished set
                     if (useLog) {
-                        Runtime.log(
-                                String.format("<%s: new set, diff itinerary> class = %s, set = %s",
-                                        logPrefix, className, setFromS2));
+                        Runtime.log(String.format("<%s: new set> class = %s, set = %s", logPrefix,
+                                className, setFromS2));
                     }
                     isChanged = true;
                     s1.add(setFromS2);
@@ -451,8 +448,7 @@ public class EqualitySet implements Serializable {
                 if (!isSubsetFound) {
                     // A distinguished set
                     if (useLog) {
-                        Runtime.log(String.format(
-                                "<%s: new set, diff itinerary> class = %s, set = %s, dumpId = %d",
+                        Runtime.log(String.format("<%s: new set> class = %s, set = %s, dumpId = %d",
                                 logPrefix, className, setFromS2, dumpId));
                     }
                     isChanged = true;
@@ -614,5 +610,4 @@ public class EqualitySet implements Serializable {
             }
         }
     }
-
 }
