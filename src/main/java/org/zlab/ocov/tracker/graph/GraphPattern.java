@@ -588,12 +588,8 @@ public class GraphPattern implements Serializable {
 
     public static boolean isCollectionWithOrder(String typeName) {
         // also make sure set is included
-        return typeName.equals("java.util.List") || typeName.equals("java.util.ArrayList")
-                || typeName.equals("java.util.LinkedList") || typeName.equals("java.util.Vector")
-                || typeName.equals("java.util.Stack") || typeName.equals("java.util.Queue")
-                || typeName.equals("java.util.PriorityQueue") || typeName.equals("java.util.Set")
-                || typeName.equals("java.util.SortedSet")
-                || typeName.equals("java.util.NavigableSet");
+        // FIXME: include list, array
+        return typeName.equals("java.util.SortedSet");
     }
 
     public static Object getFirstItemFromCollectionWithOrder(Object obj) {

@@ -24,7 +24,7 @@ public class InvariantCombination implements Serializable {
 
     public void infer(EqualitySet eqSet) {
         inferSingle();
-        inferMulti(eqSet);
+        // inferMulti(eqSet);
     }
 
     public void inferSingle() {
@@ -34,32 +34,35 @@ public class InvariantCombination implements Serializable {
         }
     }
 
-    public void inferMulti(EqualitySet equalitySet) {
-        Map<Integer, Map<Integer, Set<String>>> equality = new HashMap<>();
-        EqualitySet.extractEqualityEdgesAcross(equality, equalitySet.equalSetAcrossObj);
-        EqualitySet.extractEqualityEdgesSameIti(equality,
-                equalitySet.equalSetSameItineraryAcrossObj);
-        for (Map.Entry<Integer, Map<Integer, Set<String>>> entry : equality.entrySet()) {
-            Integer objId1 = entry.getKey();
-            for (Map.Entry<Integer, Set<String>> objEntry : entry.getValue().entrySet()) {
-                Integer objId2 = objEntry.getKey();
-                Set<String> equalInvs = objEntry.getValue();
-                Set<String> brokenInvSet1 = obj2BrokenInvSet.get(objId1);
-                Set<String> brokenInvSet2 = obj2BrokenInvSet.get(objId2);
-                Set<String> brokenInvSet = new HashSet<>();
-                if (brokenInvSet1 != null) {
-                    brokenInvSet.addAll(brokenInvSet1);
-                }
-                if (brokenInvSet2 != null) {
-                    brokenInvSet.addAll(brokenInvSet2);
-                }
-                brokenInvSet.addAll(equalInvs);
-                if (!brokenInvSet.isEmpty()) {
-                    MultiObjectBrokenInvSet.add(brokenInvSet);
-                }
-            }
-        }
-    }
+    // public void inferMulti(EqualitySet equalitySet) {
+    // Map<Integer, Map<Integer, Set<String>>> equality = new HashMap<>();
+    // EqualitySet.extractEqualityEdgesAcross(equality,
+    // equalitySet.equalSetAcrossObj);
+    // EqualitySet.extractEqualityEdgesSameIti(equality,
+    // equalitySet.equalSetSameItineraryAcrossObj);
+    // for (Map.Entry<Integer, Map<Integer, Set<String>>> entry :
+    // equality.entrySet()) {
+    // Integer objId1 = entry.getKey();
+    // for (Map.Entry<Integer, Set<String>> objEntry : entry.getValue().entrySet())
+    // {
+    // Integer objId2 = objEntry.getKey();
+    // Set<String> equalInvs = objEntry.getValue();
+    // Set<String> brokenInvSet1 = obj2BrokenInvSet.get(objId1);
+    // Set<String> brokenInvSet2 = obj2BrokenInvSet.get(objId2);
+    // Set<String> brokenInvSet = new HashSet<>();
+    // if (brokenInvSet1 != null) {
+    // brokenInvSet.addAll(brokenInvSet1);
+    // }
+    // if (brokenInvSet2 != null) {
+    // brokenInvSet.addAll(brokenInvSet2);
+    // }
+    // brokenInvSet.addAll(equalInvs);
+    // if (!brokenInvSet.isEmpty()) {
+    // MultiObjectBrokenInvSet.add(brokenInvSet);
+    // }
+    // }
+    // }
+    // }
 
     public boolean merge(InvariantCombination other) {
         boolean changed = false;

@@ -25,7 +25,8 @@ public class EqualitySet implements Serializable {
     public Map<String, Set<SetMapping>> equalSetSameObjDedup = new HashMap<>();
 
     /**
-     * Equality across object graphs - Itinerary is different
+     * Equality across object graphs - Itinerary is different TODO: switch to
+     * setMapping?
      */
     public static final boolean enableAcrossEquality = true;
     public Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj = new HashMap<>();
@@ -66,6 +67,13 @@ public class EqualitySet implements Serializable {
         equalSetSameItineraryAcrossObjDedup.clear();
     }
 
+    private static final Set<String> debugStringList = new HashSet<>();
+    static {
+        debugStringList.add("v1");
+        debugStringList.add("v2");
+        debugStringList.add("k");
+    }
+
     /**
      * Equality format: [contextHashcode, dumpId, itinerary]
      */
@@ -73,6 +81,10 @@ public class EqualitySet implements Serializable {
         if (!comparableClasses.contains(className))
             return;
         int hashCode = obj.hashCode();
+        // String debugString = obj.toString();
+
+        // if (!debugStringList.contains(obj.toString()))
+        // return;
 
         // DEBUG
         Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " + itinerary
@@ -84,8 +96,8 @@ public class EqualitySet implements Serializable {
                         .computeIfAbsent(className, k -> new HashMap<>());
                 Map<String, Integer> itinerarySet0 = hashCodeMap0.computeIfAbsent(hashCode,
                         k -> new HashMap<>());
-                itinerarySet0.put(logInfo.contextHashCode + ":" + logInfo.dumpId + ":" + itinerary,
-                        objId);
+                itinerarySet0.put(logInfo.contextHashCode + ":" + itinerary, objId);
+                // itinerarySet0.put(itinerary, objId);
             }
         }
 
@@ -259,6 +271,45 @@ public class EqualitySet implements Serializable {
         return changed;
     }
 
+    public static boolean merge1(Map<String, Map<String, Map<String, Integer>>> equalSetAcrossObj1,
+            Map<String, Map<String, Map<String, Integer>>> equalSetAcrossObj2) {
+        boolean changed = false;
+        for (String compClass : equalSetAcrossObj2.keySet()) {
+            if (equalSetAcrossObj1.containsKey(compClass)) {
+                Map<String, Map<String, Integer>> hashCodeMap1 = equalSetAcrossObj1.get(compClass);
+                Map<String, Map<String, Integer>> hashCodeMap2 = equalSetAcrossObj2.get(compClass);
+                for (String hashCode : hashCodeMap2.keySet()) {
+                    if (hashCodeMap1.containsKey(hashCode)) {
+                        Map<String, Integer> itinerarySet1 = hashCodeMap1.get(hashCode);
+                        Map<String, Integer> itinerarySet2 = hashCodeMap2.get(hashCode);
+                        for (String itinerary : itinerarySet2.keySet()) {
+                            if (!itinerarySet1.containsKey(itinerary)) {
+                                itinerarySet1.put(itinerary, itinerarySet2.get(itinerary));
+                                Runtime.log(String.format(
+                                        "<debug %s: new itinerary> class = %s, hashCode = %s, itinerary = %s",
+                                        logPrefixAcrossObject, compClass, hashCode, itinerary));
+                                changed = true;
+                            }
+                        }
+                    } else {
+                        Runtime.log(String.format(
+                                "<debug %s: new hashCode> class = %s, hashCode = %s, itinerary = %s",
+                                logPrefixAcrossObject, compClass, hashCode,
+                                hashCodeMap2.get(hashCode)));
+                        hashCodeMap1.put(hashCode, new HashMap<>(hashCodeMap2.get(hashCode)));
+                        changed = true;
+                    }
+                }
+            } else {
+                Runtime.log(String.format("<debug %s: new compClass> class = %s, hashCodeMap = %s",
+                        logPrefixAcrossObject, compClass, equalSetAcrossObj2.get(compClass)));
+                equalSetAcrossObj1.put(compClass, new HashMap<>(equalSetAcrossObj2.get(compClass)));
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
     public static boolean mergeCompClass2EqualityDedupWithDumpId(
             Map<String, Set<SetMapping>> equalSetDedup1,
             Map<String, Set<SetMapping>> equalSetDedup2, boolean useLog, String logPrefix) {
@@ -326,8 +377,9 @@ public class EqualitySet implements Serializable {
                 // 1 and 2 are not subsets of each other
                 // merge 2 into 1
                 itinerarySet1.addAll(itinerarySet2);
-                Runtime.log(String.format("<%s: larger set, same itinerary> class = %s, set = %s",
-                        logPrefix, compClass, itinerarySet1));
+                Runtime.log(String.format(
+                        "<%s: larger set, same itinerary> class = %s, newset = %s, oldset = %s",
+                        logPrefix, compClass, itinerarySet1, itinerarySet2));
                 changed = true;
             } else {
                 if (!equalSetDedup2.get(compClass).isEmpty()) {
@@ -368,8 +420,8 @@ public class EqualitySet implements Serializable {
                     setsToRemove.add(setFromS1);
                     if (useLog) {
                         Runtime.log(String.format(
-                                "<%s: larger set, diff itinerary> class = %s, newset = %s",
-                                logPrefix, className, setFromS2));
+                                "<%s: larger set, diff itinerary> class = %s, newset = %s, oldset = %s",
+                                logPrefix, className, setFromS2, setFromS1));
                     }
                     isStrictSupersetFound = true;
                     isChanged = true;
@@ -390,8 +442,9 @@ public class EqualitySet implements Serializable {
                 if (!isSubsetFound) {
                     // A distinguished set
                     if (useLog) {
-                        Runtime.log(String.format("<%s: new set> class = %s, set = %s", logPrefix,
-                                className, setFromS2));
+                        Runtime.log(String.format(
+                                "<%s: new set> class = %s, cur set size = %d, set = %s", logPrefix,
+                                className, s1.size(), setFromS2));
                     }
                     isChanged = true;
                     s1.add(setFromS2);
@@ -418,16 +471,14 @@ public class EqualitySet implements Serializable {
             boolean isStrictSupersetFound = false;
             boolean isSubsetFound = false;
             Set<SetMapping> setsToRemove = new HashSet<>();
-            int dumpId = setFromS2.getDumpId();
-
             for (SetMapping setFromS1 : s1) {
                 if (setFromS2.keySet.containsAll(setFromS1.keySet)
                         && !setFromS2.equals(setFromS1)) {
                     setsToRemove.add(setFromS1);
                     if (useLog) {
                         Runtime.log(String.format(
-                                "<%s: larger set, diff itinerary> class = %s, newset = %s, dumpId = %d",
-                                logPrefix, className, setFromS2, dumpId));
+                                "<%s: larger set, diff itinerary> class = %s, newset = %s, oldset = %s",
+                                logPrefix, className, setFromS2, setFromS1));
                     }
                     isStrictSupersetFound = true;
                     isChanged = true;
@@ -448,8 +499,9 @@ public class EqualitySet implements Serializable {
                 if (!isSubsetFound) {
                     // A distinguished set
                     if (useLog) {
-                        Runtime.log(String.format("<%s: new set> class = %s, set = %s, dumpId = %d",
-                                logPrefix, className, setFromS2, dumpId));
+                        Runtime.log(String.format(
+                                "<%s: new set> class = %s, cur set size = %d, set = %s", logPrefix,
+                                className, s1.size(), setFromS2));
                     }
                     isChanged = true;
                     s1.add(setFromS2.clone());
