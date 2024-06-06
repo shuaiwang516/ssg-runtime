@@ -303,11 +303,13 @@ public class ObjectGraphCoverage implements Serializable {
                 if (otherClassInfo == null)
                     continue;
                 if (!objCoverageWithContext.containsKey(context)) {
-                    Runtime.log("[hklog] new context = " + context);
-                    for (String oriContext : objCoverageWithContext.keySet()) {
-                        Runtime.log("[hklog] ori context = " + oriContext);
+                    if (Runtime.debug) {
+                        Runtime.log("[hklog] new context = " + context);
+                        for (String oriContext : objCoverageWithContext.keySet()) {
+                            Runtime.log("[hklog] ori context = " + oriContext);
+                        }
+                        Runtime.log("");
                     }
-                    Runtime.log("");
                     objCoverageWithContext.put(context, new HashMap<>());
                 }
                 Map<String, GraphPattern> classInfo = objCoverageWithContext.get(context);
