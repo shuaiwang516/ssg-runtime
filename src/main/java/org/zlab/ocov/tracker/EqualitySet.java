@@ -87,8 +87,9 @@ public class EqualitySet implements Serializable {
         // return;
 
         // DEBUG
-        Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " + itinerary
-                + ", dumpId = " + logInfo.dumpId);
+        // Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " +
+        // itinerary
+        // + ", dumpId = " + logInfo.dumpId);
 
         if (enableAcrossEquality) {
             if (!finegrainedEqualityCheck) {
