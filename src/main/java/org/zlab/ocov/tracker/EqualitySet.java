@@ -28,7 +28,7 @@ public class EqualitySet implements Serializable {
      * Equality across object graphs - Itinerary is different TODO: switch to
      * setMapping?
      */
-    public static final boolean enableAcrossEquality = true;
+    public static final boolean enableAcrossEquality = false;
     public Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj = new HashMap<>();
     public Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
@@ -78,6 +78,8 @@ public class EqualitySet implements Serializable {
      * Equality format: [contextHashcode, dumpId, itinerary]
      */
     public void update(Object obj, String className, String itinerary, int objId, LogInfo logInfo) {
+        if (!Runtime.enableEqualityLikelyInvariant)
+            return;
         if (!comparableClasses.contains(className))
             return;
         int hashCode = obj.hashCode();

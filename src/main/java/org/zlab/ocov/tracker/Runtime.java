@@ -18,6 +18,7 @@ public class Runtime {
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
     public static boolean enableBoundaryCheck = false;
+    public static boolean enableEqualityLikelyInvariant = true;
     public static final String enableEnvName = "ENABLE_FORMAT_COVERAGE";
     public static final String enableSampleEnvName = "ENABLE_FORMAT_COVERAGE_SAMPLE";
     public static final String sampleRateEnvName = "FORMAT_COVERAGE_SAMPLE_RATE";

@@ -95,6 +95,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testCollectionFirstItem() {
+        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableAcrossEquality)
+            return;
         String suffix = "CollectionFirstLast";
         Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
@@ -212,7 +214,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEquality() {
-        if (!EqualitySet.enableSameObjEquality)
+        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality
+                || !EqualitySet.enableAcrossEquality)
             return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
@@ -236,7 +239,8 @@ public class TestObjectGraphCoverage {
 
     @Test
     public void testEqualityForSameObjectGraph() {
-        if (!EqualitySet.enableSameObjEquality)
+        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality
+                || !EqualitySet.enableSameItineraryAcrossObj)
             return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");

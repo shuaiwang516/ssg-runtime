@@ -24,7 +24,7 @@ public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     // Likely Invariant Options
-    public static boolean enableSequenceBoundaryCheck = true;
+    public static boolean enableSequenceBoundaryCheck = false;
     public static boolean enableAccumulatedSizeCheck = false;
 
     protected Vertex root;
@@ -383,6 +383,8 @@ public class GraphPattern implements Serializable {
                     }
                 }
                 if (!found) {
+                    // Add a new edge => a new format
+                    formatCoverageStatus.newFormat = true;
                     GraphPattern.Vertex newVertex = SerializationUtils
                             .clone(otherGraphPattern.graph.getEdgeTarget(edge));
                     newVertex.reset();
