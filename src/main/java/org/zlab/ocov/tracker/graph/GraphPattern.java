@@ -24,6 +24,7 @@ public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     // Likely Invariant Options
+    public static boolean specialHandleFirstLastItem = false;
     public static boolean enableSequenceBoundaryCheck = false;
     public static boolean enableAccumulatedSizeCheck = false;
 
@@ -385,6 +386,8 @@ public class GraphPattern implements Serializable {
                 if (!found) {
                     // Add a new edge => a new format
                     formatCoverageStatus.newFormat = true;
+                    // Runtime.log("<new node in ref graph> iti = " + itinerary + ", edge name = " +
+                    // edge.name);
                     GraphPattern.Vertex newVertex = SerializationUtils
                             .clone(otherGraphPattern.graph.getEdgeTarget(edge));
                     newVertex.reset();
@@ -687,7 +690,7 @@ public class GraphPattern implements Serializable {
                             new Edge("collection_item"));
 
                     // Special handle the first/last item if there's order
-                    if (isCollectionWithOrder(fieldType)) {
+                    if (specialHandleFirstLastItem && isCollectionWithOrder(fieldType)) {
                         Vertex firstItemVertex = createVertex("ObjectPlaceHolder",
                                 itinerary + ".collection_firstItem");
                         graphPattern.graph.addVertex(firstItemVertex);

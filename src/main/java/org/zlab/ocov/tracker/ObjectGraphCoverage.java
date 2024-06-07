@@ -323,7 +323,9 @@ public class ObjectGraphCoverage implements Serializable {
                         classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
                         formatCoverageStatus.newFormat = true;
                     } else {
-                        formatCoverageStatus.incorporate(graphPattern.merge(otherGraphPattern));
+                        FormatCoverageStatus otherFormatCoverageStatus = graphPattern
+                                .merge(otherGraphPattern);
+                        formatCoverageStatus.incorporate(otherFormatCoverageStatus);
                     }
                 }
             }
