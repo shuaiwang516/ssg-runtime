@@ -234,19 +234,17 @@ public class Runtime {
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
                     log("Received command: " + inputLine);
-                    ObjectGraphCoverage response = null;
-
+                    ObjectGraphCoverage response;
                     synchronized (objectCoverageLock) {
                         if (!inputLine.equals("clear")) {
                             response = processCommand(inputLine);
                             out.writeObject(response);
                         }
-                        Runtime.log("clear objectCoverage");
                         objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                                 comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
                                 branch2CollectionPath);
                     }
-                    System.out.println("Sent response: " + response);
+                    System.out.println("Coverage has been sent to the client");
                 }
             } catch (IOException e) {
                 System.out.println("Error in client connection: " + e);
