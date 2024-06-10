@@ -75,7 +75,8 @@ public class EqualitySet implements Serializable {
     }
 
     /**
-     * Equality format: [contextHashcode, dumpId, itinerary]
+     * Equality format: [contextHashcode, dumpId, itinerary] contextHashcode:
+     * hashcode of a creation stacktrace (in string format)
      */
     public void update(Object obj, String className, String itinerary, int objId, LogInfo logInfo) {
         if (!Runtime.enableEqualityLikelyInvariant)
@@ -89,8 +90,8 @@ public class EqualitySet implements Serializable {
         // return;
 
         // DEBUG
-        // Runtime.log("EqualitySet: update value = " + obj.toString() + ", iti = " +
-        // itinerary
+        // Runtime.log("EqualitySet: context hashcode = " + logInfo.contextHashCode + ",
+        // update value = " + obj.toString() + ", iti = " + itinerary
         // + ", dumpId = " + logInfo.dumpId);
 
         if (enableAcrossEquality) {
@@ -109,7 +110,7 @@ public class EqualitySet implements Serializable {
                     k -> new HashMap<>());
             Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode,
                     k -> new HashSet<>());
-            itinerarySet1.add(itinerary);
+            itinerarySet1.add(logInfo.contextHashCode + ":" + itinerary);
         }
     }
 

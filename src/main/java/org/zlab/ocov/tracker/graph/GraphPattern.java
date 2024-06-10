@@ -24,7 +24,7 @@ public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     // Likely Invariant Options
-    public static boolean specialHandleFirstLastItem = false;
+    public static boolean specialHandleFirstLastItem = true;
     public static boolean enableSequenceBoundaryCheck = false;
     public static boolean enableAccumulatedSizeCheck = false;
 
