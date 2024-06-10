@@ -14,14 +14,14 @@ public class EqualitySet implements Serializable {
     private static final long serialVersionUID = 20231215L;
     private static final boolean finegrainedEqualityCheck = false;
 
-    public Set<String> comparableClasses;
-    public List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
+    public transient Set<String> comparableClasses;
+    public transient List<ItinerarySingleTopObject> itinerarySingleTopObjects = new LinkedList<>();
 
     /**
      * Equality within one object graph - Itinerary is different
      */
     public static final boolean enableSameObjEquality = true;
-    public Map<String, Map<Integer, Set<String>>> equalSetSameObj = new HashMap<>();
+    public transient Map<String, Map<Integer, Set<String>>> equalSetSameObj = new HashMap<>();
     public Map<String, Set<SetMapping>> equalSetSameObjDedup = new HashMap<>();
 
     /**
@@ -29,7 +29,7 @@ public class EqualitySet implements Serializable {
      * setMapping?
      */
     public static final boolean enableAcrossEquality = false;
-    public Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj = new HashMap<>();
+    public transient Map<String, Map<Integer, Map<String, Integer>>> equalSetAcrossObj = new HashMap<>();
     public Map<String, Set<Set<String>>> equalSetAcrossObjDedup = new HashMap<>();
 
     /**
@@ -37,7 +37,7 @@ public class EqualitySet implements Serializable {
      * occurrence
      */
     public static final boolean enableSameItineraryAcrossObj = false;
-    public Map<String, Map<Integer, Map<String, Set<Integer>>>> equalSetSameItineraryAcrossObj = new HashMap<>();
+    public transient Map<String, Map<Integer, Map<String, Set<Integer>>>> equalSetSameItineraryAcrossObj = new HashMap<>();
     public Map<String, Set<String>> equalSetSameItineraryAcrossObjDedup = new HashMap<>();
 
     static final String logPrefixAcrossObject = "Equality: across object graphs";

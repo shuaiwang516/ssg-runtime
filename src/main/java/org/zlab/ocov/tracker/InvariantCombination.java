@@ -9,7 +9,7 @@ import java.util.Set;
 public class InvariantCombination implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    public Map<Integer, Set<String>> obj2BrokenInvSet = new HashMap<>();
+    public transient Map<Integer, Set<String>> obj2BrokenInvSet = new HashMap<>();
 
     public Set<Set<String>> singleObjectBrokenInvSet = new HashSet<>();
     public Set<Set<String>> MultiObjectBrokenInvSet = new HashSet<>();

@@ -21,24 +21,28 @@ public class ObjectGraphCoverage implements Serializable {
 
     // DumpId -> classname -> graph pattern (Only top objects)
     public Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
-    public Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ContextObjCoverageWithContext = new HashMap<>();
-
-    public Set<Integer> visitedObjects = new HashSet<>();
-
-    // Creation context
-    private final Map<Integer, Integer> objAddress2TopObjAddress = new HashMap<>();
-    private final Map<Integer, String> topObj2CreationStacktrace = new HashMap<>();
-
-    private Map<String, Map<String, String>> classInfoOri;
-    public Map<String, GraphPattern> baseClassInfo;
-    public Set<String> topObjects;
+    // FIXME: we do not merge this in the current implementation
+    public transient Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ContextObjCoverageWithContext = new HashMap<>();
 
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
     public Boundary boundary;
     public InvariantCombination invariantCombination;
 
-    ObjectGraphDumper objectGraphDumper;
+    // ----------------------- Runtime -----------------------
+    public transient Set<Integer> visitedObjects = new HashSet<>();
+
+    // Creation context
+    private transient final Map<Integer, Integer> objAddress2TopObjAddress = new HashMap<>();
+    private transient final Map<Integer, String> topObj2CreationStacktrace = new HashMap<>();
+
+    private transient Map<String, Map<String, String>> classInfoOri;
+    public transient Map<String, GraphPattern> baseClassInfo;
+    public transient Set<String> topObjects;
+
+    // Only record, and infer at last
+    private transient List<ObjectGraph> objectGraphs = new ArrayList<>();
+    private transient ObjectGraphDumper objectGraphDumper;
 
     public ObjectGraphCoverage() {
         // for json
@@ -285,9 +289,6 @@ public class ObjectGraphCoverage implements Serializable {
         boundary.clear();
     }
 
-    // Only record, and infer at last
-    List<ObjectGraph> objectGraphs = new ArrayList<>();
-
     public boolean dump(Object obj, int dumpId, String context) {
         if (obj == null)
             return false;
@@ -323,7 +324,7 @@ public class ObjectGraphCoverage implements Serializable {
             return formatCoverageStatus;
 
         mergeTopGraphPattern(otherObjCoverage, formatCoverageStatus);
-        mergeContextGraphPattern(otherObjCoverage, formatCoverageStatus);
+        // mergeContextGraphPattern(otherObjCoverage, formatCoverageStatus);
         mergeSpecialInvariant(otherObjCoverage, formatCoverageStatus);
 
         if (formatCoverageStatus.isChanged()) {
@@ -346,15 +347,15 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     private static void mergeCoverage(
-            Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ContextObjCoverageWithContext1,
-            Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ContextObjCoverageWithContext2,
+            Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage1,
+            Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage2,
             FormatCoverageStatus formatCoverageStatus) {
-        for (int dumpId : dumpId2ContextObjCoverageWithContext2.keySet()) {
-            Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext = dumpId2ContextObjCoverageWithContext2
+        for (int dumpId : dumpId2ObjCoverage2.keySet()) {
+            Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext = dumpId2ObjCoverage2
                     .get(dumpId);
             if (otherObjCoverageWithContext == null)
                 continue;
-            Map<String, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ContextObjCoverageWithContext1
+            Map<String, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverage1
                     .computeIfAbsent(dumpId, k -> new HashMap<>());
             mergeGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
                     formatCoverageStatus);
