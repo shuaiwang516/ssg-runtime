@@ -28,6 +28,9 @@ public class GraphPattern implements Serializable {
     public static boolean enableSequenceBoundaryCheck = false;
     public static boolean enableAccumulatedSizeCheck = false;
 
+    // Equality
+    public static boolean onlyCheckEqualityForBoundary = true;
+
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
 
@@ -76,7 +79,8 @@ public class GraphPattern implements Serializable {
 
         public boolean update(Object obj, GraphPattern graphPattern,
                 Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
-                IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
+                IsSerialize isSerialized, Set<String> brokenInvs, int objId,
+                boolean computeEquality) {
             // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
             // + itinerary
             // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId
@@ -111,7 +115,8 @@ public class GraphPattern implements Serializable {
                     if (target.type.equals(objectType)) {
                         found = true;
                         subGraphPatternChange = target.update(obj, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId);
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                computeEquality);
                     }
                 }
                 if (!found) {
@@ -133,18 +138,18 @@ public class GraphPattern implements Serializable {
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
                         graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
                         subGraphPattern.root.update(obj, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized, brokenInvs, objId);
+                                equalitySet, isSerialized, brokenInvs, objId, computeEquality);
                         subGraphPatternChange = true;
                     } else {
                         // We won't further track, but still need to process this object
                         // since it's recorded in serialized objects
                         computeSpecialInvariant(equalitySet, isSerialized, obj, objectType,
-                                itinerary, objId, logInfo);
+                                itinerary, objId, logInfo, computeEquality);
                     }
                 }
             } else {
                 computeSpecialInvariant(equalitySet, isSerialized, obj, objectType, itinerary,
-                        objId, logInfo);
+                        objId, logInfo, computeEquality);
 
                 // Special process Map/Collection/Array
                 if (obj instanceof Map) {
@@ -181,7 +186,8 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                    computeEquality))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -204,7 +210,8 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                    computeEquality))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -232,21 +239,27 @@ public class GraphPattern implements Serializable {
                     }
                     boolean firstItemUpdated = false;
                     boolean lastItemUpdated = false;
+
                     if (collectionFirstItemVertex != null) {
                         Object firstItem = getFirstItemFromCollectionWithOrder(obj);
                         if (collectionFirstItemVertex.update(firstItem, graphPattern,
                                 graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs,
-                                objId))
+                                objId, computeEquality))
                             subGraphPatternChange = true;
                         firstItemUpdated = true;
                     }
                     if (collectionLastItemVertex != null) {
                         Object lastItem = getLastItemFromCollectionWithOrder(obj);
                         if (collectionLastItemVertex.update(lastItem, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                computeEquality))
                             subGraphPatternChange = true;
                         lastItemUpdated = true;
                     }
+
+                    boolean collectionWithOrder = collectionFirstItemVertex != null
+                            || collectionLastItemVertex != null;
+
                     if (collectionItemVertex != null) {
                         int length = ((Collection) obj).size();
                         List<Integer> sampleIdxs;
@@ -271,9 +284,21 @@ public class GraphPattern implements Serializable {
                             if (object == null) {
                                 continue;
                             }
-                            if (collectionItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
-                                subGraphPatternChange = true;
+                            // Avoid equality computation for non-boundary objects
+                            if (onlyCheckEqualityForBoundary) {
+                                // skip this equality computation
+                                if (collectionItemVertex.update(object, graphPattern,
+                                        graphPatternMap, logInfo, equalitySet, isSerialized,
+                                        brokenInvs, objId, computeEquality && !collectionWithOrder))
+                                    subGraphPatternChange = true;
+                            } else {
+                                // compute equality for all objects
+                                if (collectionItemVertex.update(object, graphPattern,
+                                        graphPatternMap, logInfo, equalitySet, isSerialized,
+                                        brokenInvs, objId, computeEquality))
+                                    subGraphPatternChange = true;
+                            }
+
                         }
                     }
 
@@ -306,8 +331,9 @@ public class GraphPattern implements Serializable {
                             if (object == null) {
                                 continue;
                             }
+                            // FIXME: handle equality computation for array properly
                             if (arrayItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId, false))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -336,7 +362,7 @@ public class GraphPattern implements Serializable {
                                                 .getEdgeTarget(patternEdge);
                                         if (target.update(value, graphPattern, graphPatternMap,
                                                 logInfo, equalitySet, isSerialized, brokenInvs,
-                                                objId)) {
+                                                objId, computeEquality)) {
                                             subGraphPatternChange = true;
                                         }
                                         // there should only be one edge with the same name
@@ -450,7 +476,7 @@ public class GraphPattern implements Serializable {
     public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
             EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
         return root.update(obj, this, graphPatternMap, logInfo, equalitySet, isSerialized,
-                brokenInvs, objId);
+                brokenInvs, objId, true);
     }
 
     public FormatCoverageStatus merge(GraphPattern other) {
@@ -592,9 +618,9 @@ public class GraphPattern implements Serializable {
     }
 
     public static boolean isCollectionWithOrder(String typeName) {
-        // also make sure set is included
-        // FIXME: include list, array
-        return typeName.equals("java.util.SortedSet");
+        return typeName.equals("java.util.List") || typeName.equals("java.util.ArrayList")
+                || typeName.equals("java.util.LinkedList")
+                || typeName.equals("java.util.SortedSet");
     }
 
     public static Object getFirstItemFromCollectionWithOrder(Object obj) {
@@ -785,11 +811,17 @@ public class GraphPattern implements Serializable {
     }
 
     private static void computeSpecialInvariant(EqualitySet equalitySet, IsSerialize isSerialized,
-            Object obj, String objectType, String itinerary, int objId, LogInfo logInfo) {
+            Object obj, String objectType, String itinerary, int objId, LogInfo logInfo,
+            boolean computeEquality) {
         // The current object vertex won't be iterated again, process it
-        if (equalitySet != null) {
+        if (equalitySet != null && computeEquality) {
             equalitySet.update(obj, objectType, itinerary, objId, logInfo);
         }
+        // if (equalitySet != null && !computeEquality) {
+        // Runtime.log("skip Equality computation is disabled for " + objectType + ",
+        // iti = "
+        // + itinerary);
+        // }
         if (isSerialized != null) {
             if (obj.getClass().isEnum())
                 isSerialized.updateVisitedEnums(objectType, obj.toString());
