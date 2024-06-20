@@ -90,8 +90,8 @@ public class EqualitySet implements Serializable {
         // return;
 
         // DEBUG
-        // Runtime.log("EqualitySet: context hashcode = " + logInfo.contextHashCode + ",
-        // update value = " + obj.toString() + ", iti = " + itinerary
+        // Runtime.log("EqualitySet: context hashcode = " + logInfo.contextHashCode +
+        // ", update value = " + obj.toString() + ", iti = " + itinerary
         // + ", dumpId = " + logInfo.dumpId);
 
         if (enableAcrossEquality) {
