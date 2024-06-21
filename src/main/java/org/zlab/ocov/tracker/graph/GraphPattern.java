@@ -30,6 +30,8 @@ public class GraphPattern implements Serializable {
 
     // Equality
     public static boolean onlyCheckEqualityForBoundary = true;
+    public static boolean checkEqualityWithinRange = true;
+    public static boolean checkEqualityForArray = false;
 
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
@@ -152,7 +154,11 @@ public class GraphPattern implements Serializable {
                         objId, logInfo, computeEquality);
 
                 // Special process Map/Collection/Array
+
                 if (obj instanceof Map) {
+                    if (checkEqualityWithinRange && containCollectionOrArrayOrMap(itinerary)) {
+                        computeEquality = false;
+                    }
                     GraphPattern.Vertex mapKeyItemVertex = null;
                     GraphPattern.Vertex mapValueItemVertex = null;
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
@@ -216,6 +222,9 @@ public class GraphPattern implements Serializable {
                         }
                     }
                 } else if (obj instanceof Collection) {
+                    if (checkEqualityWithinRange && containCollectionOrArrayOrMap(itinerary)) {
+                        computeEquality = false;
+                    }
                     GraphPattern.Vertex collectionItemVertex = null;
                     GraphPattern.Vertex collectionFirstItemVertex = null;
                     GraphPattern.Vertex collectionLastItemVertex = null;
@@ -303,6 +312,9 @@ public class GraphPattern implements Serializable {
                     }
 
                 } else if (obj.getClass().isArray()) {
+                    if (checkEqualityWithinRange && containCollectionOrArrayOrMap(itinerary)) {
+                        computeEquality = false;
+                    }
                     GraphPattern.Vertex arrayItemVertex = null;
                     Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
                     for (GraphPattern.Edge patternEdge : outgoingEdges) {
@@ -331,9 +343,9 @@ public class GraphPattern implements Serializable {
                             if (object == null) {
                                 continue;
                             }
-                            // FIXME: handle equality computation for array properly
                             if (arrayItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId, false))
+                                    logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                    computeEquality && checkEqualityForArray))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -826,5 +838,11 @@ public class GraphPattern implements Serializable {
             if (obj.getClass().isEnum())
                 isSerialized.updateVisitedEnums(objectType, obj.toString());
         }
+    }
+
+    private static boolean containCollectionOrArrayOrMap(String itinerary) {
+        return itinerary.contains(".collection_item") || itinerary.contains(".collection_firstItem")
+                || itinerary.contains(".collection_lastItem") || itinerary.contains(".map_keyItem")
+                || itinerary.contains(".map_valueItem") || itinerary.contains(".array_item");
     }
 }
