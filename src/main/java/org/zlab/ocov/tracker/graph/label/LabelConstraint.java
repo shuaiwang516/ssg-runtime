@@ -59,7 +59,8 @@ public abstract class LabelConstraint implements Serializable {
         return changed;
     }
 
-    public abstract FormatCoverageStatus merge(LabelConstraint otherConstraint, String itinerary);
+    public abstract FormatCoverageStatus merge(LabelConstraint otherConstraint, String itinerary,
+            LogInfo logInfo);
 
     public void reset() {
         for (UnaryInvariant invariant : unaryFormatInvariants) {

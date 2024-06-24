@@ -393,19 +393,19 @@ public class GraphPattern implements Serializable {
         }
 
         public FormatCoverageStatus merge(Vertex otherVertex, GraphPattern otherGraphPattern,
-                GraphPattern graphPattern) {
+                GraphPattern graphPattern, LogInfo logInfo) {
             FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
             // merge label constraints
             assert labelConstraints.size() == otherVertex.labelConstraints.size();
             for (int i = 0; i < labelConstraints.size(); i++) {
                 formatCoverageStatus.incorporate(labelConstraints.get(i)
-                        .merge(otherVertex.labelConstraints.get(i), itinerary));
+                        .merge(otherVertex.labelConstraints.get(i), itinerary, logInfo));
             }
             // merge structure constraints
             assert structureConstraints.size() == otherVertex.structureConstraints.size();
             for (int i = 0; i < structureConstraints.size(); i++) {
                 formatCoverageStatus.incorporate(structureConstraints.get(i)
-                        .merge(otherVertex.structureConstraints.get(i), itinerary));
+                        .merge(otherVertex.structureConstraints.get(i), itinerary, logInfo));
             }
             for (GraphPattern.Edge edge : otherGraphPattern.graph.outgoingEdgesOf(otherVertex)) {
                 // check whether the edge is in the graphPattern
@@ -415,7 +415,7 @@ public class GraphPattern implements Serializable {
                         GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(patternEdge);
                         formatCoverageStatus.incorporate(
                                 target.merge(otherGraphPattern.graph.getEdgeTarget(edge),
-                                        otherGraphPattern, graphPattern));
+                                        otherGraphPattern, graphPattern, logInfo));
                         // there should only be one edge with the same name
                         found = true;
                         break;
@@ -433,7 +433,7 @@ public class GraphPattern implements Serializable {
                     graphPattern.graph.addEdge(this, newVertex, edge);
                     formatCoverageStatus.incorporate(
                             newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
-                                    otherGraphPattern, graphPattern));
+                                    otherGraphPattern, graphPattern, logInfo));
                 }
             }
             return formatCoverageStatus;
@@ -491,8 +491,8 @@ public class GraphPattern implements Serializable {
                 brokenInvs, objId, true);
     }
 
-    public FormatCoverageStatus merge(GraphPattern other) {
-        return root.merge(other.root, other, this);
+    public FormatCoverageStatus merge(GraphPattern other, LogInfo logInfo) {
+        return root.merge(other.root, other, this, logInfo);
     }
 
     public void print() {

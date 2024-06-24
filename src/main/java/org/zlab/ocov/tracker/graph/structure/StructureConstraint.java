@@ -37,7 +37,8 @@ public abstract class StructureConstraint implements Serializable {
 
     public abstract boolean update(Object object, LogInfo logInfo);
 
-    public FormatCoverageStatus merge(StructureConstraint otherConstraint, String itinerary) {
+    public FormatCoverageStatus merge(StructureConstraint otherConstraint, String itinerary,
+            LogInfo logInfo) {
         // If this constraint is related to max min, handle it specially
         boolean newFormat = false;
         boolean boundaryChanged = false;
@@ -46,7 +47,8 @@ public abstract class StructureConstraint implements Serializable {
             for (int i = 0; i < unaryFormatInvariants.size(); i++) {
                 if (unaryFormatInvariants.get(i)
                         .merge(otherConstraint.unaryFormatInvariants.get(i))) {
-                    Runtime.log("Broken Structure Constraint: "
+                    Runtime.log("Broken Structure Format Constraint: " + "context hash = "
+                            + logInfo.contextHashCode + ", "
                             + unaryFormatInvariants.get(i).toString() + ", itinerary = "
                             + itinerary);
                     newFormat = true;
@@ -57,7 +59,8 @@ public abstract class StructureConstraint implements Serializable {
             for (int i = 0; i < unaryBoundaryInvariants.size(); i++) {
                 if (unaryBoundaryInvariants.get(i)
                         .merge(otherConstraint.unaryBoundaryInvariants.get(i))) {
-                    Runtime.log("Broken Structure Constraint: "
+                    Runtime.log("Broken Structure Boundary Constraint: " + "context hash = "
+                            + logInfo.contextHashCode + ", "
                             + unaryBoundaryInvariants.get(i).toString() + ", itinerary = "
                             + itinerary);
                     boundaryChanged = true;

@@ -358,14 +358,14 @@ public class ObjectGraphCoverage implements Serializable {
             Map<String, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverage1
                     .computeIfAbsent(dumpId, k -> new HashMap<>());
             mergeGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
-                    formatCoverageStatus);
+                    formatCoverageStatus, dumpId);
         }
     }
 
     private static void mergeGraphPattern(
             Map<String, Map<String, GraphPattern>> objCoverageWithContext,
             Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, int dumpId) {
         if (otherObjCoverageWithContext == null)
             return;
         for (String context : otherObjCoverageWithContext.keySet()) {
@@ -389,12 +389,14 @@ public class ObjectGraphCoverage implements Serializable {
                     continue;
                 GraphPattern graphPattern = classInfo.get(className);
                 if (graphPattern == null) {
-                    Runtime.log("[hklog] Add new graphPattern for " + className);
+                    Runtime.log("[hklog] Add new graphPattern for " + className
+                            + ", context hashcode = " + context.hashCode());
                     classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
                     formatCoverageStatus.newFormat = true;
                 } else {
+                    LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
                     FormatCoverageStatus otherFormatCoverageStatus = graphPattern
-                            .merge(otherGraphPattern);
+                            .merge(otherGraphPattern, logInfo);
                     formatCoverageStatus.incorporate(otherFormatCoverageStatus);
                 }
             }
