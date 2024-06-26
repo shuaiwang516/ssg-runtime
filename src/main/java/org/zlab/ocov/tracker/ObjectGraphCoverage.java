@@ -1,6 +1,7 @@
 package org.zlab.ocov.tracker;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.*;
 import org.zlab.ocov.tracker.inv.unary.*;
@@ -19,9 +20,17 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean useContextFromArgs = true;
     public final static boolean collectContextGraphPattern = true;
 
+    private final transient LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
+    private final int threshold = 600;
+
     // DumpId -> classname -> graph pattern (Only top objects)
+    transient Map<Integer, Map<String, Integer>> dumpId2Context2GroupId = new HashMap<>();
+    transient Map<Integer, Integer> dumpId2CurrentGroupId = new HashMap<>();
+    transient Map<Integer, Map<Integer, Map<String, GraphPattern>>> accumDumpId2ObjCoverageWithContext = new HashMap<>();
+
+    // Runtime: collector side
     public Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
-    // FIXME: we do not merge this in the current implementation
+    // Not collect inv for context args currently
     public transient Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ContextObjCoverageWithContext = new HashMap<>();
 
     public EqualitySet equalitySet;
@@ -210,6 +219,37 @@ public class ObjectGraphCoverage implements Serializable {
         return "";
     }
 
+    private int getGroupId(int dumpId, String context) {
+        if (!dumpId2Context2GroupId.containsKey(dumpId)) {
+            dumpId2Context2GroupId.put(dumpId, new HashMap<>());
+        }
+        Map<String, Integer> context2GroupId = dumpId2Context2GroupId.get(dumpId);
+        if (context2GroupId.containsKey(context)) {
+            return context2GroupId.get(context);
+        }
+        // Find the closest stack trace
+        int minDistance = Integer.MAX_VALUE;
+        int minGroupId = -1;
+        for (String oriContext : context2GroupId.keySet()) {
+            if (minDistance > levenshteinDistance.apply(context, oriContext)) {
+                minDistance = levenshteinDistance.apply(context, oriContext);
+                minGroupId = context2GroupId.get(oriContext);
+            }
+        }
+        if (minDistance <= threshold) {
+            context2GroupId.put(context, minGroupId);
+            return minGroupId;
+        }
+        // Extract current group id
+        if (!dumpId2CurrentGroupId.containsKey(dumpId)) {
+            dumpId2CurrentGroupId.put(dumpId, 0);
+        }
+        int groupId = dumpId2CurrentGroupId.get(dumpId);
+        dumpId2CurrentGroupId.put(dumpId, groupId + 1);
+        context2GroupId.put(context, groupId);
+        return groupId;
+    }
+
     public boolean updateTopObjectGraphPattern(int dumpId, String context, Object obj,
             String className, int objId) {
         // Combine context stack trace with top object's stack trace
@@ -315,16 +355,25 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {
-        return merge(otherObjCoverage, -1);
+        return merge(otherObjCoverage, -1, false);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId) {
+        return merge(otherObjCoverage, testId, false);
+    }
+
+    public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId,
+            boolean groupByContext) {
         FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherObjCoverage == null)
             return formatCoverageStatus;
 
-        mergeTopGraphPattern(otherObjCoverage, formatCoverageStatus);
-        // mergeContextGraphPattern(otherObjCoverage, formatCoverageStatus);
+        if (groupByContext) {
+            mergeTopGraphPatternWithGrouping(otherObjCoverage, formatCoverageStatus);
+        } else {
+            mergeTopGraphPatternWithoutGrouping(otherObjCoverage, formatCoverageStatus);
+        }
+
         mergeSpecialInvariant(otherObjCoverage, formatCoverageStatus);
 
         if (formatCoverageStatus.isChanged()) {
@@ -334,7 +383,13 @@ public class ObjectGraphCoverage implements Serializable {
         return formatCoverageStatus;
     }
 
-    private void mergeTopGraphPattern(ObjectGraphCoverage otherObjCoverage,
+    private void mergeTopGraphPatternWithGrouping(ObjectGraphCoverage otherObjCoverage,
+            FormatCoverageStatus formatCoverageStatus) {
+        mergeAccumCoverage(accumDumpId2ObjCoverageWithContext,
+                otherObjCoverage.dumpId2ObjCoverageWithContext, formatCoverageStatus);
+    }
+
+    private void mergeTopGraphPatternWithoutGrouping(ObjectGraphCoverage otherObjCoverage,
             FormatCoverageStatus formatCoverageStatus) {
         mergeCoverage(dumpId2ObjCoverageWithContext, otherObjCoverage.dumpId2ObjCoverageWithContext,
                 formatCoverageStatus);
@@ -362,6 +417,23 @@ public class ObjectGraphCoverage implements Serializable {
         }
     }
 
+    private void mergeAccumCoverage(
+            Map<Integer, Map<Integer, Map<String, GraphPattern>>> dumpId2ObjCoverage1,
+            Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage2,
+            FormatCoverageStatus formatCoverageStatus) {
+        for (int dumpId : dumpId2ObjCoverage2.keySet()) {
+            Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext = dumpId2ObjCoverage2
+                    .get(dumpId);
+            if (otherObjCoverageWithContext == null)
+                continue;
+            Map<Integer, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverage1
+                    .computeIfAbsent(dumpId, k -> new HashMap<>());
+
+            mergeAccumGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
+                    formatCoverageStatus, dumpId);
+        }
+    }
+
     private static void mergeGraphPattern(
             Map<String, Map<String, GraphPattern>> objCoverageWithContext,
             Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext,
@@ -383,6 +455,51 @@ public class ObjectGraphCoverage implements Serializable {
                 objCoverageWithContext.put(context, new HashMap<>());
             }
             Map<String, GraphPattern> classInfo = objCoverageWithContext.get(context);
+            for (String className : otherClassInfo.keySet()) {
+                GraphPattern otherGraphPattern = otherClassInfo.get(className);
+                if (otherGraphPattern == null)
+                    continue;
+                GraphPattern graphPattern = classInfo.get(className);
+                if (graphPattern == null) {
+                    Runtime.log("[hklog] Add new graphPattern for " + className
+                            + ", context hashcode = " + context.hashCode());
+                    classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
+                    formatCoverageStatus.newFormat = true;
+                } else {
+                    LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
+                    FormatCoverageStatus otherFormatCoverageStatus = graphPattern
+                            .merge(otherGraphPattern, logInfo);
+                    formatCoverageStatus.incorporate(otherFormatCoverageStatus);
+                }
+            }
+        }
+    }
+
+    private void mergeAccumGraphPattern(
+            Map<Integer, Map<String, GraphPattern>> objCoverageWithContext,
+            Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext,
+            FormatCoverageStatus formatCoverageStatus, int dumpId) {
+        if (otherObjCoverageWithContext == null)
+            return;
+        for (String context : otherObjCoverageWithContext.keySet()) {
+            Map<String, GraphPattern> otherClassInfo = otherObjCoverageWithContext.get(context);
+            if (otherClassInfo == null)
+                continue;
+
+            // compute group ID
+            int groupId = getGroupId(dumpId, context);
+
+            if (!objCoverageWithContext.containsKey(groupId)) {
+                if (Runtime.debug) {
+                    Runtime.log("[hklog] new context = " + context);
+                    for (Integer oriContext : objCoverageWithContext.keySet()) {
+                        Runtime.log("[hklog] ori context = " + oriContext);
+                    }
+                    Runtime.log("");
+                }
+                objCoverageWithContext.put(groupId, new HashMap<>());
+            }
+            Map<String, GraphPattern> classInfo = objCoverageWithContext.get(groupId);
             for (String className : otherClassInfo.keySet()) {
                 GraphPattern otherGraphPattern = otherClassInfo.get(className);
                 if (otherGraphPattern == null)

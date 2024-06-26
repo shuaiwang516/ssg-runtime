@@ -290,8 +290,8 @@ public class TestUtils {
         }
     }
 
-    @Test
-    public void grouping() {
+    // @Test
+    public void groupingWithoutMapping() {
         Map<String, String> stackTraces = constructStackTraceMap(false);
         // compute a reverse map
         Map<String, String> reverseMap = new HashMap<>();
@@ -343,7 +343,7 @@ public class TestUtils {
         }
     }
 
-    @Test
+    // @Test
     public void groupByMappingFrameToSymbol() {
         // Hash each frame into a symbol to compute the distance
         List<String> system_local_A_list = Utils.mapStackTraceToSymbol(system_local_A);

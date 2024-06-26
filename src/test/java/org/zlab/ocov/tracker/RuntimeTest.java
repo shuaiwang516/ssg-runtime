@@ -87,7 +87,7 @@ public class RuntimeTest {
                 newCov = new FormatCoverageStatus(true, true);
             } else {
                 // Add a break point here for checking
-                newCov = objectGraphCoverage.merge(response, testId++);
+                newCov = objectGraphCoverage.merge(response, testId++, true);
             }
             System.out.println("newCov = " + newCov);
             out.close();
@@ -95,5 +95,4 @@ public class RuntimeTest {
             socket.close();
         }
     }
-
 }
