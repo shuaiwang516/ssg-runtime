@@ -2,11 +2,9 @@ package org.zlab.ocov.tracker;
 
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.junit.jupiter.api.Test;
+import org.zlab.ocov.Utils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TestUtils {
     static final String system_local_A = "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
@@ -249,6 +247,7 @@ public class TestUtils {
         return stackTraces;
     }
 
+    @Test
     public void test1() {
         Map<String, String> stackTraces = constructStackTraceMap(false);
         LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
@@ -341,7 +340,97 @@ public class TestUtils {
         for (Map.Entry<String, Integer> entry : stacktrace2groupId.entrySet()) {
             // print group id first, then stack trace
             System.out.println(entry.getValue() + " : " + reverseMap.get(entry.getKey()));
+        }
+    }
 
+    @Test
+    public void groupByMappingFrameToSymbol() {
+        // Hash each frame into a symbol to compute the distance
+        List<String> system_local_A_list = Utils.mapStackTraceToSymbol(system_local_A);
+        List<String> system_local_B_list = Utils.mapStackTraceToSymbol(system_local_B);
+        List<String> system_local_C_list = Utils.mapStackTraceToSymbol(system_local_C);
+        List<String> system_local_D_list = Utils.mapStackTraceToSymbol(system_local_D);
+        List<String> system_schema_list = Utils.mapStackTraceToSymbol(system_schema);
+        List<String> user_table1_list = Utils.mapStackTraceToSymbol(user_table1);
+        List<String> user_table2_list = Utils.mapStackTraceToSymbol(user_table2);
+        List<String> user_table3_list = Utils.mapStackTraceToSymbol(user_table3);
+        List<String> user_table4_list = Utils.mapStackTraceToSymbol(user_table4);
+
+        // store them in map
+        Map<String, List<String>> stackTraces = new HashMap<>();
+        stackTraces.put("system_local_A", system_local_A_list);
+        stackTraces.put("system_local_B", system_local_B_list);
+        stackTraces.put("system_local_C", system_local_C_list);
+        stackTraces.put("system_local_D", system_local_D_list);
+        stackTraces.put("system_schema", system_schema_list);
+        stackTraces.put("user_table1", user_table1_list);
+        stackTraces.put("user_table2", user_table2_list);
+        stackTraces.put("user_table3", user_table3_list);
+        stackTraces.put("user_table4", user_table4_list);
+
+        // reverse
+        Map<String, String> reverseMap = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : stackTraces.entrySet()) {
+            reverseMap.put(entry.getValue().toString(), entry.getKey());
+        }
+
+        // Compute the distance between each pair of stack traces
+        // Utils.computeEditDistance(system_local_A_list, system_local_B_list);
+        for (Map.Entry<String, List<String>> entry1 : stackTraces.entrySet()) {
+            for (Map.Entry<String, List<String>> entry2 : stackTraces.entrySet()) {
+                if (entry1.getKey().equals(entry2.getKey())) {
+                    continue;
+                }
+                int distance = Utils.computeEditDistance(entry1.getValue(), entry2.getValue());
+                System.out.println(entry1.getKey() + " : " + entry2.getKey() + " : " + distance);
+            }
+        }
+
+        // compute distance between all paris
+        int distanceThreshold = 10;
+
+        // string format => list format => group id
+        Map<String, Integer> stacktrace2groupId = new HashMap<>();
+        Map<String, List<String>> stacktrace2ListForm = new HashMap<>();
+
+        int groupId = 0;
+
+        for (List<String> stacktrace : stackTraces.values()) {
+            // store the string form
+            if (stacktrace2ListForm.containsKey(stacktrace.toString())) {
+                continue;
+            }
+            // find whether a similar one exists
+            int smallestDistance = Integer.MAX_VALUE;
+            int closestGroupId = -1;
+            for (Map.Entry<String, List<String>> entry : stacktrace2ListForm.entrySet()) {
+                List<String> existingStacktrace = entry.getValue();
+                int distance = Utils.computeEditDistance(stacktrace, existingStacktrace);
+                if (distance < distanceThreshold) {
+                    smallestDistance = distance;
+                    assert stacktrace2groupId.containsKey(entry.getKey());
+                    closestGroupId = stacktrace2groupId.get(entry.getKey());
+                    break;
+                }
+            }
+            if (smallestDistance < distanceThreshold) {
+                stacktrace2groupId.put(stacktrace.toString(), closestGroupId);
+                stacktrace2ListForm.put(stacktrace.toString(), stacktrace);
+            } else {
+                stacktrace2groupId.put(stacktrace.toString(), groupId);
+                stacktrace2ListForm.put(stacktrace.toString(), stacktrace);
+                groupId++;
+            }
+        }
+
+        // print number of groups
+        System.out.println("Number of groups: " + groupId + "\n");
+
+        // print group id for each stack trace
+        System.out.println("Group id for each stack trace");
+        for (Map.Entry<String, Integer> entry : stacktrace2groupId.entrySet()) {
+            // print group id first, then stack trace
+            System.out.println(entry.getValue() + " : " + reverseMap.get(entry.getKey()));
         }
     }
 }
