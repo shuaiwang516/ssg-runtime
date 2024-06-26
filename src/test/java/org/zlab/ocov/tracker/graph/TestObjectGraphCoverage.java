@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker.graph;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
@@ -1026,15 +1027,5 @@ public class TestObjectGraphCoverage {
         curCoverage.update(obj2);
         assert allCoverage.merge(curCoverage, 1).newFormat;
         curCoverage.clear();
-    }
-
-    // @Test
-    public void test() {
-        String a = "";
-        System.out.println(a.hashCode());
-        String b = "tmp";
-        String c = "tmp";
-        System.out.println(b.hashCode());
-        System.out.println(c.hashCode());
     }
 }
