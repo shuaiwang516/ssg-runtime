@@ -872,7 +872,8 @@ public class GraphPattern implements Serializable {
                 index += target.length(); // Move index to end of the current match
             }
             totalOccurrence += count;
-            System.out.println("The substring '" + target + "' occurs " + count + " times.");
+            // System.out.println("The substring '" + target + "' occurs " + count + "
+            // times.");
         }
 
         return countArrow + 1 + totalOccurrence;
