@@ -30,8 +30,9 @@ public class GraphPattern implements Serializable {
 
     // Equality
     public static boolean onlyCheckEqualityForBoundary = true;
-    public static boolean checkEqualityWithinRange = true;
     public static boolean checkEqualityForArray = false;
+    public static boolean checkEqualityWithinRange = true;
+    public static final int EqualityDepth = 5;
 
     protected Vertex root;
     protected DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph;
@@ -51,6 +52,7 @@ public class GraphPattern implements Serializable {
 
         final String type;
         String itinerary;
+        int depth;
         List<LabelConstraint> labelConstraints;
         List<StructureConstraint> structureConstraints;
 
@@ -59,6 +61,7 @@ public class GraphPattern implements Serializable {
                 List<StructureConstraint> structureConstraints) {
             this.type = type;
             this.itinerary = itinerary;
+            depth = computeDepthOutOfItinerary(this.itinerary);
             this.isObjectType = isObjectType;
             this.labelConstraints = labelConstraints;
             this.structureConstraints = structureConstraints;
@@ -67,6 +70,7 @@ public class GraphPattern implements Serializable {
         public static void updateItinerary(GraphPattern graphPattern, String itineraryPrefix) {
             for (Vertex v : graphPattern.graph.vertexSet()) {
                 v.itinerary = itineraryPrefix + "->" + v.itinerary;
+                v.depth = computeDepthOutOfItinerary(v.itinerary);
             }
         }
 
@@ -146,12 +150,12 @@ public class GraphPattern implements Serializable {
                         // We won't further track, but still need to process this object
                         // since it's recorded in serialized objects
                         computeSpecialInvariant(equalitySet, isSerialized, obj, objectType,
-                                itinerary, objId, logInfo, computeEquality);
+                                itinerary, objId, logInfo, computeEquality, depth);
                     }
                 }
             } else {
                 computeSpecialInvariant(equalitySet, isSerialized, obj, objectType, itinerary,
-                        objId, logInfo, computeEquality);
+                        objId, logInfo, computeEquality, depth);
 
                 // Special process Map/Collection/Array
 
@@ -824,7 +828,13 @@ public class GraphPattern implements Serializable {
 
     private static void computeSpecialInvariant(EqualitySet equalitySet, IsSerialize isSerialized,
             Object obj, String objectType, String itinerary, int objId, LogInfo logInfo,
-            boolean computeEquality) {
+            boolean computeEquality, int depth) {
+        // if reference path length (itinerary) is larger than EqualityDepth, skip
+        // equality computation
+        if (checkEqualityWithinRange && depth > EqualityDepth) {
+            computeEquality = false;
+        }
+
         // The current object vertex won't be iterated again, process it
         if (equalitySet != null && computeEquality) {
             equalitySet.update(obj, objectType, itinerary, objId, logInfo);
@@ -844,5 +854,27 @@ public class GraphPattern implements Serializable {
         return itinerary.contains(".collection_item") || itinerary.contains(".collection_firstItem")
                 || itinerary.contains(".collection_lastItem") || itinerary.contains(".map_keyItem")
                 || itinerary.contains(".map_valueItem") || itinerary.contains(".array_item");
+    }
+
+    public static int computeDepthOutOfItinerary(String itinerary) {
+        int countArrow = itinerary.split("->", -1).length - 1;
+
+        String[] targets = {".collection_", ".map_", ".array_"};
+
+        int totalOccurrence = 0;
+        // Loop over each target substring
+        for (String target : targets) {
+            int count = 0;
+            int index = 0;
+            // Find each occurrence of the current target substring
+            while ((index = itinerary.indexOf(target, index)) != -1) {
+                count++;
+                index += target.length(); // Move index to end of the current match
+            }
+            totalOccurrence += count;
+            System.out.println("The substring '" + target + "' occurs " + count + " times.");
+        }
+
+        return countArrow + 1 + totalOccurrence;
     }
 }

@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
+import org.zlab.ocov.tracker.graph.GraphPattern;
 
 import java.util.*;
 
@@ -432,5 +433,12 @@ public class TestUtils {
             // print group id first, then stack trace
             System.out.println(entry.getValue() + " : " + reverseMap.get(entry.getKey()));
         }
+    }
+
+    @Test
+    public void testDepthCounter() {
+        String iti = "org.apache.cassandra.db.ColumnFamilyStore$Flush.memtables.collection_firstItem->org.apache.cassandra.db.Memtable.rows.map_valueItem->org.apache.cassandra.db.AtomicBTreeColumns.metadata->org.apache.cassandra.config.CFMetaData.comparator->org.apache.cassandra.db.composites.CompoundSparseCellNameType$WithCollection.clusteringType->org.apache.cassandra.db.composites.CompoundCType.types";
+        int count = GraphPattern.computeDepthOutOfItinerary(iti);
+        assert count == 8;
     }
 }
