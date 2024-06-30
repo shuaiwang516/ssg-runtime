@@ -9,20 +9,23 @@ import java.util.Set;
 public class IsSerialize implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    private final Map<String, Set<String>> modifiedFields;
-    private final Set<String> modifiedEnums;
+    private transient final Map<String, Set<String>> modifiedFields;
+    private transient final Set<String> modifiedEnums;
+    private transient final Set<String> typeWithModifiedHierarchy;
 
     private final Set<String> serializedClasses = new HashSet<>();
     private final Map<String, Set<String>> serializedEnums = new HashMap<>();
 
-    public IsSerialize(Map<String, Set<String>> modifiedFields, Set<String> modifiedEnums) {
+    public IsSerialize(Map<String, Set<String>> modifiedFields, Set<String> modifiedEnums,
+            Set<String> typeWithModifiedHierarchy) {
         this.modifiedFields = modifiedFields;
         this.modifiedEnums = modifiedEnums;
+        this.typeWithModifiedHierarchy = typeWithModifiedHierarchy;
     }
 
-    // FIXME: not invoked in graph implementation
     public void updateVisitedClasses(String className) {
-        if (modifiedFields.containsKey(className)) {
+        if (modifiedFields.containsKey(className)
+                || typeWithModifiedHierarchy.contains(className)) {
             serializedClasses.add(className);
         }
     }

@@ -437,19 +437,49 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createExampleInputForModifiedTypeHierarchy() {
+        TestHelper helper = new TestHelper("ModifiedTypeHierarchy");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassF1", "f1", "int");
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType3", "a", "int");
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForLinkedType3$TargetClassForLinkedType4",
+                "a", "int");
+
+        helper.addModifiedTypeHierarchy(classPrefix + "TargetClassF1");
+
+        helper.addTopObject(classPrefix + "TargetClassF1");
+
+        helper.save();
+    }
+
     public static class TestHelper {
         public Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         public Set<String> topObjects = new HashSet<>();
         public Set<String> comparableClasses = new HashSet<>();
 
+        public Map<String, Set<String>> modifiedFields = new HashMap<>();
+        public Set<String> modifiedEnums = new HashSet<>();
+        public Set<String> modifiedTypeHierarchy = new HashSet<>();
+
         public String bassClassPath;
         public String topObjectsPath;
         public String comparableClassesPath;
+        public String modifiedFieldsPath;
+        public String modifiedEnumsPath;
+        public String modifiedTypeHierarchyPath;
 
         public TestHelper(String suffix) {
             bassClassPath = String.format("input/baseClassInfoFor%s.json", suffix);
             topObjectsPath = String.format("input/topObjectsFor%s.json", suffix);
             comparableClassesPath = String.format("input/comparableClassesFor%s.json", suffix);
+            modifiedFieldsPath = String.format("input/modifiedFieldsFor%s.json", suffix);
+            modifiedEnumsPath = String.format("input/modifiedEnumsFor%s.json", suffix);
+            modifiedTypeHierarchyPath = String.format("input/modifiedTypeHierarchyFor%s.json",
+                    suffix);
         }
 
         public void addBaseClassInfo(String className, String fieldName, String fieldType) {
@@ -467,10 +497,28 @@ public class TestInputGeneration {
             comparableClasses.add(className);
         }
 
+        public void addModifiedField(String className, String fieldName) {
+            if (!modifiedFields.containsKey(className)) {
+                modifiedFields.put(className, new HashSet<>());
+            }
+            modifiedFields.get(className).add(fieldName);
+        }
+
+        public void addModifiedEnum(String enumName) {
+            modifiedEnums.add(enumName);
+        }
+
+        public void addModifiedTypeHierarchy(String className) {
+            modifiedTypeHierarchy.add(className);
+        }
+
         public void save() {
             Utils.saveMapToFile(baseClassInfo, bassClassPath);
             Utils.saveSetToFile(topObjects, topObjectsPath);
             Utils.saveSetToFile(comparableClasses, comparableClassesPath);
+            Utils.saveModifiedFields(modifiedFields, modifiedFieldsPath);
+            Utils.saveSetToFile(modifiedEnums, modifiedEnumsPath);
+            Utils.saveSetToFile(modifiedTypeHierarchy, modifiedTypeHierarchyPath);
         }
     }
 }

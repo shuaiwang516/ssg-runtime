@@ -31,8 +31,11 @@ public class Runtime {
     public static Path baseClassPath = Paths.get("/tmp/serializedFields_alg1.json");
     public static Path topObjectsPath = Paths.get("/tmp/topObjects.json");
     public static Path comparableClassesPath = Paths.get("/tmp/comparableClasses.json");
+
     public static Path modifiedFieldsPath = Paths.get("/tmp/modifiedFields.json");
     public static Path modifiedEnumsPath = Paths.get("/tmp/modifiedEnums.json");
+    public static Path modifiedTypeHierarchyPath = Paths.get("/tmp/typeWithModifiedHierarchy.json");
+
     public static Path branch2CollectionPath = Paths.get("/tmp/branch2Collection.json");
 
     public static Path filePath = Paths.get("/tmp/coverage.log");
@@ -83,7 +86,7 @@ public class Runtime {
             }
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
-                    branch2CollectionPath);
+                    modifiedTypeHierarchyPath, branch2CollectionPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (Exception e) {
@@ -242,7 +245,7 @@ public class Runtime {
                         }
                         objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                                 comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
-                                branch2CollectionPath);
+                                modifiedTypeHierarchyPath, branch2CollectionPath);
                     }
                     System.out.println("Coverage has been sent to the client");
                 }

@@ -847,6 +847,9 @@ public class GraphPattern implements Serializable {
         if (isSerialized != null) {
             if (obj.getClass().isEnum())
                 isSerialized.updateVisitedEnums(objectType, obj.toString());
+            else {
+                isSerialized.updateVisitedClasses(objectType);
+            }
         }
     }
 

@@ -1028,4 +1028,25 @@ public class TestObjectGraphCoverage {
         assert allCoverage.merge(curCoverage, 1).newFormat;
         curCoverage.clear();
     }
+
+    @Test
+    public void testModifiedTypeHierarchy() {
+        String suffix = "ModifiedTypeHierarchy";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path modifiedFieldsPath = Paths
+                .get(String.format("input/modifiedFieldsFor%s.json", suffix));
+        Path modifiedEnumsPath = Paths.get(String.format("input/modifiedEnumsFor%s.json", suffix));
+        Path modifiedTypeHierarchyPath = Paths
+                .get(String.format("input/modifiedTypeHierarchyFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
+                modifiedFieldsPath, modifiedEnumsPath, modifiedTypeHierarchyPath, null);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
+                modifiedFieldsPath, modifiedEnumsPath, modifiedTypeHierarchyPath, null);
+
+        TargetClass.TargetClassF1 obj1 = new TargetClass.TargetClassF1();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage).newFormat;
+    }
 }

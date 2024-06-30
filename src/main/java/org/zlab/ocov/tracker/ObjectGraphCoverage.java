@@ -58,23 +58,23 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath) {
-        this(baseClassInfoPath, topObjectsPath, null, null, null, null);
+        this(baseClassInfoPath, topObjectsPath, null, null, null, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath) {
-        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null, null);
+        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath) {
         this(baseClassInfoPath, topObjectsPath, comparableClassesPath, modifiedFieldsPath,
-                modifiedEnumsPath, null);
+                modifiedEnumsPath, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
-            Path branch2CollectionPath) {
+            Path modifiedTypeHierarchyPath, Path branch2CollectionPath) {
         classInfoOri = Utils.loadMapFromFile(baseClassInfoPath.toString());
         topObjects = Utils.loadSetFromFile(topObjectsPath.toString());
         baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
@@ -89,8 +89,11 @@ public class ObjectGraphCoverage implements Serializable {
             objectGraphDumper = new ObjectGraphDumper(classInfoOri);
         }
         if (modifiedFieldsPath != null && modifiedFieldsPath.toFile().exists()
-                && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()) {
-            isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath);
+                && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()
+                && modifiedTypeHierarchyPath != null
+                && modifiedTypeHierarchyPath.toFile().exists()) {
+            isSerialized = constructIsSerialize(modifiedFieldsPath, modifiedEnumsPath,
+                    modifiedTypeHierarchyPath);
         }
         boundary = new Boundary();
         if (enableInvariantCombination)
@@ -563,11 +566,13 @@ public class ObjectGraphCoverage implements Serializable {
         return topObj2CreationStacktrace;
     }
 
-    public static IsSerialize constructIsSerialize(Path modifiedFieldsPath,
-            Path modifiedEnumsPath) {
+    public static IsSerialize constructIsSerialize(Path modifiedFieldsPath, Path modifiedEnumsPath,
+            Path modifiedHierarchyPath) {
         Map<String, Set<String>> modifiedFields = Utils
                 .loadModifiedFields(modifiedFieldsPath.toString());
         Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath.toString());
-        return new IsSerialize(modifiedFields, modifiedEnums);
+        Set<String> typeWithModifiedHierarchy = Utils
+                .loadSetFromFile(modifiedHierarchyPath.toString());
+        return new IsSerialize(modifiedFields, modifiedEnums, typeWithModifiedHierarchy);
     }
 }
