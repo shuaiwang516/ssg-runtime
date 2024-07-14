@@ -182,6 +182,8 @@ public class ObjectGraphCoverage implements Serializable {
         boolean changed = false;
         if (collectContextGraphPattern) {
             for (Object contextObj : contextArgs) {
+                if (contextObj == null)
+                    continue;
                 String contextClassName = contextObj.getClass().getName();
                 if (!baseClassInfo.containsKey(contextClassName))
                     continue;
