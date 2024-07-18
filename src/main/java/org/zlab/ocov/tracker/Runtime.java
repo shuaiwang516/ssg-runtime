@@ -8,10 +8,7 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class Runtime {
     public static final boolean debug = false;
@@ -44,6 +41,9 @@ public class Runtime {
     public static BufferedWriter writer;
     public static ObjectGraphCoverage objectCoverage;
     private static final Object objectCoverageLock = new Object();
+
+    // Debug
+    private static Map<Integer, Double> dumpId2AccumTime = new HashMap<>();
 
     public static boolean isSampled() {
         return rand.nextDouble() < sampleRate;
@@ -150,10 +150,29 @@ public class Runtime {
         return obj;
     }
 
+    // Debug
+    static List<Integer> blackListDumpIds = new LinkedList<>();
+    static {
+        blackListDumpIds.add(106);
+        blackListDumpIds.add(150);
+        blackListDumpIds.add(83);
+        blackListDumpIds.add(99);
+        blackListDumpIds.add(140);
+        blackListDumpIds.add(120);
+        blackListDumpIds.add(105);
+        blackListDumpIds.add(63);
+    }
+
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId, Object... contextArgs) {
         if (!enable || obj == null || (sample && !isSampled()) || objectCoverage == null)
             return obj;
+
+        // Debug
+        // if (dumpId > 30)
+        // return obj;
+        // if (blackListDumpIds.contains(dumpId))
+        // return obj;
 
         long time1 = System.currentTimeMillis();
 
@@ -168,11 +187,20 @@ public class Runtime {
 
             long time3 = System.currentTimeMillis();
             if (debug) {
-                if ((time3 - time1) / 1000. > 1)
+                double processTime = (time3 - time2) / 1000.;
+                double totalTime = (time3 - time1) / 1000.;
+
+                if (totalTime > 0.01)
                     log("slow dump id: " + dumpId);
-                log("[debug performance problem] dumpId = " + dumpId + "\t, process time = "
-                        + (time3 - time2) / 1000. + "s" + ", total time = "
-                        + (time3 - time1) / 1000. + "s");
+                // update dumpId2AccumTime
+                if (dumpId2AccumTime.containsKey(dumpId)) {
+                    dumpId2AccumTime.put(dumpId, dumpId2AccumTime.get(dumpId) + totalTime);
+                } else {
+                    dumpId2AccumTime.put(dumpId, totalTime);
+                }
+                log("[debug performance] dumpId = " + dumpId + "\t, process time = " + processTime
+                        + "s" + ", total time = " + totalTime + "s" + ", accum time = "
+                        + dumpId2AccumTime.get(dumpId) + "s");
             }
         }
         return obj;
