@@ -427,6 +427,8 @@ public class ObjectGraphCoverage implements Serializable {
             Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage2,
             FormatCoverageStatus formatCoverageStatus) {
         for (int dumpId : dumpId2ObjCoverage2.keySet()) {
+            long time1 = System.currentTimeMillis();
+
             Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext = dumpId2ObjCoverage2
                     .get(dumpId);
             if (otherObjCoverageWithContext == null)
@@ -436,6 +438,10 @@ public class ObjectGraphCoverage implements Serializable {
 
             mergeAccumGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
                     formatCoverageStatus, dumpId);
+
+            long time2 = System.currentTimeMillis();
+            Runtime.log(String.format("[hklog] dump Id = %d, mergeAccumCoverage time = %.2fs",
+                    dumpId, (time2 - time1) / 1000.));
         }
     }
 
