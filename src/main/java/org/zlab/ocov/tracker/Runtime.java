@@ -141,11 +141,16 @@ public class Runtime {
         }
     }
 
+    // contextObject refer to "this"
     public static Object monitorCreationContext(Object obj, int dumpId) {
+        return monitorCreationContext(obj, dumpId, null);
+    }
+
+    public static Object monitorCreationContext(Object obj, int dumpId, Object contextObject) {
         if (!enable || obj == null || objectCoverage == null)
             return obj;
         synchronized (objectCoverageLock) {
-            objectCoverage.monitorCreationContext(obj);
+            objectCoverage.monitorCreationContext(obj, contextObject);
         }
         return obj;
     }

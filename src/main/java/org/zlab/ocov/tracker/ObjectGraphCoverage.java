@@ -133,6 +133,10 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public void monitorCreationContext(Object obj) {
+        monitorCreationContext(obj, null);
+    }
+
+    public void monitorCreationContext(Object obj, Object contextObj) {
         if (obj == null)
             return;
         // long time1 = System.currentTimeMillis();
@@ -151,8 +155,15 @@ public class ObjectGraphCoverage implements Serializable {
         }
         // long time2 = System.currentTimeMillis();
 
+        String stacktrace;
+        if (contextObj != null && !getCreationContext(contextObj).isEmpty()) {
+            stacktrace = getCreationContext(contextObj);
+        } else {
+            stacktrace = Utils.getStackTrace();
+        }
+
         // update topObj2CreationStacktrace
-        topObj2CreationStacktrace.put(topAddr, Utils.getStackTrace());
+        topObj2CreationStacktrace.put(topAddr, stacktrace);
         // long time3 = System.currentTimeMillis();
         // Runtime.log("Traverse time= " + (time2 - time1) / 1000. + "s, stacktrace time
         // = "
@@ -440,8 +451,10 @@ public class ObjectGraphCoverage implements Serializable {
                     formatCoverageStatus, dumpId);
 
             long time2 = System.currentTimeMillis();
-            Runtime.log(String.format("[hklog] dump Id = %d, mergeAccumCoverage time = %.2fs",
-                    dumpId, (time2 - time1) / 1000.));
+            // Debug, need to disable
+            if (Runtime.debug)
+                Runtime.log(String.format("[hklog] dump Id = %d, mergeAccumCoverage time = %.2fs",
+                        dumpId, (time2 - time1) / 1000.));
         }
     }
 
