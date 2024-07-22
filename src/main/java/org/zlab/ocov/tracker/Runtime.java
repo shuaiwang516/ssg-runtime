@@ -14,6 +14,11 @@ public class Runtime {
     public static final boolean debug = false;
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
+
+    // Debug
+    public static boolean enableCreationContextMonitor = true;
+    public static boolean enableUpdate = true;
+
     public static boolean enableBoundaryCheck = false;
     public static boolean enableEqualityLikelyInvariant = true;
     public static final String enableEnvName = "ENABLE_FORMAT_COVERAGE";
@@ -150,44 +155,30 @@ public class Runtime {
     public static Object monitorCreationContext(Object obj, int dumpId, Object contextObject) {
         if (!enable || obj == null || objectCoverage == null)
             return obj;
+
+        if (!enableCreationContextMonitor)
+            return obj;
+
         long time1 = System.currentTimeMillis();
-        synchronized (objectCoverageLock) {
-            long time2 = System.currentTimeMillis();
 
-            objectCoverage.monitorCreationContext(obj, contextObject);
+        objectCoverage.monitorCreationContext(obj, contextObject, dumpId);
 
-            long time3 = System.currentTimeMillis();
-            if (debug) {
-                double processTime = (time3 - time2) / 1000.;
-                double totalTime = (time3 - time1) / 1000.;
+        long time2 = System.currentTimeMillis();
+        if (debug) {
+            double totalTime = (time2 - time1) / 1000.;
 
-                if (totalTime > 0.01)
-                    log("slow dump id: " + dumpId);
-                // update dumpId2AccumTime
-                if (dumpId2AccumTime.containsKey(dumpId)) {
-                    dumpId2AccumTime.put(dumpId, dumpId2AccumTime.get(dumpId) + totalTime);
-                } else {
-                    dumpId2AccumTime.put(dumpId, totalTime);
-                }
-                log("[debug performance: monitorCreationContext] dumpId = " + dumpId
-                        + "\t, process time = " + processTime + "s" + ", total time = " + totalTime
-                        + "s" + ", accum time = " + dumpId2AccumTime.get(dumpId) + "s");
+            if (totalTime > 5)
+                log("slow dump id: " + dumpId);
+            // update dumpId2AccumTime
+            if (dumpId2AccumTime.containsKey(dumpId)) {
+                dumpId2AccumTime.put(dumpId, dumpId2AccumTime.get(dumpId) + totalTime);
+            } else {
+                dumpId2AccumTime.put(dumpId, totalTime);
             }
+            log("[debug performance: monitorCreationContext] dumpId = " + dumpId + ", total time = "
+                    + totalTime + "s" + ", accum time = " + dumpId2AccumTime.get(dumpId) + "s");
         }
         return obj;
-    }
-
-    // Debug
-    static List<Integer> blackListDumpIds = new LinkedList<>();
-    static {
-        blackListDumpIds.add(106);
-        blackListDumpIds.add(150);
-        blackListDumpIds.add(83);
-        blackListDumpIds.add(99);
-        blackListDumpIds.add(140);
-        blackListDumpIds.add(120);
-        blackListDumpIds.add(105);
-        blackListDumpIds.add(63);
     }
 
     // id uniquely identify the program location for dumping
@@ -195,11 +186,8 @@ public class Runtime {
         if (!enable || obj == null || (sample && !isSampled()) || objectCoverage == null)
             return obj;
 
-        // Debug
-        // if (dumpId > 30)
-        // return obj;
-        // if (blackListDumpIds.contains(dumpId))
-        // return obj;
+        if (!enableUpdate)
+            return obj;
 
         long time1 = System.currentTimeMillis();
 
@@ -217,7 +205,7 @@ public class Runtime {
                 double processTime = (time3 - time2) / 1000.;
                 double totalTime = (time3 - time1) / 1000.;
 
-                if (totalTime > 0.01)
+                if (totalTime > 5)
                     log("slow dump id: " + dumpId);
                 // update dumpId2AccumTime
                 if (dumpId2AccumTime.containsKey(dumpId)) {

@@ -30,7 +30,6 @@ public class ObjectGraphCoverage implements Serializable {
     public final static int maxPatternNum = 8;
 
     private final transient boolean useLevenshteinDistance = false;
-
     private final transient LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
     private final int editDistanceThreshold = 600;
 
@@ -56,17 +55,25 @@ public class ObjectGraphCoverage implements Serializable {
     // ----------------------- Runtime -----------------------
     public transient Set<Integer> visitedObjects = new HashSet<>();
 
-    // Creation context
+    // -------------------- Creation context ------------------
     private transient final Map<Integer, Integer> objAddress2TopObjAddress = new HashMap<>();
     private transient final Map<Integer, String> topObj2CreationStacktrace = new HashMap<>();
+    private transient final Map<Integer, Integer> dumpId2monitorCount = new HashMap<>();
+
+    // Sample if the object if the dump point occur too often
+    private transient final boolean enableSampleMonitorThreshold = true;
+    private transient final int monitorSampleThreshold = 300;
+    private transient final double monitorSampleRate = 0.01;
+
+    // ----------------------- Graph Pattern -----------------------
+    private transient final Map<Integer, Integer> dumpId2UpdateCount = new HashMap<>();
+    private transient final boolean enableSampleUpdateThreshold = true;
+    private transient final int updateSampleThreshold = 300;
+    private transient final double updateSampleRate = 0.01;
 
     private transient Map<String, Map<String, String>> classInfoOri;
     public transient Map<String, GraphPattern> baseClassInfo;
     public transient Set<String> topObjects;
-
-    // Only record, and infer at last
-    private transient List<ObjectGraph> objectGraphs = new ArrayList<>();
-    private transient ObjectGraphDumper objectGraphDumper;
 
     public ObjectGraphCoverage() {
         // for json
@@ -99,9 +106,6 @@ public class ObjectGraphCoverage implements Serializable {
         }
         if (comparableClasses != null) {
             equalitySet = new EqualitySet(comparableClasses);
-            objectGraphDumper = new ObjectGraphDumper(classInfoOri, comparableClasses);
-        } else {
-            objectGraphDumper = new ObjectGraphDumper(classInfoOri);
         }
         if (modifiedFieldsPath != null && modifiedFieldsPath.toFile().exists()
                 && modifiedEnumsPath != null && modifiedEnumsPath.toFile().exists()
@@ -125,14 +129,15 @@ public class ObjectGraphCoverage implements Serializable {
                 .get(dumpId);
 
         if (limitMaxPatternNum && !contextObjCoverage.containsKey(context)
-                && contextObjCoverage.size() >= maxPatternNum) {
+                && contextObjCoverage.keySet().size() >= maxPatternNum) {
             // Find the closest context
             double maxSimilarity = 0;
             String closestContext = null;
+
             for (String oriContext : contextObjCoverage.keySet()) {
                 double[] jaccardResults = jaccard(sketches.get(oriContext), sketches.get(context));
                 double similarity = jaccardResults[1];
-                if (similarity > maxSimilarity) {
+                if (similarity >= maxSimilarity) {
                     maxSimilarity = similarity;
                     closestContext = oriContext;
                 }
@@ -166,10 +171,14 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public void monitorCreationContext(Object obj) {
-        monitorCreationContext(obj, null);
+        monitorCreationContext(obj, null, -1);
     }
 
-    public void monitorCreationContext(Object obj, Object contextObj) {
+    public void monitorCreationContext(Object obj, int dumpId) {
+        monitorCreationContext(obj, null, dumpId);
+    }
+
+    public void monitorCreationContext(Object obj, Object contextObj, int dumpId) {
         if (obj == null)
             return;
         // long time1 = System.currentTimeMillis();
@@ -177,6 +186,16 @@ public class ObjectGraphCoverage implements Serializable {
         if (!topObjects.contains(className) || !baseClassInfo.containsKey(className)) {
             return;
         }
+
+        if (!dumpId2monitorCount.containsKey(dumpId)) {
+            dumpId2monitorCount.put(dumpId, 0);
+        }
+        if (enableSampleMonitorThreshold && dumpId2monitorCount.get(dumpId) > monitorSampleThreshold
+                && Math.random() > monitorSampleRate) {
+            return;
+        }
+        dumpId2monitorCount.put(dumpId, dumpId2monitorCount.get(dumpId) + 1);
+
         int topAddr = System.identityHashCode(obj);
         ObjectGraphTraverser objectGraphTraverser = new ObjectGraphTraverser(classInfoOri);
         objectGraphTraverser.traverse(obj);
@@ -222,6 +241,16 @@ public class ObjectGraphCoverage implements Serializable {
             }
             visitedObjects.add(objId);
         }
+
+        // Sample if the object is processed too often
+        if (!dumpId2UpdateCount.containsKey(dumpId)) {
+            dumpId2UpdateCount.put(dumpId, 0);
+        }
+        if (enableSampleUpdateThreshold && dumpId2UpdateCount.get(dumpId) > updateSampleThreshold
+                && Math.random() > updateSampleRate) {
+            return false;
+        }
+        dumpId2UpdateCount.put(dumpId, dumpId2UpdateCount.get(dumpId) + 1);
 
         boolean changed = false;
         if (collectContextGraphPattern) {
@@ -418,9 +447,17 @@ public class ObjectGraphCoverage implements Serializable {
             invariantCombination.infer(equalitySet);
     }
 
+    // Not in use as we create a new ObjectGraphCoverage for each test
     public void clear() {
         // Separate format coverage across tests
         visitedObjects.clear();
+        objAddress2TopObjAddress.clear();
+        topObj2CreationStacktrace.clear();
+        dumpId2monitorCount.clear();
+        dumpId2UpdateCount.clear();
+        dumpId2CurrentGroupId.clear();
+        dumpId2Context2GroupId.clear();
+
         if (equalitySet != null)
             equalitySet.clear();
         if (isSerialized != null)
@@ -428,31 +465,6 @@ public class ObjectGraphCoverage implements Serializable {
         if (enableInvariantCombination)
             invariantCombination.clear();
         boundary.clear();
-    }
-
-    public boolean dump(Object obj, int dumpId, String context) {
-        if (obj == null)
-            return false;
-        String className = obj.getClass().getName();
-        Integer objId = System.identityHashCode(obj);
-        if (avoidRecordObjectWithSameAddress) {
-            if (visitedObjects.contains(objId)) {
-                return false;
-            }
-            visitedObjects.add(objId);
-        }
-
-        GraphPattern classInfo = getGraphPattern(className, dumpId, context);
-        if (classInfo == null)
-            return false;
-
-        ObjectGraph objectGraph = objectGraphDumper.dump(obj, dumpId);
-
-        // Testing
-        // objectGraphs.clear();
-
-        objectGraphs.add(objectGraph);
-        return true;
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {
