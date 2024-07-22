@@ -3,7 +3,6 @@ package org.zlab.ocov.tracker.graph;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;

@@ -1,11 +1,16 @@
 package org.zlab.ocov.tracker;
 
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.datasketches.theta.*;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.GraphPattern;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
+import static org.zlab.ocov.Utils.tokenize;
 
 public class TestUtils {
     static final String system_local_A = "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
@@ -76,7 +81,6 @@ public class TestUtils {
             + "java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)\n"
             + "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)\n"
             + "java.lang.Thread.run(Thread.java:750)\n";
-
     static final String user_table1 = "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtable(ColumnFamilyStore.java:700)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtableIfCurrent(ColumnFamilyStore.java:681)\n"
@@ -122,7 +126,6 @@ public class TestUtils {
             + "java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)\n"
             + "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)\n"
             + "java.lang.Thread.run(Thread.java:750)\n";
-
     static final String user_table2 = "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtable(ColumnFamilyStore.java:700)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.reload(ColumnFamilyStore.java:203)\n"
@@ -137,7 +140,6 @@ public class TestUtils {
             + "java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)\n"
             + "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)\n"
             + "java.lang.Thread.run(Thread.java:750)\n";
-
     static final String user_table3 = "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtable(ColumnFamilyStore.java:700)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtableIfCurrent(ColumnFamilyStore.java:681)\n"
@@ -147,10 +149,8 @@ public class TestUtils {
             + "org.apache.cassandra.db.index.SecondaryIndex$1.run(SecondaryIndex.java:281)\n"
             + "java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)\n"
             + "java.util.concurrent.FutureTask.run(FutureTask.java:266)\n"
-            + "java.lang.Thread.run(Thread.java:750)\n"
-            + "[hklog] table = system.schema_keyspaces\n";
-    static final String user_table4 = "[hklog] table = myks.monkey_species\n"
-            + "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
+            + "java.lang.Thread.run(Thread.java:750)\n";
+    static final String user_table4 = "java.lang.Thread.getStackTrace(Thread.java:1564)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtable(ColumnFamilyStore.java:700)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.switchMemtableIfCurrent(ColumnFamilyStore.java:681)\n"
             + "org.apache.cassandra.db.ColumnFamilyStore.forceFlush(ColumnFamilyStore.java:756)\n"
@@ -246,6 +246,16 @@ public class TestUtils {
         // System.out.println(entry.getKey() + " : " + entry.getValue());
         // }
         return stackTraces;
+    }
+
+    public Map<String, String> constructReverseStackTraceMap(boolean removeJvmLib) {
+        Map<String, String> stackTraces = constructStackTraceMap(removeJvmLib);
+        // compute a reverse map
+        Map<String, String> reverseMap = new HashMap<>();
+        for (Map.Entry<String, String> entry : stackTraces.entrySet()) {
+            reverseMap.put(entry.getValue(), entry.getKey());
+        }
+        return reverseMap;
     }
 
     @Test
@@ -440,5 +450,69 @@ public class TestUtils {
         String iti = "org.apache.cassandra.db.ColumnFamilyStore$Flush.memtables.collection_firstItem->org.apache.cassandra.db.Memtable.rows.map_valueItem->org.apache.cassandra.db.AtomicBTreeColumns.metadata->org.apache.cassandra.config.CFMetaData.comparator->org.apache.cassandra.db.composites.CompoundSparseCellNameType$WithCollection.clusteringType->org.apache.cassandra.db.composites.CompoundCType.types";
         int count = GraphPattern.computeDepthOutOfItinerary(iti);
         assert count == 8;
+    }
+
+    @Test
+    public void test0() {
+
+        String[] stackTraces = new String[]{system_local_A, system_local_B, system_local_C,
+                system_local_D, system_schema, user_table1, user_table2, user_table3, user_table4};
+
+        Map<String, String> revMap = constructReverseStackTraceMap(false);
+
+        Map<String, Sketch> sketches = new HashMap<>();
+        // Assume 'stackTraces' is an array of stack trace strings
+        for (String trace : stackTraces) {
+            Set<String> tokens = tokenize(trace);
+            UpdateSketch sketch = Sketches.updateSketchBuilder().build();
+            for (String token : tokens) {
+                sketch.update(token.getBytes(StandardCharsets.UTF_8));
+            }
+            sketches.put(trace, sketch.compact());
+        }
+
+        // // Use union to compare sketches
+        // Union union = Sketches.setOperationBuilder().buildUnion();
+        // sketches.values().forEach(union::update);
+        //
+        // Sketch result = union.getResult();
+        // // Analyze result to form clusters
+
+        Map<String, Set<String>> clusters = new HashMap<>();
+        Map<String, Set<String>> nonClusters = new HashMap<>();
+
+        double threshold = 0.5;
+
+        // Comparing each sketch with every other sketch using the jaccard method
+        for (Map.Entry<String, Sketch> entry1 : sketches.entrySet()) {
+            for (Map.Entry<String, Sketch> entry2 : sketches.entrySet()) {
+                if (!entry1.getKey().equals(entry2.getKey())) {
+                    double[] jaccardResults = jaccard(entry1.getValue(), entry2.getValue());
+                    if (jaccardResults[1] > threshold) {
+                        clusters.putIfAbsent(revMap.get(entry1.getKey()), new HashSet<>());
+                        clusters.get(revMap.get(entry1.getKey())).add(revMap.get(entry2.getKey()));
+                    } else {
+                        nonClusters.putIfAbsent(revMap.get(entry1.getKey()), new HashSet<>());
+                        nonClusters.get(revMap.get(entry1.getKey()))
+                                .add(revMap.get(entry2.getKey()));
+                    }
+                    System.out.printf(
+                            "Similarity between %s and %s is: Lower Bound = %.3f, Estimate = %.3f, Upper Bound = %.3f%n",
+                            revMap.get(entry1.getKey()), revMap.get(entry2.getKey()),
+                            jaccardResults[0], jaccardResults[1], jaccardResults[2]);
+                }
+            }
+        }
+
+        // print clusters and non clusters
+        System.out.println("Clusters");
+        for (Map.Entry<String, Set<String>> entry : clusters.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }
+        System.out.println();
+        System.out.println("Non Clusters");
+        for (Map.Entry<String, Set<String>> entry : nonClusters.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }
     }
 }

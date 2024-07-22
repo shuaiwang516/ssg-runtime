@@ -36,7 +36,8 @@ public class Runtime {
     public static Path branch2CollectionPath = Paths.get("/tmp/branch2Collection.json");
 
     public static Path filePath = Paths.get("/tmp/coverage.log");
-    public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss.SSS");
 
     public static BufferedWriter writer;
     public static ObjectGraphCoverage objectCoverage;

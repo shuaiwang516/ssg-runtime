@@ -2,13 +2,19 @@ package org.zlab.ocov.tracker;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.*;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
+
+import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
 
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
@@ -20,8 +26,14 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean useContextFromArgs = true;
     public final static boolean collectContextGraphPattern = true;
 
+    private final transient boolean useLevenshteinDistance = false;
+
     private final transient LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
-    private final int threshold = 600;
+    private final int editDistanceThreshold = 600;
+
+    // Use another implementation (more efficient...)
+    private final transient Map<String, Sketch> sketches = new HashMap<>();
+    private final transient double similarityThreshold = 0.5;
 
     // DumpId -> classname -> graph pattern (Only top objects)
     transient Map<Integer, Map<String, Integer>> dumpId2Context2GroupId = new HashMap<>();
@@ -235,7 +247,17 @@ public class ObjectGraphCoverage implements Serializable {
         return "";
     }
 
-    private int getGroupId(int dumpId, String context) {
+    private void updateSketches(String context) {
+        Set<String> tokens = Utils.tokenize(context);
+        UpdateSketch sketch = Sketches.updateSketchBuilder().build();
+        for (String token : tokens) {
+            sketch.update(token.getBytes(StandardCharsets.UTF_8));
+        }
+        sketches.put(context, sketch.compact());
+    }
+
+    // Deprecated!
+    private int getGroupIdEditDistance(int dumpId, String context) {
         if (!dumpId2Context2GroupId.containsKey(dumpId)) {
             dumpId2Context2GroupId.put(dumpId, new HashMap<>());
         }
@@ -252,10 +274,49 @@ public class ObjectGraphCoverage implements Serializable {
                 minGroupId = context2GroupId.get(oriContext);
             }
         }
-        if (minDistance <= threshold) {
+        if (minDistance <= editDistanceThreshold) {
             context2GroupId.put(context, minGroupId);
             return minGroupId;
         }
+        // Extract current group id
+        if (!dumpId2CurrentGroupId.containsKey(dumpId)) {
+            dumpId2CurrentGroupId.put(dumpId, 0);
+        }
+        int groupId = dumpId2CurrentGroupId.get(dumpId);
+        dumpId2CurrentGroupId.put(dumpId, groupId + 1);
+        context2GroupId.put(context, groupId);
+        return groupId;
+    }
+
+    private int getGroupId(int dumpId, String context) {
+        if (!dumpId2Context2GroupId.containsKey(dumpId)) {
+            dumpId2Context2GroupId.put(dumpId, new HashMap<>());
+        }
+        Map<String, Integer> context2GroupId = dumpId2Context2GroupId.get(dumpId);
+        if (context2GroupId.containsKey(context)) {
+            return context2GroupId.get(context);
+        }
+
+        // Update sketches
+        updateSketches(context);
+
+        double maxSimilarity = 0;
+        // int minDistance = Integer.MAX_VALUE;
+        int minGroupId = -1;
+        for (String oriContext : context2GroupId.keySet()) {
+            double[] jaccardResults = jaccard(sketches.get(oriContext), sketches.get(context));
+            double similarity = jaccardResults[1];
+            if (similarity > maxSimilarity) {
+                maxSimilarity = similarity;
+                minGroupId = context2GroupId.get(oriContext);
+            }
+        }
+
+        if (maxSimilarity >= similarityThreshold) {
+            context2GroupId.put(context, minGroupId);
+            return minGroupId;
+        }
+
         // Extract current group id
         if (!dumpId2CurrentGroupId.containsKey(dumpId)) {
             dumpId2CurrentGroupId.put(dumpId, 0);
@@ -469,13 +530,6 @@ public class ObjectGraphCoverage implements Serializable {
             if (otherClassInfo == null)
                 continue;
             if (!objCoverageWithContext.containsKey(context)) {
-                if (Runtime.debug) {
-                    Runtime.log("[hklog] new context = " + context);
-                    for (String oriContext : objCoverageWithContext.keySet()) {
-                        Runtime.log("[hklog] ori context = " + oriContext);
-                    }
-                    Runtime.log("");
-                }
                 objCoverageWithContext.put(context, new HashMap<>());
             }
             Map<String, GraphPattern> classInfo = objCoverageWithContext.get(context);
@@ -511,16 +565,13 @@ public class ObjectGraphCoverage implements Serializable {
                 continue;
 
             // compute group ID
-            int groupId = getGroupId(dumpId, context);
-
+            int groupId;
+            if (useLevenshteinDistance) {
+                groupId = getGroupIdEditDistance(dumpId, context);
+            } else {
+                groupId = getGroupId(dumpId, context);
+            }
             if (!objCoverageWithContext.containsKey(groupId)) {
-                if (Runtime.debug) {
-                    Runtime.log("[hklog] new context = " + context);
-                    for (Integer oriContext : objCoverageWithContext.keySet()) {
-                        Runtime.log("[hklog] ori context = " + oriContext);
-                    }
-                    Runtime.log("");
-                }
                 objCoverageWithContext.put(groupId, new HashMap<>());
             }
             Map<String, GraphPattern> classInfo = objCoverageWithContext.get(groupId);
@@ -532,7 +583,21 @@ public class ObjectGraphCoverage implements Serializable {
                 if (graphPattern == null) {
                     Runtime.log("[hklog] Add new graphPattern for " + className
                             + ", context hashcode = " + context.hashCode());
+                    long time1 = System.currentTimeMillis();
                     classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
+                    long time2 = System.currentTimeMillis();
+                    if (Runtime.debug) {
+                        double time = (time2 - time1) / 1000.;
+                        Runtime.log(String.format(
+                                "[hklog] Add new graphPattern for %s, context hashcode = %d, clone time = %.2fs",
+                                className, context.hashCode(), time));
+                        if (time > 1)
+                            Runtime.log("[hklog] clone slow for " + className + ", time = " + time
+                                    + ", node num = "
+                                    + otherGraphPattern.getGraph().vertexSet().size()
+                                    + ", edge num = "
+                                    + otherGraphPattern.getGraph().edgeSet().size());
+                    }
                     formatCoverageStatus.newFormat = true;
                 } else {
                     LogInfo logInfo = new LogInfo(dumpId, context.hashCode());

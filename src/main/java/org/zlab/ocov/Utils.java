@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class Utils {
 
@@ -245,4 +242,13 @@ public class Utils {
 
         return dp[m][n];
     }
+
+    public static Set<String> tokenize(String trace) {
+        Set<String> tokens = new HashSet<>();
+        for (String line : trace.split("\n")) {
+            tokens.add(line.trim());
+        }
+        return tokens;
+    }
+
 }

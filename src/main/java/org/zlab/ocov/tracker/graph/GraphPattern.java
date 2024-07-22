@@ -499,6 +499,10 @@ public class GraphPattern implements Serializable {
         return root.merge(other.root, other, this, logInfo);
     }
 
+    public DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> getGraph() {
+        return graph;
+    }
+
     public void print() {
         printGraph(root, graph);
     }
