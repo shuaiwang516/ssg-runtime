@@ -26,6 +26,9 @@ public class ObjectGraphCoverage implements Serializable {
     public final static boolean useContextFromArgs = true;
     public final static boolean collectContextGraphPattern = true;
 
+    public final static boolean limitMaxPatternNum = true;
+    public final static int maxPatternNum = 8;
+
     private final transient boolean useLevenshteinDistance = false;
 
     private final transient LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
@@ -113,15 +116,33 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public GraphPattern getGraphPattern(String className, int dumpId, String context) {
+        updateSketches(context);
+
         if (!dumpId2ObjCoverageWithContext.containsKey(dumpId)) {
             dumpId2ObjCoverageWithContext.put(dumpId, new HashMap<>());
         }
         Map<String, Map<String, GraphPattern>> contextObjCoverage = dumpId2ObjCoverageWithContext
                 .get(dumpId);
-        if (!contextObjCoverage.containsKey(context)) {
-            contextObjCoverage.put(context, new HashMap<>());
+
+        if (limitMaxPatternNum && !contextObjCoverage.containsKey(context)
+                && contextObjCoverage.size() >= maxPatternNum) {
+            // Find the closest context
+            double maxSimilarity = 0;
+            String closestContext = null;
+            for (String oriContext : contextObjCoverage.keySet()) {
+                double[] jaccardResults = jaccard(sketches.get(oriContext), sketches.get(context));
+                double similarity = jaccardResults[1];
+                if (similarity > maxSimilarity) {
+                    maxSimilarity = similarity;
+                    closestContext = oriContext;
+                }
+            }
+            assert closestContext != null;
+            context = closestContext;
         }
-        Map<String, GraphPattern> objCoverage = contextObjCoverage.get(context);
+        Map<String, GraphPattern> objCoverage = contextObjCoverage.computeIfAbsent(context,
+                k -> new HashMap<>());
+
         if (!objCoverage.containsKey(className)) {
             objCoverage.put(className, SerializationUtils.clone(baseClassInfo.get(className)));
         }
@@ -248,6 +269,8 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     private void updateSketches(String context) {
+        if (sketches.containsKey(context))
+            return;
         Set<String> tokens = Utils.tokenize(context);
         UpdateSketch sketch = Sketches.updateSketchBuilder().build();
         for (String token : tokens) {
@@ -312,12 +335,13 @@ public class ObjectGraphCoverage implements Serializable {
             }
         }
 
-        if (maxSimilarity >= similarityThreshold) {
+        // Found one that's very similar or reach the max maintained pattern number
+        if (maxSimilarity >= similarityThreshold || context2GroupId.size() >= maxPatternNum) {
             context2GroupId.put(context, minGroupId);
             return minGroupId;
         }
 
-        // Extract current group id
+        // Create a new group
         if (!dumpId2CurrentGroupId.containsKey(dumpId)) {
             dumpId2CurrentGroupId.put(dumpId, 0);
         }

@@ -24,6 +24,9 @@ public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     // Likely Invariant Options
+    public static boolean limitGraphPatternDepth = true;
+    public static int maxDepth = 7;
+
     public static boolean specialHandleFirstLastItem = true;
     public static boolean enableSequenceBoundaryCheck = false;
     public static boolean enableAccumulatedSizeCheck = false;
@@ -32,6 +35,7 @@ public class GraphPattern implements Serializable {
     public static boolean onlyCheckEqualityForBoundary = true;
     public static boolean checkEqualityForArray = false;
     public static boolean checkEqualityWithinRange = true;
+
     public static final int EqualityDepth = 5;
 
     protected Vertex root;
@@ -157,7 +161,10 @@ public class GraphPattern implements Serializable {
                 computeSpecialInvariant(equalitySet, isSerialized, obj, objectType, itinerary,
                         objId, logInfo, computeEquality, depth);
 
-                // Special process Map/Collection/Array
+                // Recursive processing
+                if (limitGraphPatternDepth && depth >= maxDepth) {
+                    return labelConstraintsChange || structureConstraintsChange;
+                }
 
                 if (obj instanceof Map) {
                     if (checkEqualityWithinRange && containCollectionOrArrayOrMap(itinerary)) {
