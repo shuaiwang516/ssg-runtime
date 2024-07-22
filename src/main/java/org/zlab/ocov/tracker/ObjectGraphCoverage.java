@@ -465,6 +465,11 @@ public class ObjectGraphCoverage implements Serializable {
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId,
             boolean groupByContext) {
+        return merge(otherObjCoverage, "", testId, groupByContext);
+    }
+
+    public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, String identifier,
+            int testId, boolean groupByContext) {
         FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherObjCoverage == null)
             return formatCoverageStatus;
@@ -478,8 +483,12 @@ public class ObjectGraphCoverage implements Serializable {
         mergeSpecialInvariant(otherObjCoverage, formatCoverageStatus);
 
         if (formatCoverageStatus.isChanged()) {
-            Runtime.log(
-                    String.format("[hklog] --- Merged new coverage from testId: %d ---", testId));
+            if (identifier.isEmpty())
+                Runtime.log(
+                        String.format("[hklog] --- Merged new coverage testId: %d ---", testId));
+            else
+                Runtime.log(String.format("[hklog] --- Merged new coverage from: %s testId: %d ---",
+                        identifier, testId));
         }
         return formatCoverageStatus;
     }

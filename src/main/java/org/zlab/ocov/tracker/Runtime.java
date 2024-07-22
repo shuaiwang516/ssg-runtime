@@ -150,8 +150,29 @@ public class Runtime {
     public static Object monitorCreationContext(Object obj, int dumpId, Object contextObject) {
         if (!enable || obj == null || objectCoverage == null)
             return obj;
+        long time1 = System.currentTimeMillis();
         synchronized (objectCoverageLock) {
+            long time2 = System.currentTimeMillis();
+
             objectCoverage.monitorCreationContext(obj, contextObject);
+
+            long time3 = System.currentTimeMillis();
+            if (debug) {
+                double processTime = (time3 - time2) / 1000.;
+                double totalTime = (time3 - time1) / 1000.;
+
+                if (totalTime > 0.01)
+                    log("slow dump id: " + dumpId);
+                // update dumpId2AccumTime
+                if (dumpId2AccumTime.containsKey(dumpId)) {
+                    dumpId2AccumTime.put(dumpId, dumpId2AccumTime.get(dumpId) + totalTime);
+                } else {
+                    dumpId2AccumTime.put(dumpId, totalTime);
+                }
+                log("[debug performance: monitorCreationContext] dumpId = " + dumpId
+                        + "\t, process time = " + processTime + "s" + ", total time = " + totalTime
+                        + "s" + ", accum time = " + dumpId2AccumTime.get(dumpId) + "s");
+            }
         }
         return obj;
     }
@@ -204,9 +225,9 @@ public class Runtime {
                 } else {
                     dumpId2AccumTime.put(dumpId, totalTime);
                 }
-                log("[debug performance] dumpId = " + dumpId + "\t, process time = " + processTime
-                        + "s" + ", total time = " + totalTime + "s" + ", accum time = "
-                        + dumpId2AccumTime.get(dumpId) + "s");
+                log("[debug performance: update] dumpId = " + dumpId + "\t, process time = "
+                        + processTime + "s" + ", total time = " + totalTime + "s"
+                        + ", accum time = " + dumpId2AccumTime.get(dumpId) + "s");
             }
         }
         return obj;
