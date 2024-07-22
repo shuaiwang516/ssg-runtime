@@ -540,7 +540,8 @@ public class ObjectGraphCoverage implements Serializable {
                 GraphPattern graphPattern = classInfo.get(className);
                 if (graphPattern == null) {
                     Runtime.log("[hklog] Add new graphPattern for " + className
-                            + ", context hashcode = " + context.hashCode());
+                            + ", context hashcode = " + context.hashCode() + ", dumpId = "
+                            + dumpId);
                     classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
                     formatCoverageStatus.newFormat = true;
                 } else {
@@ -582,7 +583,8 @@ public class ObjectGraphCoverage implements Serializable {
                 GraphPattern graphPattern = classInfo.get(className);
                 if (graphPattern == null) {
                     Runtime.log("[hklog] Add new graphPattern for " + className
-                            + ", context hashcode = " + context.hashCode());
+                            + ", context hashcode = " + context.hashCode() + ", dumpId = "
+                            + dumpId);
                     long time1 = System.currentTimeMillis();
                     classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
                     long time2 = System.currentTimeMillis();
