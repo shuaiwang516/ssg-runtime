@@ -19,23 +19,19 @@ import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    // ----------------------- Config -----------------------
-    public final static boolean enableInvariantCombination = false;
+    // ----------------------- General Config -----------------------
+    public static final boolean enableInvariantCombination = false;
     // If object with the same addr occur twice, avoid processing it
-    public final static boolean avoidRecordObjectWithSameAddress = false;
-    public final static boolean useContextFromArgs = true;
-    public final static boolean collectContextGraphPattern = true;
+    public static final boolean avoidRecordObjectWithSameAddress = false;
+    public static final boolean useContextFromArgs = true;
+    public static final boolean collectContextGraphPattern = true;
 
-    public final static boolean limitMaxPatternNum = true;
-    public final static int maxPatternNum = 8;
-
-    private final transient boolean useLevenshteinDistance = false;
-    private final transient LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
-    private final int editDistanceThreshold = 600;
+    public static final boolean limitMaxPatternNum = true;
+    public static final int maxPatternNum = 8;
 
     // Use another implementation (more efficient...)
+    private static final double similarityThreshold = 0.5;
     private final transient Map<String, Sketch> sketches = new HashMap<>();
-    private final transient double similarityThreshold = 0.5;
 
     // DumpId -> classname -> graph pattern (Only top objects)
     transient Map<Integer, Map<String, Integer>> dumpId2Context2GroupId = new HashMap<>();
@@ -61,15 +57,15 @@ public class ObjectGraphCoverage implements Serializable {
     private transient final Map<Integer, Integer> dumpId2monitorCount = new HashMap<>();
 
     // Sample if the object if the dump point occur too often
-    private transient final boolean enableSampleMonitorThreshold = true;
-    private transient final int monitorSampleThreshold = 300;
-    private transient final double monitorSampleRate = 0.01;
+    private static final boolean enableSampleMonitorThreshold = true;
+    private static final int monitorSampleThreshold = 300;
+    private static final double monitorSampleRate = 0.01;
 
     // ----------------------- Graph Pattern -----------------------
     private transient final Map<Integer, Integer> dumpId2UpdateCount = new HashMap<>();
-    private transient final boolean enableSampleUpdateThreshold = true;
-    private transient final int updateSampleThreshold = 300;
-    private transient final double updateSampleRate = 0.01;
+    private static final boolean enableSampleUpdateThreshold = true;
+    private static final int updateSampleThreshold = 300;
+    private static final double updateSampleRate = 0.01;
 
     private transient Map<String, Map<String, String>> classInfoOri;
     public transient Map<String, GraphPattern> baseClassInfo;
@@ -306,38 +302,6 @@ public class ObjectGraphCoverage implements Serializable {
             sketch.update(token.getBytes(StandardCharsets.UTF_8));
         }
         sketches.put(context, sketch.compact());
-    }
-
-    // Deprecated!
-    private int getGroupIdEditDistance(int dumpId, String context) {
-        if (!dumpId2Context2GroupId.containsKey(dumpId)) {
-            dumpId2Context2GroupId.put(dumpId, new HashMap<>());
-        }
-        Map<String, Integer> context2GroupId = dumpId2Context2GroupId.get(dumpId);
-        if (context2GroupId.containsKey(context)) {
-            return context2GroupId.get(context);
-        }
-        // Find the closest stack trace
-        int minDistance = Integer.MAX_VALUE;
-        int minGroupId = -1;
-        for (String oriContext : context2GroupId.keySet()) {
-            if (minDistance > levenshteinDistance.apply(context, oriContext)) {
-                minDistance = levenshteinDistance.apply(context, oriContext);
-                minGroupId = context2GroupId.get(oriContext);
-            }
-        }
-        if (minDistance <= editDistanceThreshold) {
-            context2GroupId.put(context, minGroupId);
-            return minGroupId;
-        }
-        // Extract current group id
-        if (!dumpId2CurrentGroupId.containsKey(dumpId)) {
-            dumpId2CurrentGroupId.put(dumpId, 0);
-        }
-        int groupId = dumpId2CurrentGroupId.get(dumpId);
-        dumpId2CurrentGroupId.put(dumpId, groupId + 1);
-        context2GroupId.put(context, groupId);
-        return groupId;
     }
 
     private int getGroupId(int dumpId, String context) {
@@ -611,12 +575,8 @@ public class ObjectGraphCoverage implements Serializable {
                 continue;
 
             // compute group ID
-            int groupId;
-            if (useLevenshteinDistance) {
-                groupId = getGroupIdEditDistance(dumpId, context);
-            } else {
-                groupId = getGroupId(dumpId, context);
-            }
+            int groupId = getGroupId(dumpId, context);
+
             if (!objCoverageWithContext.containsKey(groupId)) {
                 objCoverageWithContext.put(groupId, new HashMap<>());
             }
