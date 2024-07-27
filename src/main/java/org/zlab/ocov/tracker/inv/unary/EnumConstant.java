@@ -72,6 +72,7 @@ public class EnumConstant extends UnaryInvariant {
             // check if the enum constant has been visited
             if (!enumConstants.get(val.getClass().getName()).contains(val.toString())) {
                 enumConstants.get(val.getClass().getName()).add(val.toString());
+                dumpId = logInfo.dumpId;
                 changed = true;
             }
         }
