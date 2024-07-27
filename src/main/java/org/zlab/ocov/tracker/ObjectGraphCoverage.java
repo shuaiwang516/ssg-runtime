@@ -548,11 +548,10 @@ public class ObjectGraphCoverage implements Serializable {
                     continue;
                 GraphPattern graphPattern = classInfo.get(className);
                 if (graphPattern == null) {
-                    Runtime.log("[hklog] Add new graphPattern for " + className
-                            + ", context hashcode = " + context.hashCode() + ", dumpId = "
-                            + dumpId);
                     classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
-                    formatCoverageStatus.newFormat = true;
+                    formatCoverageStatus.setNewFormat(
+                            "Add new graphPattern for " + className + ", context hashcode = "
+                                    + context.hashCode() + ", dumpId = " + dumpId);
                 } else {
                     LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
                     FormatCoverageStatus otherFormatCoverageStatus = graphPattern
@@ -587,9 +586,6 @@ public class ObjectGraphCoverage implements Serializable {
                     continue;
                 GraphPattern graphPattern = classInfo.get(className);
                 if (graphPattern == null) {
-                    Runtime.log("[hklog] Add new graphPattern for " + className
-                            + ", context hashcode = " + context.hashCode() + ", dumpId = "
-                            + dumpId);
                     long time1 = System.currentTimeMillis();
                     classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
                     long time2 = System.currentTimeMillis();
@@ -605,7 +601,9 @@ public class ObjectGraphCoverage implements Serializable {
                                     + ", edge num = "
                                     + otherGraphPattern.getGraph().edgeSet().size());
                     }
-                    formatCoverageStatus.newFormat = true;
+                    formatCoverageStatus.setNewFormat(
+                            "Add new graphPattern for " + className + ", context hashcode = "
+                                    + context.hashCode() + ", dumpId = " + dumpId);
                 } else {
                     LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
                     FormatCoverageStatus otherFormatCoverageStatus = graphPattern
@@ -621,36 +619,36 @@ public class ObjectGraphCoverage implements Serializable {
         if (equalitySet == null) {
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
-                formatCoverageStatus.newFormat = true;
+                formatCoverageStatus.setNewFormat("Add new equalitySet, previous is null");
             }
         } else {
             if (equalitySet.merge(otherObjCoverage.equalitySet)) {
-                formatCoverageStatus.newFormat = true;
+                formatCoverageStatus.setNewFormat("New equalitySet");
             }
         }
         if (isSerialized == null) {
             if (otherObjCoverage.isSerialized != null) {
                 isSerialized = SerializationUtils.clone(otherObjCoverage.isSerialized);
-                formatCoverageStatus.newFormat = true;
+                formatCoverageStatus.setNewFormat("Add new isSerialized, previous is null");
             }
         } else {
             if (isSerialized.merge(otherObjCoverage.isSerialized)) {
-                formatCoverageStatus.newFormat = true;
+                formatCoverageStatus.setNewFormat("New isSerialized");
             }
         }
         if (boundary == null) {
             if (otherObjCoverage.boundary != null) {
                 boundary = SerializationUtils.clone(otherObjCoverage.boundary);
-                formatCoverageStatus.boundaryChange = true;
+                formatCoverageStatus.setNewFormat("Add new boundary, previous is null");
             }
         } else {
             if (boundary.merge(otherObjCoverage.boundary)) {
-                formatCoverageStatus.boundaryChange = true;
+                formatCoverageStatus.setBoundaryChange("New boundary");
             }
         }
         if (enableInvariantCombination
                 && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
-            formatCoverageStatus.newFormat = true;
+            formatCoverageStatus.setNewFormat("invariantCombination");
         }
     }
 

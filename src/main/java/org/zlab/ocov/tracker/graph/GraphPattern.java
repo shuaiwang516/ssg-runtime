@@ -434,7 +434,8 @@ public class GraphPattern implements Serializable {
                 }
                 if (!found) {
                     // Add a new edge => a new format
-                    formatCoverageStatus.newFormat = true;
+                    formatCoverageStatus.setNewFormat("<new edge in ref graph> iti = " + itinerary
+                            + ", edge name = " + edge.name);
                     // Runtime.log("<new node in ref graph> iti = " + itinerary + ", edge name = " +
                     // edge.name);
                     GraphPattern.Vertex newVertex = SerializationUtils

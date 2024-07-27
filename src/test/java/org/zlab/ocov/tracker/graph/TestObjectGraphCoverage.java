@@ -42,23 +42,23 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassForEnum targetClassForEnum = new TargetClass.TargetClassForEnum();
         assert objectGraphCoverage.update(targetClassForEnum);
         assert !objectGraphCoverage.update(targetClassForEnum);
-        assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
-        assert !objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
+        assert !objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
 
         TargetClass.TargetClassForEnum targetClassForEnum1 = new TargetClass.TargetClassForEnum();
         targetClassForEnum1.e = TargetClass.TargetEnum.B;
 
         assert objectGraphCoverage.update(targetClassForEnum1);
         assert !objectGraphCoverage.update(targetClassForEnum1);
-        assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
-        assert !objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
+        assert !objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
 
         TargetClass.TargetClassForEnum targetClassForEnum2 = new TargetClass.TargetClassForEnum();
         targetClassForEnum2.e = TargetClass.TargetEnum.A;
         assert objectGraphCoverage.update(targetClassForEnum2);
         assert !objectGraphCoverage.update(targetClassForEnum2);
-        assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
-        assert !objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
+        assert !objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
     }
 
     @Test
@@ -72,14 +72,14 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
         obj2.fList.add(new TargetClass.TargetClassF1());
         assert (coverage.update(obj2));
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassE obj3 = new TargetClass.TargetClassE();
         TargetClass.TargetClassF1 tmpF31 = new TargetClass.TargetClassF1();
         tmpF31.f1 = 0;
         obj3.fList.add(tmpF31);
         assert (coverage1.update(obj3));
-        assert coverage.merge(coverage1).newFormat;
+        assert coverage.merge(coverage1).isNewFormat();
         // coverage1.objCoverage.get(obj3.getClass().getName()).print();
 
         TargetClass.TargetClassE obj4 = new TargetClass.TargetClassE();
@@ -90,7 +90,7 @@ public class TestObjectGraphCoverage {
         tmpF42.f1 = 0;
         obj4.fList.add(tmpF42);
         assert (coverage1.update(obj4));
-        assert coverage.merge(coverage1).newFormat;
+        assert coverage.merge(coverage1).isNewFormat();
     }
 
     @Test
@@ -122,7 +122,7 @@ public class TestObjectGraphCoverage {
         coverage.inferInvariant();
         status = coverage1.merge(coverage, 0);
         coverage.clear();
-        assert status.newFormat;
+        assert status.isNewFormat();
 
         /* Test2 */
         obj1 = new TargetClass.TargetClassE1();
@@ -136,7 +136,7 @@ public class TestObjectGraphCoverage {
 
         status = coverage1.merge(coverage, 1);
         coverage.clear();
-        assert status.newFormat;
+        assert status.isNewFormat();
 
     }
 
@@ -158,8 +158,8 @@ public class TestObjectGraphCoverage {
         obj3.map.put(1, new TargetClass.TargetClassF1());
         assert (coverage.update(obj3));
 
-        assert coverage1.merge(coverage).newFormat;
-        assert !coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
+        assert !coverage1.merge(coverage).isNewFormat();
     }
 
     @Test
@@ -173,25 +173,25 @@ public class TestObjectGraphCoverage {
 
         TargetClass.TargetClassA obj1 = new TargetClass.TargetClassA();
         assert (coverage.update(obj1));
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassA obj2 = new TargetClass.TargetClassA();
         assert (!coverage.update(obj2));
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassA obj3 = new TargetClass.TargetClassA();
         obj3.bObj.i = 1;
         assert (coverage.update(obj3));
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassD obj4 = new TargetClass.TargetClassD();
         assert (coverage.update(obj4));
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassD obj5 = new TargetClass.TargetClassD();
         obj5.bObj.i = 1;
         assert (coverage.update(obj5));
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
     }
 
     @Test
@@ -207,7 +207,7 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassD obj2 = new TargetClass.TargetClassD();
         obj2.a = 0;
         assert (coverage2.update(obj2));
-        assert coverage1.merge(coverage2).newFormat;
+        assert coverage1.merge(coverage2).isNewFormat();
         // Test itinerary
         // coverage1.objCoverage.get(obj1.getClass().getName()).print();
     }
@@ -229,12 +229,12 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         assert (coverage.update(obj1));
         assert !(coverage.update(obj1));
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassEquality obj2 = new TargetClass.TargetClassEquality();
         obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj2);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
     }
 
     @Test
@@ -257,7 +257,7 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         // 2, 3
         TargetClass.TargetClassEquality obj6 = new TargetClass.TargetClassEquality();
@@ -276,7 +276,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj2);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         // 4, 5
         TargetClass.TargetClassEquality obj3 = new TargetClass.TargetClassEquality();
@@ -284,15 +284,15 @@ public class TestObjectGraphCoverage {
         obj3.targetClassEqualityC.compClass.a = 5;
         coverage.update(obj3);
         coverage.inferInvariant();
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
 
         // obj3--->compClass == obj3--->compClass
         TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
         coverage.update(obj4);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
-        assert !coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
+        assert !coverage1.merge(coverage).isNewFormat();
 
         // test a single graph pattern ser/de
         // DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph =
@@ -325,7 +325,7 @@ public class TestObjectGraphCoverage {
         // 2,3
         TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         // 6,4
         TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
@@ -333,14 +333,14 @@ public class TestObjectGraphCoverage {
         obj4.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj4);
 
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
 
         // 9, 4
         TargetClass.TargetClassEquality obj5 = new TargetClass.TargetClassEquality();
         obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 9;
         obj5.targetClassEqualityC.compClass.a = 4;
         coverage.update(obj5);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
     }
 
     // @Test
@@ -364,7 +364,7 @@ public class TestObjectGraphCoverage {
         obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
         obj4.targetClassEqualityC.compClass.a = 6;
         coverage.update(obj4);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         coverage.update(obj1);
         coverage.update(obj4);
@@ -377,7 +377,7 @@ public class TestObjectGraphCoverage {
 
         coverage.inferInvariant();
 
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
     }
 
     @Test
@@ -403,17 +403,17 @@ public class TestObjectGraphCoverage {
          */
         TargetClass.TargetClassForEnum obj1 = new TargetClass.TargetClassForEnum();
         coverage.update(obj1);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassForEnum obj2 = new TargetClass.TargetClassForEnum();
         obj2.e = TargetClass.TargetEnum.A;
         coverage.update(obj2);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
 
         TargetClass.TargetClassForEnum obj3 = new TargetClass.TargetClassForEnum();
         obj3.e = TargetClass.TargetEnum.A;
         coverage.update(obj3);
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
     }
 
     @Test
@@ -430,13 +430,13 @@ public class TestObjectGraphCoverage {
 
         assert objectGraphCoverage.update(targetClassWithSizeBase);
 
-        assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
 
         TargetClass.TargetClassWithSizeBase targetClassWithSizeBase1 = new TargetClass.TargetClassWithSizeBase();
         targetClassWithSizeBase1.a.size = 0;
 
         assert objectGraphCoverage.update(targetClassWithSizeBase1);
-        assert objectGraphCoverage1.merge(objectGraphCoverage).newFormat;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isNewFormat();
     }
 
     @Test
@@ -476,14 +476,14 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase = new TargetClass.TargetClassAccumulateSizeBase();
 
         assert objectGraphCoverage.update(targetClassAccumulateSizeBase);
-        assert objectGraphCoverage1.merge(objectGraphCoverage).boundaryChange;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isBoundaryChange();
 
         TargetClass.TargetClassAccumulateSizeBase targetClassAccumulateSizeBase1 = new TargetClass.TargetClassAccumulateSizeBase();
         targetClassAccumulateSizeBase1.a.ids.get(0).value = 100;
         targetClassAccumulateSizeBase1.a.ids.get(1).value = 200;
 
         assert objectGraphCoverage.update(targetClassAccumulateSizeBase1);
-        assert objectGraphCoverage1.merge(objectGraphCoverage).boundaryChange;
+        assert objectGraphCoverage1.merge(objectGraphCoverage).isBoundaryChange();
     }
 
     @Test
@@ -503,7 +503,7 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassInvCombinationBase obj = new TargetClass.TargetClassInvCombinationBase();
         coverage.update(obj);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // Test2
@@ -512,7 +512,7 @@ public class TestObjectGraphCoverage {
         obj1.a.value = 0;
         coverage.update(obj1);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // o2: break inv2
@@ -520,7 +520,7 @@ public class TestObjectGraphCoverage {
         obj2.b.value = 1;
         coverage.update(obj2);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // o3: break inv1 and inv2 at the same time
@@ -529,7 +529,7 @@ public class TestObjectGraphCoverage {
         obj3.b.value = 1;
         coverage.update(obj3);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
     }
 
@@ -559,7 +559,7 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassInvCombinationBase obj = new TargetClass.TargetClassInvCombinationBase();
         coverage.update(obj);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // Test1: o1: break inv1
@@ -567,7 +567,7 @@ public class TestObjectGraphCoverage {
         obj1.a.value = 0;
         coverage.update(obj1);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // Test2: o2: break inv2
@@ -575,7 +575,7 @@ public class TestObjectGraphCoverage {
         obj2.b.value = 1;
         coverage.update(obj2);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // Test3: o1 == o2
@@ -583,7 +583,7 @@ public class TestObjectGraphCoverage {
         obj3.a.compClass.a = 4;
         coverage.update(obj3);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // Test4: o1 == o2
@@ -595,7 +595,7 @@ public class TestObjectGraphCoverage {
         obj4.b.value = 1;
         coverage.update(obj4);
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // Test5: o1 == o2
@@ -605,7 +605,7 @@ public class TestObjectGraphCoverage {
         obj5.b.value = 1;
         coverage.update(obj5);
         coverage.inferInvariant();
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
         coverage.clear();
     }
 
@@ -638,7 +638,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj2);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // second equality
@@ -652,7 +652,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj4);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // both equality
@@ -666,7 +666,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj6);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // add it again?
@@ -676,7 +676,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj8);
 
         coverage.inferInvariant();
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
         coverage.clear();
     }
 
@@ -703,7 +703,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj2);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // second equality
@@ -714,7 +714,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj4);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // both equality
@@ -724,7 +724,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj6);
 
         coverage.inferInvariant();
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
         coverage.clear();
 
         // add it again?
@@ -734,7 +734,7 @@ public class TestObjectGraphCoverage {
         coverage.update(obj8);
 
         coverage.inferInvariant();
-        assert !coverage1.merge(coverage).newFormat;
+        assert !coverage1.merge(coverage).isNewFormat();
         coverage.clear();
     }
 
@@ -796,7 +796,7 @@ public class TestObjectGraphCoverage {
         curCoverage.update(obj1);
 
         curCoverage.inferInvariant();
-        assert allCoverage.merge(curCoverage, 0).newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
 
         // test2
@@ -811,7 +811,7 @@ public class TestObjectGraphCoverage {
         curCoverage.update(obj3);
 
         curCoverage.inferInvariant();
-        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        assert !allCoverage.merge(curCoverage, 1).isNewFormat();
         curCoverage.clear();
     }
 
@@ -843,7 +843,7 @@ public class TestObjectGraphCoverage {
         obj.fList.add(1);
 
         curCoverage.update(obj);
-        assert allCoverage.merge(curCoverage, 0).newFormat == newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat() == newFormat;
         curCoverage.clear();
     }
 
@@ -854,7 +854,7 @@ public class TestObjectGraphCoverage {
         obj.fList.add(1);
 
         curCoverage.update(obj);
-        assert allCoverage.merge(curCoverage, 1).newFormat == newFormat;
+        assert allCoverage.merge(curCoverage, 1).isNewFormat() == newFormat;
         curCoverage.clear();
     }
 
@@ -886,7 +886,7 @@ public class TestObjectGraphCoverage {
         obj1.fList.add(1);
 
         curCoverage.update(obj1);
-        assert allCoverage.merge(curCoverage, 0).newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
 
         TargetClass.TargetClassForStacktrace obj2 = new TargetClass.TargetClassForStacktrace();
@@ -896,7 +896,7 @@ public class TestObjectGraphCoverage {
         obj2.fList.add(1);
 
         curCoverage.update(obj2);
-        assert !allCoverage.merge(curCoverage, 0).newFormat;
+        assert !allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
     }
 
@@ -918,7 +918,7 @@ public class TestObjectGraphCoverage {
         obj1.next = child1;
 
         curCoverage.update(obj1);
-        assert allCoverage.merge(curCoverage, 0).newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
 
         TargetClass.TargetClassForLinkedType obj2 = new TargetClass.TargetClassForLinkedType(0);
@@ -927,7 +927,7 @@ public class TestObjectGraphCoverage {
         obj2.next = child2;
 
         curCoverage.update(obj2);
-        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        assert !allCoverage.merge(curCoverage, 1).isNewFormat();
         curCoverage.clear();
     }
 
@@ -949,7 +949,7 @@ public class TestObjectGraphCoverage {
         obj1.children.add(child1);
 
         curCoverage.update(obj1);
-        assert allCoverage.merge(curCoverage, 0).newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
 
         TargetClass.TargetClassForLinkedType1 obj2 = new TargetClass.TargetClassForLinkedType1(0);
@@ -958,7 +958,7 @@ public class TestObjectGraphCoverage {
         obj2.children.add(child2);
 
         curCoverage.update(obj2);
-        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        assert !allCoverage.merge(curCoverage, 1).isNewFormat();
         curCoverage.clear();
     }
 
@@ -981,7 +981,7 @@ public class TestObjectGraphCoverage {
         obj1.children[0] = child1;
 
         curCoverage.update(obj1);
-        assert allCoverage.merge(curCoverage, 0).newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
 
         TargetClass.TargetClassForLinkedType2 obj2 = new TargetClass.TargetClassForLinkedType2(0);
@@ -991,7 +991,7 @@ public class TestObjectGraphCoverage {
         obj2.children[0] = child2;
 
         curCoverage.update(obj2);
-        assert !allCoverage.merge(curCoverage, 1).newFormat;
+        assert !allCoverage.merge(curCoverage, 1).isNewFormat();
         curCoverage.clear();
     }
 
@@ -1014,7 +1014,7 @@ public class TestObjectGraphCoverage {
         obj1.next = child1;
 
         curCoverage.update(obj1);
-        assert allCoverage.merge(curCoverage, 0).newFormat;
+        assert allCoverage.merge(curCoverage, 0).isNewFormat();
         curCoverage.clear();
 
         TargetClass.TargetClassForLinkedType3 obj2 = new TargetClass.TargetClassForLinkedType3(0);
@@ -1024,7 +1024,7 @@ public class TestObjectGraphCoverage {
         obj2.next = child2;
 
         curCoverage.update(obj2);
-        assert allCoverage.merge(curCoverage, 1).newFormat;
+        assert allCoverage.merge(curCoverage, 1).isNewFormat();
         curCoverage.clear();
     }
 
@@ -1046,6 +1046,6 @@ public class TestObjectGraphCoverage {
 
         TargetClass.TargetClassF1 obj1 = new TargetClass.TargetClassF1();
         coverage.update(obj1);
-        assert coverage1.merge(coverage).newFormat;
+        assert coverage1.merge(coverage).isNewFormat();
     }
 }

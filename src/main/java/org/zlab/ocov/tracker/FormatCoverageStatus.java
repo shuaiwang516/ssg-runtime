@@ -9,16 +9,17 @@ import java.io.Serializable;
 public class FormatCoverageStatus implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    public boolean newFormat;
-    public boolean boundaryChange;
+    private boolean newFormat = false;
+    private boolean boundaryChange = false;
 
-    public FormatCoverageStatus() {
-        this(false, false);
+    public void setNewFormat(String log) {
+        Runtime.log("[New format] " + log);
+        this.newFormat = true;
     }
 
-    public FormatCoverageStatus(boolean newFormat, boolean boundaryChange) {
-        this.newFormat = newFormat;
-        this.boundaryChange = boundaryChange;
+    public void setBoundaryChange(String log) {
+        Runtime.log("[New boundary change] " + log);
+        this.boundaryChange = true;
     }
 
     public void incorporate(FormatCoverageStatus other) {
@@ -31,6 +32,14 @@ public class FormatCoverageStatus implements Serializable {
 
     public boolean isChanged() {
         return newFormat || boundaryChange;
+    }
+
+    public boolean isNewFormat() {
+        return newFormat;
+    }
+
+    public boolean isBoundaryChange() {
+        return boundaryChange;
     }
 
     @Override

@@ -40,18 +40,16 @@ public abstract class StructureConstraint implements Serializable {
     public FormatCoverageStatus merge(StructureConstraint otherConstraint, String itinerary,
             LogInfo logInfo) {
         // If this constraint is related to max min, handle it specially
-        boolean newFormat = false;
-        boolean boundaryChanged = false;
+        FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherConstraint != null) {
             assert unaryFormatInvariants.size() == otherConstraint.unaryFormatInvariants.size();
             for (int i = 0; i < unaryFormatInvariants.size(); i++) {
                 if (unaryFormatInvariants.get(i)
                         .merge(otherConstraint.unaryFormatInvariants.get(i))) {
-                    Runtime.log("Broken Structure Format Constraint: " + "context hash = "
-                            + logInfo.contextHashCode + ", "
+                    formatCoverageStatus.setNewFormat("Broken Structure Format Constraint: "
+                            + "context hash = " + logInfo.contextHashCode + ", "
                             + unaryFormatInvariants.get(i).toString() + ", itinerary = "
                             + itinerary);
-                    newFormat = true;
                 }
             }
 
@@ -59,15 +57,14 @@ public abstract class StructureConstraint implements Serializable {
             for (int i = 0; i < unaryBoundaryInvariants.size(); i++) {
                 if (unaryBoundaryInvariants.get(i)
                         .merge(otherConstraint.unaryBoundaryInvariants.get(i))) {
-                    Runtime.log("Broken Structure Boundary Constraint: " + "context hash = "
-                            + logInfo.contextHashCode + ", "
+                    formatCoverageStatus.setBoundaryChange("Broken Structure Boundary Constraint: "
+                            + "context hash = " + logInfo.contextHashCode + ", "
                             + unaryBoundaryInvariants.get(i).toString() + ", itinerary = "
                             + itinerary);
-                    boundaryChanged = true;
                 }
             }
         }
-        return new FormatCoverageStatus(newFormat, boundaryChanged);
+        return formatCoverageStatus;
     }
 
     public void reset() {

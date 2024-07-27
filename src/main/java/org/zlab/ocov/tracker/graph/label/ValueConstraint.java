@@ -37,21 +37,19 @@ public class ValueConstraint extends LabelConstraint {
             assert unaryFormatInvariants.size() == other.unaryFormatInvariants.size();
             for (int i = 0; i < unaryFormatInvariants.size(); i++) {
                 if (unaryFormatInvariants.get(i).merge(other.unaryFormatInvariants.get(i))) {
-                    Runtime.log("Broken Value Format Constraint: " + "context hash = "
-                            + logInfo.contextHashCode + ", "
+                    formatCoverageStatus.setNewFormat("Broken Value Format Constraint: "
+                            + "context hash = " + logInfo.contextHashCode + ", "
                             + unaryFormatInvariants.get(i).toString() + ", " + "itinerary = "
                             + itinerary);
-                    formatCoverageStatus.newFormat = true;
                 }
             }
             assert unaryBoundaryInvariants.size() == other.unaryBoundaryInvariants.size();
             for (int i = 0; i < unaryBoundaryInvariants.size(); i++) {
                 if (unaryBoundaryInvariants.get(i).merge(other.unaryBoundaryInvariants.get(i))) {
-                    Runtime.log("Broken Value Boundary Constraint: " + "context hash = "
-                            + logInfo.contextHashCode + ", "
+                    formatCoverageStatus.setBoundaryChange("Broken Value Boundary Constraint: "
+                            + "context hash = " + logInfo.contextHashCode + ", "
                             + unaryBoundaryInvariants.get(i).toString() + ", " + "itinerary = "
                             + itinerary);
-                    formatCoverageStatus.boundaryChange = true;
                 }
             }
         }

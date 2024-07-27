@@ -56,6 +56,7 @@ public class BoundaryWithCollection implements Serializable {
     }
 
     public FormatCoverageStatus merge(BoundaryWithCollection other) {
+        FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         boolean changed = false;
         for (Map.Entry<Integer, Map<Boolean, Set<Integer>>> entry : other.boundaryInvariant
                 .entrySet()) {
@@ -69,12 +70,10 @@ public class BoundaryWithCollection implements Serializable {
                 changed |= collectionSet.addAll(entry2.getValue());
             }
         }
-        if (changed) {
-            Runtime.log("<BoundaryWithCollection Status Change>");
-        } else {
-            Runtime.log("<BoundaryWithCollection Status Unchanged>");
-        }
-        return new FormatCoverageStatus(false, changed);
+        if (changed)
+            formatCoverageStatus.setBoundaryChange("<BoundaryWithCollection Status Change>");
+
+        return formatCoverageStatus;
     }
 
     public static class RecordCollection implements Serializable {

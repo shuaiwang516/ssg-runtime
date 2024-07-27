@@ -84,7 +84,8 @@ public class RuntimeTest {
                 Runtime.log("objectGraphCoverage is null, directly copy the response");
                 testId++;
                 objectGraphCoverage = response;
-                newCov = new FormatCoverageStatus(true, true);
+                newCov = new FormatCoverageStatus();
+                newCov.setNewFormat("First test");
             } else {
                 // Add a break point here for checking
                 newCov = objectGraphCoverage.merge(response, testId++, true);
