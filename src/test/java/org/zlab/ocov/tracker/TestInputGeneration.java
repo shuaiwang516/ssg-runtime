@@ -456,6 +456,33 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createExampleInputForInheritedField() {
+        TestHelper helper = new TestHelper("InheritedField");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInheritedFields", "a", "int");
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInheritedFields1", "b", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForInheritedFields1");
+
+        helper.save();
+    }
+
+    // TargetClassForInheritedPrivateField1
+    @Test
+    public void createExampleInputForInheritedFieldsPrivateField() {
+        TestHelper helper = new TestHelper("InheritedPrivateField");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInheritedPrivateField", "a", "String");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInheritedPrivateField1", "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForInheritedPrivateField1");
+
+        helper.save();
+    }
     public static class TestHelper {
         public Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         public Set<String> topObjects = new HashSet<>();

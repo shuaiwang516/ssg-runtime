@@ -4,9 +4,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.zlab.ocov.Utils;
-import org.zlab.ocov.tracker.EqualitySet;
-import org.zlab.ocov.tracker.FormatCoverageStatus;
-import org.zlab.ocov.tracker.IsSerialize;
+import org.zlab.ocov.tracker.*;
 import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
@@ -365,31 +363,53 @@ public class GraphPattern implements Serializable {
                     try {
                         Class<?> currentClass = obj.getClass();
                         while (currentClass != Object.class) { // Traverse up the class hierarchy
-                            Field[] fields = currentClass.getDeclaredFields();
-                            for (Field field : fields) {
-                                // skip static or final fields
-                                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()))
-                                    continue;
-                                field.setAccessible(true);
-                                // Field Information
-                                Object value = field.get(obj);
-                                String fieldName = field.getName();
-                                if (value == obj || fieldName.equals("this$0")) {
-                                    continue;
-                                }
-                                Set<GraphPattern.Edge> outgoingEdges = new HashSet<>(
-                                        graphPattern.graph.outgoingEdgesOf(this));
-                                for (GraphPattern.Edge patternEdge : outgoingEdges) {
-                                    if (patternEdge.name.equals(fieldName)) {
-                                        GraphPattern.Vertex target = graphPattern.graph
-                                                .getEdgeTarget(patternEdge);
-                                        if (target.update(value, graphPattern, graphPatternMap,
-                                                logInfo, equalitySet, isSerialized, brokenInvs,
-                                                objId, computeEquality)) {
-                                            subGraphPatternChange = true;
+                            // TODO: quick check about the class: skip it if it's not recorded!
+                            if (ObjectGraphCoverage.classInfoOri
+                                    .containsKey(currentClass.getName())) {
+                                String currentClassName = currentClass.getName();
+                                Field[] fields = currentClass.getDeclaredFields();
+                                for (Field field : fields) {
+                                    // skip static or final fields
+                                    if (java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+                                        continue;
+                                    field.setAccessible(true);
+                                    // Field Information
+                                    Object value = field.get(obj);
+                                    String fieldName = field.getName();
+                                    if (value == obj || fieldName.equals("this$0")) {
+                                        continue;
+                                    }
+                                    Set<GraphPattern.Edge> outgoingEdges = new HashSet<>(
+                                            graphPattern.graph.outgoingEdgesOf(this));
+                                    boolean found = false;
+                                    String edgeName = currentClassName + ":" + fieldName;
+                                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                                        if (patternEdge.name.equals(edgeName)) {
+                                            found = true;
+                                            GraphPattern.Vertex target = graphPattern.graph
+                                                    .getEdgeTarget(patternEdge);
+                                            if (target.update(value, graphPattern, graphPatternMap,
+                                                    logInfo, equalitySet, isSerialized, brokenInvs,
+                                                    objId, computeEquality)) {
+                                                subGraphPatternChange = true;
+                                            }
+                                            break;
                                         }
-                                        // there should only be one edge with the same name
-                                        break;
+                                    }
+                                    if (!found
+                                            && ObjectGraphCoverage.classInfoOri
+                                                    .containsKey(currentClassName)
+                                            && ObjectGraphCoverage.classInfoOri
+                                                    .get(currentClassName).containsKey(fieldName)) {
+                                        String fieldType = ObjectGraphCoverage.classInfoOri
+                                                .get(currentClassName).get(fieldName);
+                                        // if it does not exist, add it
+                                        GraphPattern.Vertex newVertex = addVertexWithEdge(fieldName,
+                                                fieldType, currentClassName, graphPattern);
+                                        if (newVertex.update(value, graphPattern, graphPatternMap,
+                                                logInfo, equalitySet, isSerialized, brokenInvs,
+                                                objId, computeEquality))
+                                            subGraphPatternChange = true;
                                     }
                                 }
                             }
@@ -727,58 +747,61 @@ public class GraphPattern implements Serializable {
             GraphPattern graphPattern = new GraphPattern(className);
             for (String fieldName : classInfoOri.get(className).keySet()) {
                 String fieldType = classInfoOri.get(className).get(fieldName);
-                // Create the vertex and edge
-                Edge edge = new Edge(fieldName);
-
-                String itinerary = className + "." + fieldName;
-
-                Vertex vertex = createVertex(fieldType, itinerary);
-                graphPattern.graph.addVertex(vertex);
-                graphPattern.graph.addEdge(graphPattern.root, vertex, edge);
-                if (Utils.isPrimitiveType(fieldType)) {
-                    // Do nothing
-                } else if (isCollection(fieldType)) {
-                    Vertex collectionItemVertex = createVertex("ObjectPlaceHolder",
-                            itinerary + ".collection_item");
-                    graphPattern.graph.addVertex(collectionItemVertex);
-                    graphPattern.graph.addEdge(vertex, collectionItemVertex,
-                            new Edge("collection_item"));
-
-                    // Special handle the first/last item if there's order
-                    if (specialHandleFirstLastItem && isCollectionWithOrder(fieldType)) {
-                        Vertex firstItemVertex = createVertex("ObjectPlaceHolder",
-                                itinerary + ".collection_firstItem");
-                        graphPattern.graph.addVertex(firstItemVertex);
-                        graphPattern.graph.addEdge(vertex, firstItemVertex,
-                                new Edge("collection_firstItem"));
-
-                        Vertex lastItemVertex = createVertex("ObjectPlaceHolder",
-                                itinerary + ".collection_lastItem");
-                        graphPattern.graph.addVertex(lastItemVertex);
-                        graphPattern.graph.addEdge(vertex, lastItemVertex,
-                                new Edge("collection_lastItem"));
-                    }
-                } else if (isMap(fieldType)) {
-                    Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder",
-                            itinerary + ".map_keyItem");
-                    graphPattern.graph.addVertex(mapKeyItemVertex);
-                    graphPattern.graph.addEdge(vertex, mapKeyItemVertex, new Edge("map_keyItem"));
-
-                    Vertex mapValueItemVertex = createVertex("ObjectPlaceHolder",
-                            itinerary + ".map_valueItem");
-                    graphPattern.graph.addVertex(mapValueItemVertex);
-                    graphPattern.graph.addEdge(vertex, mapValueItemVertex,
-                            new Edge("map_valueItem"));
-                } else if (isArray(fieldType)) {
-                    Vertex arrayItemVertex = createVertex("ObjectPlaceHolder",
-                            itinerary + ".array_item");
-                    graphPattern.graph.addVertex(arrayItemVertex);
-                    graphPattern.graph.addEdge(vertex, arrayItemVertex, new Edge("array_item"));
-                }
+                addVertexWithEdge(fieldName, fieldType, className, graphPattern);
             }
             graphPatterns.put(className, graphPattern);
         }
         return graphPatterns;
+    }
+
+    public static Vertex addVertexWithEdge(String fieldName, String fieldType, String className,
+            GraphPattern graphPattern) {
+        // We should also store the className to handle the situation when Base class
+        // and the extended class have the fields with the same name but different types
+        // See testInheritedPrivateField
+        Edge edge = new Edge(className + ":" + fieldName);
+
+        String itinerary = className + "." + fieldName;
+
+        Vertex vertex = createVertex(fieldType, itinerary);
+        graphPattern.graph.addVertex(vertex);
+        graphPattern.graph.addEdge(graphPattern.root, vertex, edge);
+        if (Utils.isPrimitiveType(fieldType)) {
+            // Do nothing
+        } else if (isCollection(fieldType)) {
+            Vertex collectionItemVertex = createVertex("ObjectPlaceHolder",
+                    itinerary + ".collection_item");
+            graphPattern.graph.addVertex(collectionItemVertex);
+            graphPattern.graph.addEdge(vertex, collectionItemVertex, new Edge("collection_item"));
+
+            // Special handle the first/last item if there's order
+            if (specialHandleFirstLastItem && isCollectionWithOrder(fieldType)) {
+                Vertex firstItemVertex = createVertex("ObjectPlaceHolder",
+                        itinerary + ".collection_firstItem");
+                graphPattern.graph.addVertex(firstItemVertex);
+                graphPattern.graph.addEdge(vertex, firstItemVertex,
+                        new Edge("collection_firstItem"));
+
+                Vertex lastItemVertex = createVertex("ObjectPlaceHolder",
+                        itinerary + ".collection_lastItem");
+                graphPattern.graph.addVertex(lastItemVertex);
+                graphPattern.graph.addEdge(vertex, lastItemVertex, new Edge("collection_lastItem"));
+            }
+        } else if (isMap(fieldType)) {
+            Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder", itinerary + ".map_keyItem");
+            graphPattern.graph.addVertex(mapKeyItemVertex);
+            graphPattern.graph.addEdge(vertex, mapKeyItemVertex, new Edge("map_keyItem"));
+
+            Vertex mapValueItemVertex = createVertex("ObjectPlaceHolder",
+                    itinerary + ".map_valueItem");
+            graphPattern.graph.addVertex(mapValueItemVertex);
+            graphPattern.graph.addEdge(vertex, mapValueItemVertex, new Edge("map_valueItem"));
+        } else if (isArray(fieldType)) {
+            Vertex arrayItemVertex = createVertex("ObjectPlaceHolder", itinerary + ".array_item");
+            graphPattern.graph.addVertex(arrayItemVertex);
+            graphPattern.graph.addEdge(vertex, arrayItemVertex, new Edge("array_item"));
+        }
+        return vertex;
     }
 
     public static void printGraph(Vertex startVertex, Graph<Vertex, Edge> graph) {

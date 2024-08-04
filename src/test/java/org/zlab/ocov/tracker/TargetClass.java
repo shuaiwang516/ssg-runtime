@@ -304,6 +304,27 @@ public class TargetClass {
         }
     }
 
+    public static class TargetClassForInheritedFields {
+        public int a = 0;
+    }
+
+    public static class TargetClassForInheritedFields1 extends TargetClassForInheritedFields {
+        public int b = 0;
+    }
+
+    public static class TargetClassForInheritedPrivateField {
+        private String a = "Hello World!";
+    }
+
+    public static class TargetClassForInheritedPrivateField1
+            extends
+                TargetClassForInheritedPrivateField {
+        private int a = 0;
+        public void changeA(int a) {
+            this.a = a;
+        }
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

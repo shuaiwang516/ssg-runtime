@@ -1048,4 +1048,45 @@ public class TestObjectGraphCoverage {
         coverage.update(obj1);
         assert coverage1.merge(coverage).isNewFormat();
     }
+
+    @Test
+    public void testInheritedField() {
+        String suffix = "InheritedField";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                null);
+
+        TargetClass.TargetClassForInheritedFields1 obj1 = new TargetClass.TargetClassForInheritedFields1();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage).isNewFormat();
+
+        TargetClass.TargetClassForInheritedFields1 obj2 = new TargetClass.TargetClassForInheritedFields1();
+        obj2.a = 1;
+        coverage.update(obj2);
+        assert coverage1.merge(coverage).isNewFormat();
+    }
+
+    @Test
+    public void testInheritedPrivateField() {
+        String suffix = "InheritedPrivateField";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                null);
+
+        TargetClass.TargetClassForInheritedPrivateField1 obj1 = new TargetClass.TargetClassForInheritedPrivateField1();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage).isNewFormat();
+
+        TargetClass.TargetClassForInheritedPrivateField1 obj2 = new TargetClass.TargetClassForInheritedPrivateField1();
+        obj2.changeA(1);
+        coverage.update(obj2);
+        assert coverage1.merge(coverage).isNewFormat();
+    }
+
 }

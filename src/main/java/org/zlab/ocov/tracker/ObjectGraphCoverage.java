@@ -67,7 +67,12 @@ public class ObjectGraphCoverage implements Serializable {
     private static final int updateSampleThreshold = 300;
     private static final double updateSampleRate = 0.01;
 
-    private transient Map<String, Map<String, String>> classInfoOri;
+    // This should only be used when collecting format coverage
+    // In upfuzz, there could be new and old classInfo at the same time
+    // Solution: store a reference in Vertex, make it transient and copy it
+    // when clone
+    // FIXME: potential conflicts!
+    public static Map<String, Map<String, String>> classInfoOri;
     public transient Map<String, GraphPattern> baseClassInfo;
     public transient Set<String> topObjects;
 
