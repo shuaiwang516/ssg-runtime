@@ -16,7 +16,7 @@ public class Runtime {
     public static boolean enable = true;
 
     // Debug
-    public static boolean enableCreationContextMonitor = true;
+    public static boolean enableCreationContextMonitor = false;
     public static boolean enableUpdate = true;
 
     public static boolean enableBoundaryCheck = false;
