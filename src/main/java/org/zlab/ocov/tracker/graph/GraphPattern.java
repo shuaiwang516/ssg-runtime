@@ -86,9 +86,10 @@ public class GraphPattern implements Serializable {
         }
 
         public boolean update(Object obj, GraphPattern graphPattern,
-                Map<String, GraphPattern> graphPatternMap, LogInfo logInfo, EqualitySet equalitySet,
-                IsSerialize isSerialized, Set<String> brokenInvs, int objId,
-                boolean computeEquality) {
+                Map<String, GraphPattern> graphPatternMap,
+                Map<String, Map<String, String>> classInfoOri, LogInfo logInfo,
+                EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs,
+                int objId, boolean computeEquality) {
             // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
             // + itinerary
             // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId
@@ -123,7 +124,7 @@ public class GraphPattern implements Serializable {
                     if (target.type.equals(objectType)) {
                         found = true;
                         subGraphPatternChange = target.update(obj, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs, objId,
                                 computeEquality);
                     }
                 }
@@ -145,8 +146,9 @@ public class GraphPattern implements Serializable {
                         // Connect two graphs
                         GraphPattern.Edge newEdge = new GraphPattern.Edge(objectType);
                         graphPattern.graph.addEdge(this, subGraphPattern.root, newEdge);
-                        subGraphPattern.root.update(obj, graphPattern, graphPatternMap, logInfo,
-                                equalitySet, isSerialized, brokenInvs, objId, computeEquality);
+                        subGraphPattern.root.update(obj, graphPattern, graphPatternMap,
+                                classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                computeEquality);
                         subGraphPatternChange = true;
                     } else {
                         // We won't further track, but still need to process this object
@@ -201,8 +203,8 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId,
-                                    computeEquality))
+                                    classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs,
+                                    objId, computeEquality))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -225,8 +227,8 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId,
-                                    computeEquality))
+                                    classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs,
+                                    objId, computeEquality))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -261,15 +263,15 @@ public class GraphPattern implements Serializable {
                     if (collectionFirstItemVertex != null) {
                         Object firstItem = getFirstItemFromCollectionWithOrder(obj);
                         if (collectionFirstItemVertex.update(firstItem, graphPattern,
-                                graphPatternMap, logInfo, equalitySet, isSerialized, brokenInvs,
-                                objId, computeEquality))
+                                graphPatternMap, classInfoOri, logInfo, equalitySet, isSerialized,
+                                brokenInvs, objId, computeEquality))
                             subGraphPatternChange = true;
                         firstItemUpdated = true;
                     }
                     if (collectionLastItemVertex != null) {
                         Object lastItem = getLastItemFromCollectionWithOrder(obj);
                         if (collectionLastItemVertex.update(lastItem, graphPattern, graphPatternMap,
-                                logInfo, equalitySet, isSerialized, brokenInvs, objId,
+                                classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs, objId,
                                 computeEquality))
                             subGraphPatternChange = true;
                         lastItemUpdated = true;
@@ -306,14 +308,15 @@ public class GraphPattern implements Serializable {
                             if (onlyCheckEqualityForBoundary) {
                                 // skip this equality computation
                                 if (collectionItemVertex.update(object, graphPattern,
-                                        graphPatternMap, logInfo, equalitySet, isSerialized,
-                                        brokenInvs, objId, computeEquality && !collectionWithOrder))
+                                        graphPatternMap, classInfoOri, logInfo, equalitySet,
+                                        isSerialized, brokenInvs, objId,
+                                        computeEquality && !collectionWithOrder))
                                     subGraphPatternChange = true;
                             } else {
                                 // compute equality for all objects
                                 if (collectionItemVertex.update(object, graphPattern,
-                                        graphPatternMap, logInfo, equalitySet, isSerialized,
-                                        brokenInvs, objId, computeEquality))
+                                        graphPatternMap, classInfoOri, logInfo, equalitySet,
+                                        isSerialized, brokenInvs, objId, computeEquality))
                                     subGraphPatternChange = true;
                             }
 
@@ -353,8 +356,8 @@ public class GraphPattern implements Serializable {
                                 continue;
                             }
                             if (arrayItemVertex.update(object, graphPattern, graphPatternMap,
-                                    logInfo, equalitySet, isSerialized, brokenInvs, objId,
-                                    computeEquality && checkEqualityForArray))
+                                    classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs,
+                                    objId, computeEquality && checkEqualityForArray))
                                 subGraphPatternChange = true;
                         }
                     }
@@ -364,8 +367,7 @@ public class GraphPattern implements Serializable {
                         Class<?> currentClass = obj.getClass();
                         while (currentClass != Object.class) { // Traverse up the class hierarchy
                             // TODO: quick check about the class: skip it if it's not recorded!
-                            if (ObjectGraphCoverage.classInfoOri
-                                    .containsKey(currentClass.getName())) {
+                            if (classInfoOri.containsKey(currentClass.getName())) {
                                 String currentClassName = currentClass.getName();
                                 Field[] fields = currentClass.getDeclaredFields();
                                 for (Field field : fields) {
@@ -389,26 +391,25 @@ public class GraphPattern implements Serializable {
                                             GraphPattern.Vertex target = graphPattern.graph
                                                     .getEdgeTarget(patternEdge);
                                             if (target.update(value, graphPattern, graphPatternMap,
-                                                    logInfo, equalitySet, isSerialized, brokenInvs,
-                                                    objId, computeEquality)) {
+                                                    classInfoOri, logInfo, equalitySet,
+                                                    isSerialized, brokenInvs, objId,
+                                                    computeEquality)) {
                                                 subGraphPatternChange = true;
                                             }
                                             break;
                                         }
                                     }
-                                    if (!found
-                                            && ObjectGraphCoverage.classInfoOri
-                                                    .containsKey(currentClassName)
-                                            && ObjectGraphCoverage.classInfoOri
-                                                    .get(currentClassName).containsKey(fieldName)) {
-                                        String fieldType = ObjectGraphCoverage.classInfoOri
-                                                .get(currentClassName).get(fieldName);
+                                    if (!found && classInfoOri.containsKey(currentClassName)
+                                            && classInfoOri.get(currentClassName)
+                                                    .containsKey(fieldName)) {
+                                        String fieldType = classInfoOri.get(currentClassName)
+                                                .get(fieldName);
                                         // if it does not exist, add it
                                         GraphPattern.Vertex newVertex = addVertexWithEdge(fieldName,
                                                 fieldType, currentClassName, graphPattern);
                                         if (newVertex.update(value, graphPattern, graphPatternMap,
-                                                logInfo, equalitySet, isSerialized, brokenInvs,
-                                                objId, computeEquality))
+                                                classInfoOri, logInfo, equalitySet, isSerialized,
+                                                brokenInvs, objId, computeEquality))
                                             subGraphPatternChange = true;
                                     }
                                 }
@@ -518,10 +519,17 @@ public class GraphPattern implements Serializable {
         graph.addVertex(root);
     }
 
-    public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap, LogInfo logInfo,
-            EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
-        return root.update(obj, this, graphPatternMap, logInfo, equalitySet, isSerialized,
-                brokenInvs, objId, true);
+    public boolean update(Object obj, Map<String, GraphPattern> graphPatternMap,
+            Map<String, Map<String, String>> classInfoOri, LogInfo logInfo, EqualitySet equalitySet,
+            IsSerialize isSerialized, Set<String> brokenInvs, int objId) {
+        // Runtime.log("[debug] root update vertex: dumpId = " + logInfo.dumpId + ", iti
+        // = "
+        // + root.itinerary + ", current time = " + System.currentTimeMillis() + ",
+        // objId = "
+        // + objId + ", obj class = " + (obj == null ? "null" :
+        // obj.getClass().getName()));
+        return root.update(obj, this, graphPatternMap, classInfoOri, logInfo, equalitySet,
+                isSerialized, brokenInvs, objId, true);
     }
 
     public FormatCoverageStatus merge(GraphPattern other, LogInfo logInfo) {
@@ -762,7 +770,6 @@ public class GraphPattern implements Serializable {
         Edge edge = new Edge(className + ":" + fieldName);
 
         String itinerary = className + "." + fieldName;
-
         Vertex vertex = createVertex(fieldType, itinerary);
         graphPattern.graph.addVertex(vertex);
         graphPattern.graph.addEdge(graphPattern.root, vertex, edge);

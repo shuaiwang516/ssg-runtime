@@ -67,14 +67,9 @@ public class ObjectGraphCoverage implements Serializable {
     private static final int updateSampleThreshold = 300;
     private static final double updateSampleRate = 0.01;
 
-    // This should only be used when collecting format coverage
-    // In upfuzz, there could be new and old classInfo at the same time
-    // Solution: store a reference in Vertex, make it transient and copy it
-    // when clone
-    // FIXME: potential conflicts!
-    public static Map<String, Map<String, String>> classInfoOri;
-    public transient Map<String, GraphPattern> baseClassInfo;
-    public transient Set<String> topObjects;
+    private transient Map<String, Map<String, String>> classInfoOri;
+    private transient Map<String, GraphPattern> baseClassInfo;
+    private transient Set<String> topObjects;
 
     public ObjectGraphCoverage() {
         // for json
@@ -361,8 +356,8 @@ public class ObjectGraphCoverage implements Serializable {
         Set<String> brokenInvs = new HashSet<>();
         LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
 
-        boolean changed = classInfo.update(obj, baseClassInfo, logInfo, equalitySet, isSerialized,
-                brokenInvs, objId);
+        boolean changed = classInfo.update(obj, baseClassInfo, classInfoOri, logInfo, equalitySet,
+                isSerialized, brokenInvs, objId);
 
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
             invariantCombination.record(objId, brokenInvs);
@@ -387,8 +382,8 @@ public class ObjectGraphCoverage implements Serializable {
         Set<String> brokenInvs = new HashSet<>();
         LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
 
-        boolean changed = classInfo.update(obj, baseClassInfo, logInfo, equalitySet, isSerialized,
-                brokenInvs, objId);
+        boolean changed = classInfo.update(obj, baseClassInfo, classInfoOri, logInfo, equalitySet,
+                isSerialized, brokenInvs, objId);
 
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
             invariantCombination.record(objId, brokenInvs);
