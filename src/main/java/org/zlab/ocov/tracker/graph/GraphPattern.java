@@ -90,10 +90,11 @@ public class GraphPattern implements Serializable {
                 Map<String, Map<String, String>> classInfoOri, LogInfo logInfo,
                 EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs,
                 int objId, boolean computeEquality) {
-            // Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
-            // + itinerary
-            // + ", current time = " + System.currentTimeMillis() + ", objId = " + objId
-            // + ", obj class = " + (obj == null ? "null" : obj.getClass().getName()));
+            if (Runtime.debug)
+                Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
+                        + itinerary + ", current time = " + System.currentTimeMillis()
+                        + ", objId = " + objId + ", obj class = "
+                        + (obj == null ? "null" : obj.getClass().getName()));
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
