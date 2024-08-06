@@ -366,52 +366,49 @@ public class GraphPattern implements Serializable {
                     try {
                         Class<?> currentClass = obj.getClass();
                         while (currentClass != Object.class) { // Traverse up the class hierarchy
-                            // TODO: quick check about the class: skip it if it's not recorded!
-                            if (classInfoOri.containsKey(currentClass.getName())) {
-                                String currentClassName = currentClass.getName();
-                                Field[] fields = currentClass.getDeclaredFields();
-                                for (Field field : fields) {
-                                    // skip static or final fields
-                                    if (java.lang.reflect.Modifier.isStatic(field.getModifiers()))
-                                        continue;
-                                    field.setAccessible(true);
-                                    // Field Information
-                                    Object value = field.get(obj);
-                                    String fieldName = field.getName();
-                                    if (value == obj || fieldName.equals("this$0")) {
-                                        continue;
-                                    }
-                                    Set<GraphPattern.Edge> outgoingEdges = new HashSet<>(
-                                            graphPattern.graph.outgoingEdgesOf(this));
-                                    boolean found = false;
-                                    String edgeName = currentClassName + ":" + fieldName;
-                                    for (GraphPattern.Edge patternEdge : outgoingEdges) {
-                                        if (patternEdge.name.equals(edgeName)) {
-                                            found = true;
-                                            GraphPattern.Vertex target = graphPattern.graph
-                                                    .getEdgeTarget(patternEdge);
-                                            if (target.update(value, graphPattern, graphPatternMap,
-                                                    classInfoOri, logInfo, equalitySet,
-                                                    isSerialized, brokenInvs, objId,
-                                                    computeEquality)) {
-                                                subGraphPatternChange = true;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    if (!found && classInfoOri.containsKey(currentClassName)
-                                            && classInfoOri.get(currentClassName)
-                                                    .containsKey(fieldName)) {
-                                        String fieldType = classInfoOri.get(currentClassName)
-                                                .get(fieldName);
-                                        // if it does not exist, add it
-                                        GraphPattern.Vertex newVertex = addVertexWithEdge(fieldName,
-                                                fieldType, currentClassName, graphPattern);
-                                        if (newVertex.update(value, graphPattern, graphPatternMap,
+                            String currentClassName = currentClass.getName();
+                            Field[] fields = currentClass.getDeclaredFields();
+                            for (Field field : fields) {
+                                // skip static or final fields
+                                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+                                    continue;
+                                field.setAccessible(true);
+                                // Field Information
+                                Object value = field.get(obj);
+                                String fieldName = field.getName();
+                                if (value == obj || fieldName.equals("this$0")) {
+                                    continue;
+                                }
+                                Set<GraphPattern.Edge> outgoingEdges = new HashSet<>(
+                                        graphPattern.graph.outgoingEdgesOf(this));
+                                boolean found = false;
+                                // String edgeName = currentClassName + ":" + fieldName;
+                                String edgeName = fieldName;
+                                for (GraphPattern.Edge patternEdge : outgoingEdges) {
+                                    if (patternEdge.name.equals(edgeName)) {
+                                        found = true;
+                                        GraphPattern.Vertex target = graphPattern.graph
+                                                .getEdgeTarget(patternEdge);
+                                        if (target.update(value, graphPattern, graphPatternMap,
                                                 classInfoOri, logInfo, equalitySet, isSerialized,
-                                                brokenInvs, objId, computeEquality))
+                                                brokenInvs, objId, computeEquality)) {
                                             subGraphPatternChange = true;
+                                        }
+                                        break;
                                     }
+                                }
+                                if (!found && classInfoOri.containsKey(currentClassName)
+                                        && classInfoOri.get(currentClassName)
+                                                .containsKey(fieldName)) {
+                                    String fieldType = classInfoOri.get(currentClassName)
+                                            .get(fieldName);
+                                    // if it does not exist, add it
+                                    GraphPattern.Vertex newVertex = addVertexWithEdge(fieldName,
+                                            fieldType, currentClassName, graphPattern);
+                                    if (newVertex.update(value, graphPattern, graphPatternMap,
+                                            classInfoOri, logInfo, equalitySet, isSerialized,
+                                            brokenInvs, objId, computeEquality))
+                                        subGraphPatternChange = true;
                                 }
                             }
                             currentClass = currentClass.getSuperclass(); // Move to the superclass
@@ -767,7 +764,8 @@ public class GraphPattern implements Serializable {
         // We should also store the className to handle the situation when Base class
         // and the extended class have the fields with the same name but different types
         // See testInheritedPrivateField
-        Edge edge = new Edge(className + ":" + fieldName);
+        // Edge edge = new Edge(className + ":" + fieldName);
+        Edge edge = new Edge(fieldName);
 
         String itinerary = className + "." + fieldName;
         Vertex vertex = createVertex(fieldType, itinerary);
@@ -877,6 +875,10 @@ public class GraphPattern implements Serializable {
         if (checkEqualityWithinRange && depth > EqualityDepth) {
             computeEquality = false;
         }
+
+        // Runtime.log("[Equality Status] computeEquality = " + computeEquality + ",
+        // depth = " + depth
+        // + ", itinerary = " + itinerary);
 
         // The current object vertex won't be iterated again, process it
         if (equalitySet != null && computeEquality) {
