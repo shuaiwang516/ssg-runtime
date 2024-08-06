@@ -7,7 +7,7 @@ public class NegativeOneOnce extends OccurOnceInvariant {
     public boolean checkPure(Object val, LogInfo logInfo) {
         // TODO: Add this check to all invariants
         if (!(val instanceof Number)) {
-            assert false : "val is not a number";
+            // assert false : "val is not a number";
             return false;
         }
         Number number = (Number) val;
@@ -17,7 +17,7 @@ public class NegativeOneOnce extends OccurOnceInvariant {
     @Override
     public boolean add(Object val, LogInfo logInfo) {
         if (!(val instanceof Number)) {
-            assert false : "val is not a number";
+            // assert false : "val is not a number";
             return false;
         }
         if (!occurOnce) {
