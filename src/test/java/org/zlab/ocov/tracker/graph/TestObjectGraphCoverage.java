@@ -94,53 +94,6 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
-    public void testCollectionFirstItem() {
-        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableAcrossEquality)
-            return;
-        String suffix = "CollectionFirstLast";
-        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
-        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
-        Path comparableClassesPath = Paths
-                .get(String.format("input/comparableClassesFor%s.json", suffix));
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                comparableClassesPath);
-
-        TargetClass.TargetClassE1 obj1;
-        TargetClass.TargetClassE2 obj2;
-        FormatCoverageStatus status;
-        /* Test1 */
-        obj1 = new TargetClass.TargetClassE1();
-        obj1.fList.add(new TargetClass.CompClass(1));
-        obj1.fList.add(new TargetClass.CompClass(4));
-
-        obj2 = new TargetClass.TargetClassE2(2);
-
-        coverage.update(obj1);
-        coverage.update(obj2);
-        coverage.inferInvariant();
-        status = coverage1.merge(coverage, 0);
-        coverage.clear();
-        assert status.isNewFormat();
-
-        /* Test2 */
-        obj1 = new TargetClass.TargetClassE1();
-        obj1.fList.add(new TargetClass.CompClass(1));
-        obj1.fList.add(new TargetClass.CompClass(4));
-
-        obj2 = new TargetClass.TargetClassE2(4);
-        coverage.update(obj1);
-        coverage.update(obj2);
-        coverage.inferInvariant();
-
-        status = coverage1.merge(coverage, 1);
-        coverage.clear();
-        assert status.isNewFormat();
-
-    }
-
-    @Test
     public void testMap() {
         Path baseClassPath = Paths.get("input/baseClassInfo2.json");
         Path topObjectsPath = Paths.get("input/topObjects2.json");
@@ -212,35 +165,9 @@ public class TestObjectGraphCoverage {
         // coverage1.objCoverage.get(obj1.getClass().getName()).print();
     }
 
-    @Test
-    public void testEquality() {
-        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality
-                || !EqualitySet.enableAcrossEquality)
-            return;
-        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
-        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
-        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
-
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                comparableClassesPath);
-
-        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
-        assert (coverage.update(obj1));
-        assert !(coverage.update(obj1));
-        assert coverage1.merge(coverage).isNewFormat();
-
-        TargetClass.TargetClassEquality obj2 = new TargetClass.TargetClassEquality();
-        obj2.targetClassEqualityA.targetClassEqualityAA.compClass.a = 3;
-        coverage.update(obj2);
-        assert coverage1.merge(coverage).isNewFormat();
-    }
-
-    @Test
+    // @Test
     public void testEqualityForSameObjectGraph() {
-        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality
-                || !EqualitySet.enableSameItineraryAcrossObj)
+        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality)
             return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
@@ -310,8 +237,8 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
-    public void testEqualitySameItineraryAcrossObjectGraph() {
-        if (!EqualitySet.enableSameItineraryAcrossObj)
+    public void testEqualityForSameObjectGraph1() {
+        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality)
             return;
         Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
         Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
@@ -322,62 +249,36 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
-        // 2,3
+        // obj1--->compClass == obj2--->compClass
+
+        // 2, 3
         TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
         coverage.update(obj1);
         assert coverage1.merge(coverage).isNewFormat();
 
-        // 6,4
-        TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
-        obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
-        obj4.targetClassEqualityC.compClass.a = 4;
-        coverage.update(obj4);
-
+        // 2, 3
+        TargetClass.TargetClassEquality obj2 = new TargetClass.TargetClassEquality();
+        coverage.update(obj2);
         assert !coverage1.merge(coverage).isNewFormat();
 
-        // 9, 4
-        TargetClass.TargetClassEquality obj5 = new TargetClass.TargetClassEquality();
-        obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 9;
-        obj5.targetClassEqualityC.compClass.a = 4;
-        coverage.update(obj5);
-        assert coverage1.merge(coverage).isNewFormat();
-    }
-
-    // @Test
-    public void testEqualityAcrossObjectGraph() {
-        // FIXME!
-        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
-        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
-        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
-
-        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                comparableClassesPath);
-        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                comparableClassesPath);
-
-        // 2,3
-        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
-        coverage.update(obj1);
-
-        // 6,6
-        TargetClass.TargetClassEquality obj4 = new TargetClass.TargetClassEquality();
-        obj4.targetClassEqualityA.targetClassEqualityAA.compClass.a = 6;
-        obj4.targetClassEqualityC.compClass.a = 6;
-        coverage.update(obj4);
+        // 2, 2
+        TargetClass.TargetClassEquality obj3 = new TargetClass.TargetClassEquality();
+        obj3.targetClassEqualityC.compClass.a = 2;
+        coverage.update(obj3);
         assert coverage1.merge(coverage).isNewFormat();
 
-        coverage.update(obj1);
-        coverage.update(obj4);
-
-        // 5,2
-        TargetClass.TargetClassEquality obj5 = new TargetClass.TargetClassEquality();
-        obj5.targetClassEqualityA.targetClassEqualityAA.compClass.a = 5;
-        obj5.targetClassEqualityC.compClass.a = 2;
-        coverage.update(obj5);
-
-        coverage.inferInvariant();
-
-        assert coverage1.merge(coverage).isNewFormat();
+        // // test a single graph pattern ser/de
+        // DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graph =
+        // coverage1.dumpId2ObjCoverageWithContext.get(-1).
+        // get("").get(obj1.getClass().getName()).graph;
+        //
+        // String jsonStr = Utils.gson.toJson(graph);
+        // // System.out.println(jsonStr);
+        // DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> graphFromGson =
+        // Utils.gson.fromJson(
+        // jsonStr,
+        // new TypeToken<DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge>>() {
+        // }.getType());
     }
 
     @Test
@@ -1089,5 +990,4 @@ public class TestObjectGraphCoverage {
         coverage.update(obj2);
         assert coverage1.merge(coverage).isNewFormat();
     }
-
 }

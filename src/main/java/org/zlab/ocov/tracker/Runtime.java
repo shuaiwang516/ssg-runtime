@@ -41,6 +41,7 @@ public class Runtime {
     public static Path branch2CollectionPath = Paths.get("/tmp/branch2Collection.json");
 
     public static Path filePath = Paths.get("/tmp/coverage.log");
+    // public static Path filePath = Paths.get("/var/log/cassandra/coverage.log");
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -188,6 +189,10 @@ public class Runtime {
 
         if (!enableUpdate)
             return obj;
+
+        if (debug)
+            Runtime.log("dumpId: " + dumpId + ", obj type = : " + obj.getClass().getName()
+                    + ", hashcode = " + System.identityHashCode(obj));
 
         long time1 = System.currentTimeMillis();
 

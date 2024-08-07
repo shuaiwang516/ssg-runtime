@@ -36,7 +36,7 @@ public class ObjectGraphCoverage implements Serializable {
     // DumpId -> classname -> graph pattern (Only top objects)
     transient Map<Integer, Map<String, Integer>> dumpId2Context2GroupId = new HashMap<>();
     transient Map<Integer, Integer> dumpId2CurrentGroupId = new HashMap<>();
-    transient Map<Integer, Map<Integer, Map<String, GraphPattern>>> accumDumpId2ObjCoverageWithContext = new HashMap<>();
+    public transient Map<Integer, Map<Integer, Map<String, GraphPattern>>> accumDumpId2ObjCoverageWithContext = new HashMap<>();
 
     // Runtime: collector side
     public Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
@@ -365,7 +365,7 @@ public class ObjectGraphCoverage implements Serializable {
 
         // This equality also includes the context objects
         if (equalitySet != null)
-            equalitySet.dumpSameObjectGraph(dumpId, objId);
+            equalitySet.dumpSameObjectGraph(dumpId);
 
         return changed;
     }
@@ -405,8 +405,6 @@ public class ObjectGraphCoverage implements Serializable {
 
     public void inferInvariant() {
         // this should be invoked for every test
-        if (equalitySet != null)
-            equalitySet.infer();
         if (enableInvariantCombination)
             invariantCombination.infer(equalitySet);
     }
