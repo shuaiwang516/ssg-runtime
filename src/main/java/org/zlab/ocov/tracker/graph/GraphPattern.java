@@ -43,8 +43,8 @@ public class GraphPattern implements Serializable {
      * If an array length is larger than this value, we sample values from the array
      */
     private static final boolean useFixedSampleSize = true;
-    private static final int maxArrayLength = 20;
-    private static final int arraySampleSize = 20;
+    private static final int maxArrayLength = 10;
+    private static final int arraySampleSize = 10;
     private static final double arraySampleRate = 0.01;
 
     public static class Vertex implements Serializable {
@@ -404,8 +404,8 @@ public class GraphPattern implements Serializable {
                                     String fieldType = classInfoOri.get(currentClassName)
                                             .get(fieldName);
                                     // if it does not exist, add it
-                                    GraphPattern.Vertex newVertex = addVertexWithEdge(fieldName,
-                                            fieldType, currentClassName, graphPattern);
+                                    GraphPattern.Vertex newVertex = addVertexWithEdge(fieldType,
+                                            graphPattern, this, edgeName);
                                     if (newVertex.update(value, graphPattern, graphPatternMap,
                                             classInfoOri, logInfo, equalitySet, isSerialized,
                                             brokenInvs, objId, computeEquality))
@@ -753,35 +753,36 @@ public class GraphPattern implements Serializable {
             GraphPattern graphPattern = new GraphPattern(className);
             for (String fieldName : classInfoOri.get(className).keySet()) {
                 String fieldType = classInfoOri.get(className).get(fieldName);
-                addVertexWithEdge(fieldName, fieldType, className, graphPattern);
+                addVertexWithEdge(fieldType, graphPattern, graphPattern.root, fieldName);
             }
             graphPatterns.put(className, graphPattern);
         }
         return graphPatterns;
     }
 
-    public static Vertex addVertexWithEdge(String fieldName, String fieldType, String className,
-            GraphPattern graphPattern) {
+    public static Vertex addVertexWithEdge(String vertexType, GraphPattern graphPattern,
+            Vertex parentVertex, String edgeName) {
         // We should also store the className to handle the situation when Base class
         // and the extended class have the fields with the same name but different types
         // See testInheritedPrivateField
         // Edge edge = new Edge(className + ":" + fieldName);
-        Edge edge = new Edge(fieldName);
 
-        String itinerary = className + "." + fieldName;
-        Vertex vertex = createVertex(fieldType, itinerary);
+        Edge edge = new Edge(edgeName);
+
+        String itinerary = parentVertex.itinerary + "." + edgeName;
+        Vertex vertex = createVertex(vertexType, itinerary);
         graphPattern.graph.addVertex(vertex);
-        graphPattern.graph.addEdge(graphPattern.root, vertex, edge);
-        if (Utils.isPrimitiveType(fieldType)) {
+        graphPattern.graph.addEdge(parentVertex, vertex, edge);
+        if (Utils.isPrimitiveType(vertexType)) {
             // Do nothing
-        } else if (isCollection(fieldType)) {
+        } else if (isCollection(vertexType)) {
             Vertex collectionItemVertex = createVertex("ObjectPlaceHolder",
                     itinerary + ".collection_item");
             graphPattern.graph.addVertex(collectionItemVertex);
             graphPattern.graph.addEdge(vertex, collectionItemVertex, new Edge("collection_item"));
 
             // Special handle the first/last item if there's order
-            if (specialHandleFirstLastItem && isCollectionWithOrder(fieldType)) {
+            if (specialHandleFirstLastItem && isCollectionWithOrder(vertexType)) {
                 Vertex firstItemVertex = createVertex("ObjectPlaceHolder",
                         itinerary + ".collection_firstItem");
                 graphPattern.graph.addVertex(firstItemVertex);
@@ -793,7 +794,7 @@ public class GraphPattern implements Serializable {
                 graphPattern.graph.addVertex(lastItemVertex);
                 graphPattern.graph.addEdge(vertex, lastItemVertex, new Edge("collection_lastItem"));
             }
-        } else if (isMap(fieldType)) {
+        } else if (isMap(vertexType)) {
             Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder", itinerary + ".map_keyItem");
             graphPattern.graph.addVertex(mapKeyItemVertex);
             graphPattern.graph.addEdge(vertex, mapKeyItemVertex, new Edge("map_keyItem"));
@@ -802,7 +803,7 @@ public class GraphPattern implements Serializable {
                     itinerary + ".map_valueItem");
             graphPattern.graph.addVertex(mapValueItemVertex);
             graphPattern.graph.addEdge(vertex, mapValueItemVertex, new Edge("map_valueItem"));
-        } else if (isArray(fieldType)) {
+        } else if (isArray(vertexType)) {
             Vertex arrayItemVertex = createVertex("ObjectPlaceHolder", itinerary + ".array_item");
             graphPattern.graph.addVertex(arrayItemVertex);
             graphPattern.graph.addEdge(vertex, arrayItemVertex, new Edge("array_item"));

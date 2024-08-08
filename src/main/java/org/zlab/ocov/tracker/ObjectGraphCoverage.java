@@ -1,7 +1,6 @@
 package org.zlab.ocov.tracker;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.apache.datasketches.theta.Sketch;
 import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.UpdateSketch;
@@ -58,14 +57,14 @@ public class ObjectGraphCoverage implements Serializable {
 
     // Sample if the object if the dump point occur too often
     private static final boolean enableSampleMonitorThreshold = true;
-    private static final int monitorSampleThreshold = 300;
-    private static final double monitorSampleRate = 0.01;
+    private static final int monitorSampleThreshold = 100;
+    private static final double monitorSampleRate = 0.001;
 
     // ----------------------- Graph Pattern -----------------------
     private transient final Map<Integer, Integer> dumpId2UpdateCount = new HashMap<>();
     private static final boolean enableSampleUpdateThreshold = true;
-    private static final int updateSampleThreshold = 300;
-    private static final double updateSampleRate = 0.01;
+    private static final int updateSampleThreshold = 100;
+    private static final double updateSampleRate = 0.001;
 
     private transient Map<String, Map<String, String>> classInfoOri;
     private transient Map<String, GraphPattern> baseClassInfo;
@@ -247,6 +246,10 @@ public class ObjectGraphCoverage implements Serializable {
             return false;
         }
         dumpId2UpdateCount.put(dumpId, dumpId2UpdateCount.get(dumpId) + 1);
+
+        if (Runtime.debug)
+            Runtime.log("[ObjectGraphCoverage.update] dumpId: " + dumpId + ", obj type = : "
+                    + obj.getClass().getName() + ", hashcode = " + System.identityHashCode(obj));
 
         boolean changed = false;
         if (collectContextGraphPattern) {

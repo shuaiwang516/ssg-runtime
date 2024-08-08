@@ -12,6 +12,8 @@ import java.util.*;
 
 public class Runtime {
     public static final boolean debug = false;
+    public static final boolean debugTimeUsage = false;
+
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
 
@@ -165,7 +167,7 @@ public class Runtime {
         objectCoverage.monitorCreationContext(obj, contextObject, dumpId);
 
         long time2 = System.currentTimeMillis();
-        if (debug) {
+        if (debug && debugTimeUsage) {
             double totalTime = (time2 - time1) / 1000.;
 
             if (totalTime > 5)
@@ -191,8 +193,8 @@ public class Runtime {
             return obj;
 
         if (debug)
-            Runtime.log("dumpId: " + dumpId + ", obj type = : " + obj.getClass().getName()
-                    + ", hashcode = " + System.identityHashCode(obj));
+            Runtime.log("[Runtime.update] dumpId: " + dumpId + ", obj type = : "
+                    + obj.getClass().getName() + ", hashcode = " + System.identityHashCode(obj));
 
         long time1 = System.currentTimeMillis();
 
@@ -206,7 +208,7 @@ public class Runtime {
             objectCoverage.update(obj, dumpId, contextArgs);
 
             long time3 = System.currentTimeMillis();
-            if (debug) {
+            if (debug && debugTimeUsage) {
                 double processTime = (time3 - time2) / 1000.;
                 double totalTime = (time3 - time1) / 1000.;
 
