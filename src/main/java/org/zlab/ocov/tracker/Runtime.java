@@ -21,7 +21,7 @@ public class Runtime {
     public static boolean enableCreationContextMonitor = false;
     public static boolean enableUpdate = true;
 
-    public static boolean enableBoundaryCheck = false;
+    public static boolean enableBoundaryCheck = true;
     public static boolean enableEqualityLikelyInvariant = true;
     public static final String enableEnvName = "ENABLE_FORMAT_COVERAGE";
     public static final String enableSampleEnvName = "ENABLE_FORMAT_COVERAGE_SAMPLE";
