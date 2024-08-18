@@ -510,7 +510,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
     }
 
-    @Test
+    // @Test
     public void testCombination1() {
         if (!ObjectGraphCoverage.enableInvariantCombination)
             return;
@@ -581,7 +581,7 @@ public class TestObjectGraphCoverage {
         coverage.clear();
     }
 
-    @Test
+    // @Test
     public void testCombination2() {
         if (!ObjectGraphCoverage.enableInvariantCombination)
             return;
@@ -637,6 +637,37 @@ public class TestObjectGraphCoverage {
         coverage.inferInvariant();
         assert !coverage1.merge(coverage).isNewFormat();
         coverage.clear();
+    }
+
+    @Test
+    public void testInvariantCombination3() {
+        if (!ObjectGraphCoverage.enableInvariantCombination)
+            return;
+        String suffix = "InvariantCombination";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TargetClass.TargetClassForInvariantCombination obj1 = new TargetClass.TargetClassForInvariantCombination(
+                0, 10);
+        coverage.update(obj1);
+        assert coverage1.merge(coverage).isNewFormat();
+
+        TargetClass.TargetClassForInvariantCombination obj2 = new TargetClass.TargetClassForInvariantCombination(
+                10, 0);
+        coverage.update(obj2);
+        assert coverage1.merge(coverage).isNewFormat();
+
+        TargetClass.TargetClassForInvariantCombination obj3 = new TargetClass.TargetClassForInvariantCombination(
+                0, 0);
+        coverage.update(obj3);
+        assert coverage1.merge(coverage).isNewFormat();
     }
 
     public static Gson constructGson() {

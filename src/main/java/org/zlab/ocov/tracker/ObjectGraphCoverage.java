@@ -407,9 +407,6 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public void inferInvariant() {
-        // this should be invoked for every test
-        if (enableInvariantCombination)
-            invariantCombination.infer(equalitySet);
     }
 
     // Not in use as we create a new ObjectGraphCoverage for each test

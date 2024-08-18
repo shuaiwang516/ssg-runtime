@@ -238,6 +238,16 @@ public class TargetClass {
         }
     }
 
+    public static class TargetClassForInvariantCombination {
+        public int f1;
+        public int f2;
+
+        public TargetClassForInvariantCombination(int f1, int f2) {
+            this.f1 = f1;
+            this.f2 = f2;
+        }
+    }
+
     public static class TargetClassMultiEqualBase {
         public TargetClassMultiEqualA a = new TargetClassMultiEqualA();
         public TargetClassMultiEqualB b = new TargetClassMultiEqualB();
