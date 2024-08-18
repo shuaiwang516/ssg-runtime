@@ -11,6 +11,7 @@ import org.zlab.ocov.tracker.graph.structure.InDegreeConstraint;
 import org.zlab.ocov.tracker.graph.structure.OutDegreeConstraint;
 import org.zlab.ocov.tracker.graph.structure.StructureConstraint;
 import org.zlab.ocov.tracker.inv.Invariant;
+import org.zlab.ocov.tracker.inv.InvariantBrokenFrequency;
 import org.zlab.ocov.tracker.inv.unary.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,7 @@ import org.zlab.ocov.tracker.Runtime;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TestObjectGraphCoverage {
 
@@ -1020,5 +1020,29 @@ public class TestObjectGraphCoverage {
         obj2.changeA(1);
         coverage.update(obj2);
         assert coverage1.merge(coverage).isNewFormat();
+    }
+
+    @Test
+    public void testFrequencyComputing() {
+        InvariantBrokenFrequency frequency = new InvariantBrokenFrequency();
+
+        // Test1
+        Map<Integer, Set<String>> brokenInvs = new HashMap<>();
+        brokenInvs.put(1, new HashSet<>(Arrays.asList("inv1", "inv3")));
+        frequency.update(brokenInvs);
+
+        // Test2
+        brokenInvs = new HashMap<>();
+        brokenInvs.put(1, new HashSet<>(Arrays.asList("inv2", "inv3")));
+        frequency.update(brokenInvs);
+
+        // Test3
+        brokenInvs = new HashMap<>();
+        brokenInvs.put(1, new HashSet<>(Arrays.asList("inv3")));
+        frequency.update(brokenInvs);
+
+        Map<Integer, Set<String>> result = frequency.getMostInfrequentInvariants(2);
+        assert result.get(1).contains("inv1");
+        assert result.get(1).contains("inv2");
     }
 }
