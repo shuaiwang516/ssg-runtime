@@ -88,7 +88,7 @@ public class RuntimeTest {
                 newCov.setNewFormat("First test");
             } else {
                 // Add a break point here for checking
-                newCov = objectGraphCoverage.merge(response, testId++, true);
+                newCov = objectGraphCoverage.merge(response, testId++, true, true);
             }
             System.out.println("newCov = " + newCov);
             out.close();

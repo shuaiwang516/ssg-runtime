@@ -1,5 +1,7 @@
 package org.zlab.ocov.tracker.inv;
 
+import org.zlab.ocov.tracker.InvariantCombination;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -25,6 +27,23 @@ public class InvariantBrokenFrequency implements Serializable {
             return "Entry{" + "dumpId=" + dumpId + ", inv='" + inv + '\'' + ", brokenCount="
                     + brokenCount + '}';
         }
+    }
+
+    public void update(InvariantCombination invCombination) {
+        if (invCombination == null) {
+            return;
+        }
+        Map<Integer, Set<Set<String>>> dumpId2BrokenInv = invCombination.dumpId2BrokenInv;
+        Map<Integer, Set<String>> brokenInvs = new HashMap<>();
+        for (Map.Entry<Integer, Set<Set<String>>> entry : dumpId2BrokenInv.entrySet()) {
+            int dumpId = entry.getKey();
+            Set<String> brokenInvSet = new HashSet<>();
+            for (Set<String> invSet : entry.getValue()) {
+                brokenInvSet.addAll(invSet);
+            }
+            brokenInvs.put(dumpId, brokenInvSet);
+        }
+        update(brokenInvs);
     }
 
     public void update(Map<Integer, Set<String>> brokenInvs) {

@@ -37,6 +37,35 @@ public class InvariantCombination implements Serializable {
         return changed;
     }
 
+    // With frequency filtering
+    public boolean merge(InvariantCombination other,
+            Map<Integer, Set<String>> invariantBrokenLessFrequently) {
+        boolean changed = false;
+        for (Map.Entry<Integer, Set<Set<String>>> entry : other.dumpId2BrokenInv.entrySet()) {
+            int dumpId = entry.getKey();
+            if (!dumpId2BrokenInv.containsKey(dumpId)) {
+                dumpId2BrokenInv.put(dumpId, new HashSet<>());
+            }
+
+            for (Set<String> brokenInvSet : entry.getValue()) {
+                if (dumpId2BrokenInv.get(dumpId).contains(brokenInvSet))
+                    continue;
+                if (!changed) {
+                    Set<String> intersection = new HashSet<>(brokenInvSet);
+                    intersection.retainAll(invariantBrokenLessFrequently.get(dumpId));
+                    if (!intersection.isEmpty()) {
+                        // A new set related to likely invariant broken infrequently
+                        changed = true;
+                    }
+                }
+
+                // add it anyway
+                dumpId2BrokenInv.get(dumpId).add(brokenInvSet);
+            }
+        }
+        return changed;
+    }
+
     public void clear() {
         dumpId2BrokenInv.clear();
     }

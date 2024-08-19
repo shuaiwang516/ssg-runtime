@@ -6,6 +6,7 @@ import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.*;
+import org.zlab.ocov.tracker.inv.InvariantBrokenFrequency;
 import org.zlab.ocov.tracker.inv.unary.*;
 
 import java.io.Serializable;
@@ -19,7 +20,6 @@ public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     // ----------------------- General Config -----------------------
-    public static final boolean enableInvariantCombination = false;
     // If object with the same addr occur twice, avoid processing it
     public static final boolean avoidRecordObjectWithSameAddress = false;
     public static final boolean useContextFromArgs = true;
@@ -45,7 +45,13 @@ public class ObjectGraphCoverage implements Serializable {
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
     public Boundary boundary;
+
+    public static final boolean enableInvariantCombination = false;
+    public static final boolean enableInvariantCombinationWithFrequency = false;
+
     public InvariantCombination invariantCombination;
+    public static final int topNLessFrequentBrokenInvariant = 5;
+    public transient InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
 
     // ----------------------- Runtime -----------------------
     public transient Set<Integer> visitedObjects = new HashSet<>();
@@ -430,20 +436,20 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {
-        return merge(otherObjCoverage, -1, false);
+        return merge(otherObjCoverage, -1, false, false);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId) {
-        return merge(otherObjCoverage, testId, false);
+        return merge(otherObjCoverage, testId, false, false);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId,
-            boolean groupByContext) {
-        return merge(otherObjCoverage, "", testId, groupByContext);
+            boolean groupByContext, boolean updateInvariantBrokenFrequency) {
+        return merge(otherObjCoverage, "", testId, groupByContext, updateInvariantBrokenFrequency);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, String identifier,
-            int testId, boolean groupByContext) {
+            int testId, boolean groupByContext, boolean updateInvariantBrokenFrequency) {
         FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherObjCoverage == null)
             return formatCoverageStatus;
@@ -454,7 +460,8 @@ public class ObjectGraphCoverage implements Serializable {
             mergeTopGraphPatternWithoutGrouping(otherObjCoverage, formatCoverageStatus);
         }
 
-        mergeSpecialInvariant(otherObjCoverage, formatCoverageStatus);
+        mergeSpecialInvariant(otherObjCoverage, formatCoverageStatus,
+                updateInvariantBrokenFrequency);
 
         if (formatCoverageStatus.isChanged()) {
             if (identifier.isEmpty())
@@ -613,7 +620,7 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     private void mergeSpecialInvariant(ObjectGraphCoverage otherObjCoverage,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, boolean updateInvariantBrokenFrequency) {
         if (equalitySet == null) {
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
@@ -644,9 +651,19 @@ public class ObjectGraphCoverage implements Serializable {
                 formatCoverageStatus.setBoundaryChange("New boundary");
             }
         }
-        if (enableInvariantCombination
-                && invariantCombination.merge(otherObjCoverage.invariantCombination)) {
-            formatCoverageStatus.setNewFormat("invariantCombination");
+
+        if (enableInvariantCombination) {
+            if (enableInvariantCombinationWithFrequency && updateInvariantBrokenFrequency) {
+                // Update frequency
+                invariantBrokenFrequency.update(otherObjCoverage.invariantCombination);
+                if (invariantCombination.merge(otherObjCoverage.invariantCombination,
+                        invariantBrokenFrequency
+                                .getMostInfrequentInvariants(topNLessFrequentBrokenInvariant)))
+                    formatCoverageStatus.setNewFormat("invariantCombination");
+            } else {
+                if (invariantCombination.merge(otherObjCoverage.invariantCombination))
+                    formatCoverageStatus.setNewFormat("invariantCombination");
+            }
         }
     }
 
