@@ -30,7 +30,8 @@ public class InvariantCombination implements Serializable {
                 dumpId2BrokenInv.put(dumpId, new HashSet<>());
             }
             if (dumpId2BrokenInv.get(dumpId).addAll(entry.getValue())) {
-                Runtime.log("<Invariant Combination>: new broken invariants added");
+                Runtime.log("<Invariant Combination>: new combinations, dumpId=" + dumpId
+                        + ", new combination = " + entry.getValue());
                 changed = true;
             }
         }
@@ -50,11 +51,13 @@ public class InvariantCombination implements Serializable {
             for (Set<String> brokenInvSet : entry.getValue()) {
                 if (dumpId2BrokenInv.get(dumpId).contains(brokenInvSet))
                     continue;
-                if (!changed) {
+                if (!changed && invariantBrokenLessFrequently.containsKey(dumpId)) {
                     Set<String> intersection = new HashSet<>(brokenInvSet);
                     intersection.retainAll(invariantBrokenLessFrequently.get(dumpId));
                     if (!intersection.isEmpty()) {
-                        // A new set related to likely invariant broken infrequently
+                        Runtime.log(
+                                "<Invariant Combination with Frequency>: new combinations, dumpId="
+                                        + dumpId + ", new combination = " + entry.getValue());
                         changed = true;
                     }
                 }
