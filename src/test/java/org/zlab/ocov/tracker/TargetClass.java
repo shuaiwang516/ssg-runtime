@@ -248,6 +248,18 @@ public class TargetClass {
         }
     }
 
+    public static class TargetClassForInvariantCombinationWithFrequency {
+        public int f0;
+        public int f1;
+        public int f2;
+
+        public TargetClassForInvariantCombinationWithFrequency(int f0, int f1, int f2) {
+            this.f0 = f0;
+            this.f1 = f1;
+            this.f2 = f2;
+        }
+    }
+
     public static class TargetClassMultiEqualBase {
         public TargetClassMultiEqualA a = new TargetClassMultiEqualA();
         public TargetClassMultiEqualB b = new TargetClassMultiEqualB();

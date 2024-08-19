@@ -305,11 +305,15 @@ public class TestObjectGraphCoverage {
         TargetClass.TargetClassForEnum obj1 = new TargetClass.TargetClassForEnum();
         coverage.update(obj1);
         assert coverage1.merge(coverage).isNewFormat();
+        coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, comparableClassesPath,
+                modifiedFieldsPath, modifiedEnumsPath);
 
         TargetClass.TargetClassForEnum obj2 = new TargetClass.TargetClassForEnum();
         obj2.e = TargetClass.TargetEnum.A;
         coverage.update(obj2);
         assert coverage1.merge(coverage).isNewFormat();
+        coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, comparableClassesPath,
+                modifiedFieldsPath, modifiedEnumsPath);
 
         TargetClass.TargetClassForEnum obj3 = new TargetClass.TargetClassForEnum();
         obj3.e = TargetClass.TargetEnum.A;
@@ -1044,5 +1048,50 @@ public class TestObjectGraphCoverage {
         Map<Integer, Set<String>> result = frequency.getMostInfrequentInvariants(2);
         assert result.get(1).contains("inv1");
         assert result.get(1).contains("inv2");
+    }
+
+    @Test
+    public void testInvariantCombinationWithFrequency() {
+        if (!ObjectGraphCoverage.enableInvariantCombination
+                || !ObjectGraphCoverage.enableInvariantCombinationWithFrequency)
+            return;
+        String suffix = "InvariantCombinationWithFrequency";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        coverage1.topNLessFrequentBrokenInvariant = 2;
+
+        // inv1: a = 0 5
+        // inv2: a = 1 4
+        // inv3: b = 0 5
+        // inv4: b = 1 4
+        // inv5: c = 0 9
+        // inv6: c = 1 0
+
+        for (int i = 0; i < 4; i++) {
+            TargetClass.TargetClassForInvariantCombinationWithFrequency obj1 = new TargetClass.TargetClassForInvariantCombinationWithFrequency(
+                    0, 1, 0);
+            coverage.update(obj1);
+            coverage1.merge(coverage, 1, true, true);
+            coverage.clear();
+
+            TargetClass.TargetClassForInvariantCombinationWithFrequency obj2 = new TargetClass.TargetClassForInvariantCombinationWithFrequency(
+                    1, 0, 0);
+            coverage.update(obj2);
+            coverage1.merge(coverage, 1, true, true);
+            coverage.clear();
+        }
+
+        TargetClass.TargetClassForInvariantCombinationWithFrequency obj3 = new TargetClass.TargetClassForInvariantCombinationWithFrequency(
+                0, 0, 0);
+        coverage.update(obj3);
+        assert !coverage1.merge(coverage, 3, true, true).isNewFormat();
+        coverage.clear();
     }
 }

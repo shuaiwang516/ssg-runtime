@@ -50,7 +50,7 @@ public class ObjectGraphCoverage implements Serializable {
     public static final boolean enableInvariantCombinationWithFrequency = false;
 
     public InvariantCombination invariantCombination;
-    public static final int topNLessFrequentBrokenInvariant = 5;
+    public int topNLessFrequentBrokenInvariant = 5;
     public transient InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
 
     // ----------------------- Runtime -----------------------
@@ -369,7 +369,7 @@ public class ObjectGraphCoverage implements Serializable {
                 isSerialized, brokenInvs, objId);
 
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
-            invariantCombination.record(objId, brokenInvs);
+            invariantCombination.record(dumpId, brokenInvs);
         }
 
         // This equality also includes the context objects
