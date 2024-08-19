@@ -395,7 +395,7 @@ public class ObjectGraphCoverage implements Serializable {
                 isSerialized, brokenInvs, objId);
 
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
-            invariantCombination.record(objId, brokenInvs);
+            invariantCombination.record(dumpId, brokenInvs);
         }
     }
 
