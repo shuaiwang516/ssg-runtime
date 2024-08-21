@@ -368,13 +368,13 @@ public class ObjectGraphCoverage implements Serializable {
         boolean changed = classInfo.update(obj, baseClassInfo, classInfoOri, logInfo, equalitySet,
                 isSerialized, brokenInvs, objId);
 
+        // This equality also includes the context objects
+        if (equalitySet != null)
+            equalitySet.dumpSameObjectGraph(dumpId, brokenInvs);
+
         if (!brokenInvs.isEmpty() && enableInvariantCombination) {
             invariantCombination.record(dumpId, brokenInvs);
         }
-
-        // This equality also includes the context objects
-        if (equalitySet != null)
-            equalitySet.dumpSameObjectGraph(dumpId);
 
         return changed;
     }

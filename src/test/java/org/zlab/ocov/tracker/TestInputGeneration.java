@@ -516,6 +516,23 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createExampleInputForInvariantCombination4() {
+        TestHelper helper = new TestHelper("InvariantCombination4");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInvariantCombination4", "a", "int");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInvariantCombination4", "b1",
+                classPrefix + "CompClass");
+        helper.addBaseClassInfo(classPrefix + "TargetClassForInvariantCombination4", "b2",
+                classPrefix + "CompClass");
+
+        helper.addComparableClass(classPrefix + "CompClass");
+
+        helper.addTopObject(classPrefix + "TargetClassForInvariantCombination4");
+        helper.save();
+    }
+
     public static class TestHelper {
         public Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         public Set<String> topObjects = new HashSet<>();

@@ -79,7 +79,7 @@ public class EqualitySet implements Serializable {
         }
     }
 
-    public void dumpSameObjectGraph(int dumpId) {
+    public void dumpSameObjectGraph(int dumpId, Set<String> brokenInvs) {
         if (equalSetSameObj.isEmpty())
             return;
 
@@ -88,7 +88,14 @@ public class EqualitySet implements Serializable {
                     + ", equalSetSameObjDedup = " + equalSetSameObjDedup + ", equalSetSameObj = "
                     + equalSetSameObj);
         }
-        mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, dedup(equalSetSameObj), false,
+
+        Map<String, Map<Integer, Set<Set<String>>>> dedupEqualSetSameObj = dedup(equalSetSameObj);
+
+        if (ObjectGraphCoverage.enableInvariantCombination) {
+            brokenInvs.addAll(collapse(dedupEqualSetSameObj));
+        }
+
+        mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, dedupEqualSetSameObj, false,
                 logPrefixSameObject);
         if (Runtime.debug) {
             Runtime.log("[dumpSameObjectGraph] after merge: dumpId = " + dumpId
@@ -264,5 +271,23 @@ public class EqualitySet implements Serializable {
             deepCopiedSet.add(copiedInnerSet);
         }
         return deepCopiedSet;
+    }
+
+    /**
+     * Used for invariant combination Format: [compClass: iti_1, iti_2, iti_n]
+     */
+    public static Set<String> collapse(
+            Map<String, Map<Integer, Set<Set<String>>>> dedupEqualSetSameObj) {
+        Set<String> collapsedSet = new HashSet<>();
+        for (String compClass : dedupEqualSetSameObj.keySet()) {
+            Map<Integer, Set<Set<String>>> dumpId2EqualitySet = dedupEqualSetSameObj.get(compClass);
+            for (Integer dumpId : dumpId2EqualitySet.keySet()) {
+                Set<Set<String>> equalitySet = dumpId2EqualitySet.get(dumpId);
+                for (Set<String> equality : equalitySet) {
+                    collapsedSet.add("<Equality> " + compClass + ": " + new TreeSet<>(equality));
+                }
+            }
+        }
+        return collapsedSet;
     }
 }

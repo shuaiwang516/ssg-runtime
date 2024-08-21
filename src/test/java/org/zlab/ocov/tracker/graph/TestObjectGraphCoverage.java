@@ -674,6 +674,54 @@ public class TestObjectGraphCoverage {
         assert coverage1.merge(coverage).isNewFormat();
     }
 
+    /**
+     * Test with equality likely invariants
+     *
+     * test1 inv1 test1 inv2 (equality) test1 inv1, inv2 (equality)
+     *
+     * a == 0, b1 = 10, b2 = 11 a == 1, b1 = 10, b2 = 11 a == 0, b1 = 10, b2 = 10
+     * Equality (assert true) a == 1, b1 = 10, b2 = 10 Equality (assert true)
+     */
+    @Test
+    public void testInvariantCombination4() {
+        if (!ObjectGraphCoverage.enableInvariantCombination)
+            return;
+        String suffix = "InvariantCombination4";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path comparableClassesPath = Paths
+                .get(String.format("input/comparableClassesFor%s.json", suffix));
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        TargetClass.TargetClassForInvariantCombination4 obj1 = new TargetClass.TargetClassForInvariantCombination4(
+                0, 10, 11);
+        coverage.update(obj1);
+        assert coverage1.merge(coverage).isNewFormat();
+        coverage.clear();
+
+        TargetClass.TargetClassForInvariantCombination4 obj2 = new TargetClass.TargetClassForInvariantCombination4(
+                1, 10, 11);
+        coverage.update(obj2);
+        assert coverage1.merge(coverage).isNewFormat();
+        coverage.clear();
+
+        TargetClass.TargetClassForInvariantCombination4 obj3 = new TargetClass.TargetClassForInvariantCombination4(
+                0, 10, 10);
+        coverage.update(obj3);
+        assert coverage1.merge(coverage).isNewFormat();
+        coverage.clear();
+
+        TargetClass.TargetClassForInvariantCombination4 obj4 = new TargetClass.TargetClassForInvariantCombination4(
+                1, 10, 10);
+        coverage.update(obj4);
+        assert coverage1.merge(coverage).isNewFormat();
+        coverage.clear();
+    }
+
     public static Gson constructGson() {
         RuntimeTypeAdapterFactory<LabelConstraint> typeFactory1 = RuntimeTypeAdapterFactory
                 .of(LabelConstraint.class, "LabelConstraint")

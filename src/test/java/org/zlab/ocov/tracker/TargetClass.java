@@ -248,6 +248,18 @@ public class TargetClass {
         }
     }
 
+    public static class TargetClassForInvariantCombination4 {
+        public int a;
+        public CompClass b1;
+        public CompClass b2;
+
+        public TargetClassForInvariantCombination4(int a, int b1V, int b2V) {
+            this.a = a;
+            this.b1 = new CompClass(b1V);
+            this.b2 = new CompClass(b2V);
+        }
+    }
+
     public static class TargetClassForInvariantCombinationWithFrequency {
         public int f0;
         public int f1;
