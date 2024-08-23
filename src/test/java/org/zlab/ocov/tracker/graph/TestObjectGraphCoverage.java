@@ -805,7 +805,7 @@ public class TestObjectGraphCoverage {
          * Two objects with different stack trace but same type, we want to make sure
          * they can be classified.
          */
-        String suffix = "Stacktrace";
+        String suffix = "StackTrace";
         Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
         Path comparableClassesPath = Paths
@@ -848,7 +848,7 @@ public class TestObjectGraphCoverage {
          * Two objects with the same creation stack trace should use the same graph
          * pattern
          */
-        String suffix = "Stacktrace";
+        String suffix = "StackTrace";
         Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
         Path comparableClassesPath = Paths
