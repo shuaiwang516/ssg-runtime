@@ -361,6 +361,10 @@ public class TargetClass {
 
     public static class TargetClassForSpecialDumpPoint {
         public int a = 0;
+
+        public TargetClassForSpecialDumpPoint(int a) {
+            this.a = a;
+        }
     }
 
     @Test

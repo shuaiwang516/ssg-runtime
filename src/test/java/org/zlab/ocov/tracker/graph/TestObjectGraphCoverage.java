@@ -1149,6 +1149,34 @@ public class TestObjectGraphCoverage {
      */
     @Test
     public void testSpecialDumpPoint() {
+        if (!ObjectGraphCoverage.enableModificationGuidedTesting)
+            return;
+        String suffix = "SpecialDumpPoint";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+        Path specialDumpIdsPath = Paths
+                .get(String.format("input/specialDumpPointsFor%s.json", suffix));
 
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
+                null, null, null, null, specialDumpIdsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath, null,
+                null, null, null, null, specialDumpIdsPath);
+
+        // test1
+        TargetClass.TargetClassForSpecialDumpPoint obj1 = new TargetClass.TargetClassForSpecialDumpPoint(
+                0);
+        coverage.update(obj1, 0);
+        FormatCoverageStatus formatCoverageStatus = coverage1.merge(coverage, 0, true, false, true);
+
+        assert formatCoverageStatus.isNewFormat();
+        assert !formatCoverageStatus.isNewFormatAtModifiedMergePoint();
+
+        // test2
+        TargetClass.TargetClassForSpecialDumpPoint obj2 = new TargetClass.TargetClassForSpecialDumpPoint(
+                1);
+        coverage.update(obj2, 1);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false, true);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isNewFormatAtModifiedMergePoint();
     }
 }

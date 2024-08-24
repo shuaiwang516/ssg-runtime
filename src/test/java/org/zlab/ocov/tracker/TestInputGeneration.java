@@ -544,10 +544,10 @@ public class TestInputGeneration {
         helper.addBaseClassInfo(classPrefix + "TargetClassForSpecialDumpPoint", "a", "int");
 
         helper.addTopObject(classPrefix + "TargetClassForSpecialDumpPoint");
-        helper.save();
 
-        Set<Integer> specialDumpPoints = new HashSet<>();
-        specialDumpPoints.add(1);
+        helper.addSpecialDumpPoint(1);
+
+        helper.save();
     }
 
     public static class TestHelper {
@@ -610,6 +610,14 @@ public class TestInputGeneration {
 
         public void addModifiedTypeHierarchy(String className) {
             modifiedTypeHierarchy.add(className);
+        }
+
+        public void addSpecialDumpPoint(int id) {
+            specialDumpPoints.add(id);
+        }
+
+        public void addSpecialDumpPoint(Set<Integer> ids) {
+            specialDumpPoints.addAll(ids);
         }
 
         public void save() {
