@@ -23,8 +23,7 @@ public class TestObjectGraphDumper {
          * coverage.
          */
         Path bassClassPath = Paths.get("input/baseClassInfo1.json");
-        Map<String, Map<String, String>> classInfo = Utils
-                .loadMapFromFile(bassClassPath.toString());
+        Map<String, Map<String, String>> classInfo = Utils.loadMapFromFile(bassClassPath);
         ObjectGraphDumper dumper = new ObjectGraphDumper(classInfo);
 
         TargetClass.TargetClassE obj1 = new TargetClass.TargetClassE();

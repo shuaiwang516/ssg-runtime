@@ -252,7 +252,7 @@ public class TestEqualitySet {
     public void testLoadComparableClasses() {
         Path p = Paths.get(
                 "/Users/hanke/Desktop/Project/vasco/system/cassandra/apache-cassandra-2.2.8/comparableClasses.json");
-        Set<String> comparableClasses = Utils.loadSetFromFile(p.toString());
+        Set<String> comparableClasses = Utils.loadSetFromFile(p);
         // print size
         System.out.println(comparableClasses.size());
     }

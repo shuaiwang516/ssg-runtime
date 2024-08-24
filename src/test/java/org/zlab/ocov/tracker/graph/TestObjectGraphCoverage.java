@@ -1142,4 +1142,13 @@ public class TestObjectGraphCoverage {
         assert !coverage1.merge(coverage, 3, true, true).isNewFormat();
         coverage.clear();
     }
+
+    /**
+     * test1: break likely invariant: dump id is not special test2: break likely
+     * invariant: dump id is special
+     */
+    @Test
+    public void testSpecialDumpPoint() {
+
+    }
 }

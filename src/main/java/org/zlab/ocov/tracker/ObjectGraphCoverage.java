@@ -111,12 +111,12 @@ public class ObjectGraphCoverage implements Serializable {
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
             Path modifiedTypeHierarchyPath, Path branch2CollectionPath, Path specialDumpIdsPath) {
-        classInfoOri = Utils.loadMapFromFile(baseClassInfoPath.toString());
-        topObjects = Utils.loadSetFromFile(topObjectsPath.toString());
+        classInfoOri = Utils.loadMapFromFile(baseClassInfoPath);
+        topObjects = Utils.loadSetFromFile(topObjectsPath);
         baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
         Set<String> comparableClasses = null;
         if (comparableClassesPath != null && comparableClassesPath.toFile().exists()) {
-            comparableClasses = Utils.loadSetFromFile(comparableClassesPath.toString());
+            comparableClasses = Utils.loadSetFromFile(comparableClassesPath);
         }
         if (comparableClasses != null) {
             equalitySet = new EqualitySet(comparableClasses);
@@ -132,7 +132,7 @@ public class ObjectGraphCoverage implements Serializable {
         if (enableInvariantCombination)
             invariantCombination = new InvariantCombination();
         if (specialDumpIdsPath != null && specialDumpIdsPath.toFile().exists()) {
-            specialDumpIds = Utils.loadIntSetFromFile(specialDumpIdsPath.toString());
+            specialDumpIds = Utils.loadIntSetFromFile(specialDumpIdsPath);
         }
     }
 
@@ -742,11 +742,9 @@ public class ObjectGraphCoverage implements Serializable {
 
     public static IsSerialize constructIsSerialize(Path modifiedFieldsPath, Path modifiedEnumsPath,
             Path modifiedHierarchyPath) {
-        Map<String, Set<String>> modifiedFields = Utils
-                .loadModifiedFields(modifiedFieldsPath.toString());
-        Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath.toString());
-        Set<String> typeWithModifiedHierarchy = Utils
-                .loadSetFromFile(modifiedHierarchyPath.toString());
+        Map<String, Set<String>> modifiedFields = Utils.loadModifiedFields(modifiedFieldsPath);
+        Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath);
+        Set<String> typeWithModifiedHierarchy = Utils.loadSetFromFile(modifiedHierarchyPath);
         return new IsSerialize(modifiedFields, modifiedEnums, typeWithModifiedHierarchy);
     }
 }

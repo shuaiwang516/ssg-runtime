@@ -359,6 +359,10 @@ public class TargetClass {
         }
     }
 
+    public static class TargetClassForSpecialDumpPoint {
+        public int a = 0;
+    }
+
     @Test
     public void testRecursiveObject() {
         TargetClassD obj = new TargetClassD();

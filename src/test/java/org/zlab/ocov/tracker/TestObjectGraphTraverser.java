@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
 
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,7 +17,7 @@ public class TestObjectGraphTraverser {
     @Test
     public void testBasic() {
         Map<String, Map<String, String>> classInfoOri = Utils
-                .loadMapFromFile("input/baseClassInfo.json");
+                .loadMapFromFile(Paths.get("input/baseClassInfo.json"));
         ObjectGraphTraverser traverser = new ObjectGraphTraverser(classInfoOri);
         TargetClass.TargetClassA a = new TargetClass.TargetClassA();
         traverser.traverse(a);

@@ -3,6 +3,7 @@ package org.zlab.ocov.tracker;
 import org.junit.jupiter.api.Test;
 import org.zlab.ocov.Utils;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,12 +38,12 @@ public class TestInputGeneration {
                 "org.zlab.ocov.tracker.TargetClass$TargetClassB");
         baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassD").put("dObj",
                 "org.zlab.ocov.tracker.TargetClass$TargetClassD");
-        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo.json");
+        Utils.saveMapToFile(baseClassInfo, Paths.get("input/baseClassInfo.json"));
 
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassA");
         topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassD");
-        Utils.saveSetToFile(topObjects, "input/topObjects.json");
+        Utils.saveSetToFile(topObjects, Paths.get("input/topObjects.json"));
     }
 
     @Test
@@ -60,11 +61,11 @@ public class TestInputGeneration {
         // org.zlab.ocov.tracker.TargetClass$TargetClassF2
         baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF2", new HashMap<>());
         baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF2").put("f2", "int");
-        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo1.json");
+        Utils.saveMapToFile(baseClassInfo, Paths.get("input/baseClassInfo1.json"));
 
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassE");
-        Utils.saveSetToFile(topObjects, "input/topObjects1.json");
+        Utils.saveSetToFile(topObjects, Paths.get("input/topObjects1.json"));
     }
 
     @Test
@@ -82,11 +83,11 @@ public class TestInputGeneration {
         // org.zlab.ocov.tracker.TargetClass$TargetClassF2
         baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF2", new HashMap<>());
         baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF2").put("f2", "int");
-        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfo2.json");
+        Utils.saveMapToFile(baseClassInfo, Paths.get("input/baseClassInfo2.json"));
 
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassWithMap");
-        Utils.saveSetToFile(topObjects, "input/topObjects2.json");
+        Utils.saveSetToFile(topObjects, Paths.get("input/topObjects2.json"));
     }
 
     // Do not run this test
@@ -97,7 +98,7 @@ public class TestInputGeneration {
         topObjects.add("org.apache.cassandra.db.Mutation");
         topObjects.add("org.apache.cassandra.db.AtomicBTreeColumns");
 
-        Utils.saveSetToFile(topObjects, "/tmp/topObjects.json");
+        Utils.saveSetToFile(topObjects, Paths.get("/tmp/topObjects.json"));
     }
 
     @Test
@@ -112,11 +113,11 @@ public class TestInputGeneration {
         // org.zlab.ocov.tracker.TargetClass$TargetClassF1
         baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
         baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
-        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForEnum.json");
+        Utils.saveMapToFile(baseClassInfo, Paths.get("input/baseClassInfoForEnum.json"));
 
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum");
-        Utils.saveSetToFile(topObjects, "input/topObjectsForEnum.json");
+        Utils.saveSetToFile(topObjects, Paths.get("input/topObjectsForEnum.json"));
     }
 
     @Test
@@ -161,34 +162,36 @@ public class TestInputGeneration {
         baseClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
 
         // baseClassInfo
-        Utils.saveMapToFile(baseClassInfo, "input/baseClassInfoForIsSerialized.json");
+        Utils.saveMapToFile(baseClassInfo, Paths.get("input/baseClassInfoForIsSerialized.json"));
 
         // top objects
         Set<String> topObjects = new HashSet<>();
         topObjects.add("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum");
-        Utils.saveSetToFile(topObjects, "input/topObjectsForIsSerialized.json");
+        Utils.saveSetToFile(topObjects, Paths.get("input/topObjectsForIsSerialized.json"));
 
         // comparable classes
         Set<String> comparableClasses = new HashSet<>();
-        Utils.saveSetToFile(comparableClasses, "input/comparableClassesForIsSerialized.json");
+        Utils.saveSetToFile(comparableClasses,
+                Paths.get("input/comparableClassesForIsSerialized.json"));
 
         // modified fields
         Map<String, Set<String>> modifiedFields = new HashMap<>();
         modifiedFields.put("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum", new HashSet<>());
         modifiedFields.get("org.zlab.ocov.tracker.TargetClass$TargetClassForEnum").add("f1");
-        Utils.saveModifiedFields(modifiedFields, "input/modifiedFieldsForIsSerialized.json");
+        Utils.saveModifiedFields(modifiedFields,
+                Paths.get("input/modifiedFieldsForIsSerialized.json"));
 
         // enum
         Set<String> modifiedEnums = new HashSet<>();
         modifiedEnums.add("org.zlab.ocov.tracker.TargetClass$TargetEnum");
-        Utils.saveSetToFile(modifiedEnums, "input/modifiedEnumsForIsSerialized.json");
+        Utils.saveSetToFile(modifiedEnums, Paths.get("input/modifiedEnumsForIsSerialized.json"));
     }
 
     @Test
     public void createExampleInputForSizeCompute() {
-        String baseFilePath = "input/baseClassInfoForSizeCompute.json";
-        String topFilePath = "input/topObjectsForSizeCompute.json";
-        String comparableFilePath = "input/comparableClassesForSizeCompute.json";
+        Path baseFilePath = Paths.get("input/baseClassInfoForSizeCompute.json");
+        Path topFilePath = Paths.get("input/topObjectsForSizeCompute.json");
+        Path comparableFilePath = Paths.get("input/comparableClassesForSizeCompute.json");
 
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         // org.zlab.ocov.tracker.TargetClass$TargetClassE
@@ -215,9 +218,9 @@ public class TestInputGeneration {
 
     @Test
     public void createExampleInputForAccumulatedSize() {
-        String baseFilePath = "input/baseClassInfoForAccumulatedSize.json";
-        String topFilePath = "input/topObjectsForAccumulatedSize.json";
-        String comparableFilePath = "input/comparableClassesForAccumulatedSize.json";
+        Path baseFilePath = Paths.get("input/baseClassInfoForAccumulatedSize.json");
+        Path topFilePath = Paths.get("input/topObjectsForAccumulatedSize.json");
+        Path comparableFilePath = Paths.get("input/comparableClassesForAccumulatedSize.json");
 
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassAccumulateSizeBase",
@@ -248,9 +251,9 @@ public class TestInputGeneration {
 
     @Test
     public void createExampleInputForInvCombination() {
-        String baseFilePath = "input/baseClassInfoForInvCombination.json";
-        String topFilePath = "input/topObjectsForInvCombination.json";
-        String comparableFilePath = "input/comparableClassesForInvCombination.json";
+        Path baseFilePath = Paths.get("input/baseClassInfoForInvCombination.json");
+        Path topFilePath = Paths.get("input/topObjectsForInvCombination.json");
+        Path comparableFilePath = Paths.get("input/comparableClassesForInvCombination.json");
 
         Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         baseClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassInvCombinationBase",
@@ -533,6 +536,20 @@ public class TestInputGeneration {
         helper.save();
     }
 
+    @Test
+    public void createExampleInputForSpecialDumpPoint() {
+        TestHelper helper = new TestHelper("SpecialDumpPoint");
+        String classPrefix = "org.zlab.ocov.tracker.TargetClass$";
+
+        helper.addBaseClassInfo(classPrefix + "TargetClassForSpecialDumpPoint", "a", "int");
+
+        helper.addTopObject(classPrefix + "TargetClassForSpecialDumpPoint");
+        helper.save();
+
+        Set<Integer> specialDumpPoints = new HashSet<>();
+        specialDumpPoints.add(1);
+    }
+
     public static class TestHelper {
         public Map<String, Map<String, String>> baseClassInfo = new HashMap<>();
         public Set<String> topObjects = new HashSet<>();
@@ -542,21 +559,27 @@ public class TestInputGeneration {
         public Set<String> modifiedEnums = new HashSet<>();
         public Set<String> modifiedTypeHierarchy = new HashSet<>();
 
-        public String bassClassPath;
-        public String topObjectsPath;
-        public String comparableClassesPath;
-        public String modifiedFieldsPath;
-        public String modifiedEnumsPath;
-        public String modifiedTypeHierarchyPath;
+        public Set<Integer> specialDumpPoints = new HashSet<>();
+
+        public Path bassClassPath;
+        public Path topObjectsPath;
+        public Path comparableClassesPath;
+        public Path modifiedFieldsPath;
+        public Path modifiedEnumsPath;
+        public Path modifiedTypeHierarchyPath;
+        public Path specialDumpIdsPath;
 
         public TestHelper(String suffix) {
-            bassClassPath = String.format("input/baseClassInfoFor%s.json", suffix);
-            topObjectsPath = String.format("input/topObjectsFor%s.json", suffix);
-            comparableClassesPath = String.format("input/comparableClassesFor%s.json", suffix);
-            modifiedFieldsPath = String.format("input/modifiedFieldsFor%s.json", suffix);
-            modifiedEnumsPath = String.format("input/modifiedEnumsFor%s.json", suffix);
-            modifiedTypeHierarchyPath = String.format("input/modifiedTypeHierarchyFor%s.json",
-                    suffix);
+            bassClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+            topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+            comparableClassesPath = Paths
+                    .get(String.format("input/comparableClassesFor%s.json", suffix));
+            modifiedFieldsPath = Paths.get(String.format("input/modifiedFieldsFor%s.json", suffix));
+            modifiedEnumsPath = Paths.get(String.format("input/modifiedEnumsFor%s.json", suffix));
+            modifiedTypeHierarchyPath = Paths
+                    .get(String.format("input/modifiedTypeHierarchyFor%s.json", suffix));
+            specialDumpIdsPath = Paths
+                    .get(String.format("input/specialDumpPointsFor%s.json", suffix));
         }
 
         public void addBaseClassInfo(String className, String fieldName, String fieldType) {
@@ -596,6 +619,7 @@ public class TestInputGeneration {
             Utils.saveModifiedFields(modifiedFields, modifiedFieldsPath);
             Utils.saveSetToFile(modifiedEnums, modifiedEnumsPath);
             Utils.saveSetToFile(modifiedTypeHierarchy, modifiedTypeHierarchyPath);
+            Utils.saveIntSetToFile(specialDumpPoints, specialDumpIdsPath);
         }
     }
 }
