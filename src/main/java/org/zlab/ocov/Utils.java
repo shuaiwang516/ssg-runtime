@@ -76,6 +76,16 @@ public class Utils {
         }
     }
 
+    // json: load set from a file
+    public static Set<Integer> loadIntSetFromFile(String filename) {
+        try {
+            return mapper.readValue(new File(filename), Set.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void saveModifiedFields(Map<String, Set<String>> serializedFields,
             String filename) {
         ObjectMapper objectMapper = new ObjectMapper();

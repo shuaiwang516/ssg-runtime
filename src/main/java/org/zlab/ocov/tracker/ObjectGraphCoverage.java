@@ -76,28 +76,41 @@ public class ObjectGraphCoverage implements Serializable {
     private transient Map<String, GraphPattern> baseClassInfo;
     private transient Set<String> topObjects;
 
+    // ------------------- Modification guided testing -------------------
+    // TODO: avoid redundant checking if mod is already true
+    public static final boolean enableModificationGuidedTesting = false;
+    private transient Set<Integer> specialDumpIds;
+
     public ObjectGraphCoverage() {
         // for json
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath) {
-        this(baseClassInfoPath, topObjectsPath, null, null, null, null, null);
+        this(baseClassInfoPath, topObjectsPath, null, null, null, null, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath) {
-        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null, null, null);
+        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, null, null, null, null,
+                null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath) {
         this(baseClassInfoPath, topObjectsPath, comparableClassesPath, modifiedFieldsPath,
-                modifiedEnumsPath, null, null);
+                modifiedEnumsPath, null, null, null);
     }
 
     public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
             Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
             Path modifiedTypeHierarchyPath, Path branch2CollectionPath) {
+        this(baseClassInfoPath, topObjectsPath, comparableClassesPath, modifiedFieldsPath,
+                modifiedEnumsPath, modifiedTypeHierarchyPath, branch2CollectionPath, null);
+    }
+
+    public ObjectGraphCoverage(Path baseClassInfoPath, Path topObjectsPath,
+            Path comparableClassesPath, Path modifiedFieldsPath, Path modifiedEnumsPath,
+            Path modifiedTypeHierarchyPath, Path branch2CollectionPath, Path specialDumpIdsPath) {
         classInfoOri = Utils.loadMapFromFile(baseClassInfoPath.toString());
         topObjects = Utils.loadSetFromFile(topObjectsPath.toString());
         baseClassInfo = GraphPattern.createGraphPatterns(classInfoOri);
@@ -118,6 +131,9 @@ public class ObjectGraphCoverage implements Serializable {
         boundary = new Boundary();
         if (enableInvariantCombination)
             invariantCombination = new InvariantCombination();
+        if (specialDumpIdsPath != null && specialDumpIdsPath.toFile().exists()) {
+            specialDumpIds = Utils.loadIntSetFromFile(specialDumpIdsPath.toString());
+        }
     }
 
     public GraphPattern getGraphPattern(String className, int dumpId, String context) {
@@ -436,32 +452,43 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {
-        return merge(otherObjCoverage, -1, false, false);
+        return merge(otherObjCoverage, -1, false, false, false);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId) {
-        return merge(otherObjCoverage, testId, false, false);
+        return merge(otherObjCoverage, testId, false, false, false);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId,
             boolean groupByContext, boolean updateInvariantBrokenFrequency) {
-        return merge(otherObjCoverage, "", testId, groupByContext, updateInvariantBrokenFrequency);
+        return merge(otherObjCoverage, "", testId, groupByContext, updateInvariantBrokenFrequency,
+                false);
+    }
+
+    public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, int testId,
+            boolean groupByContext, boolean updateInvariantBrokenFrequency,
+            boolean checkSpecialDumpIds) {
+        return merge(otherObjCoverage, "", testId, groupByContext, updateInvariantBrokenFrequency,
+                checkSpecialDumpIds);
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage, String identifier,
-            int testId, boolean groupByContext, boolean updateInvariantBrokenFrequency) {
+            int testId, boolean groupByContext, boolean updateInvariantBrokenFrequency,
+            boolean checkSpecialDumpIds) {
         FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
         if (otherObjCoverage == null)
             return formatCoverageStatus;
 
         if (groupByContext) {
-            mergeTopGraphPatternWithGrouping(otherObjCoverage, formatCoverageStatus);
+            mergeTopGraphPatternWithGrouping(otherObjCoverage, formatCoverageStatus,
+                    checkSpecialDumpIds);
         } else {
-            mergeTopGraphPatternWithoutGrouping(otherObjCoverage, formatCoverageStatus);
+            mergeTopGraphPatternWithoutGrouping(otherObjCoverage, formatCoverageStatus,
+                    checkSpecialDumpIds);
         }
 
         mergeSpecialInvariant(otherObjCoverage, formatCoverageStatus,
-                updateInvariantBrokenFrequency);
+                updateInvariantBrokenFrequency, checkSpecialDumpIds);
 
         if (formatCoverageStatus.isChanged()) {
             if (identifier.isEmpty())
@@ -475,27 +502,30 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     private void mergeTopGraphPatternWithGrouping(ObjectGraphCoverage otherObjCoverage,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds) {
         mergeAccumCoverage(accumDumpId2ObjCoverageWithContext,
-                otherObjCoverage.dumpId2ObjCoverageWithContext, formatCoverageStatus);
+                otherObjCoverage.dumpId2ObjCoverageWithContext, formatCoverageStatus,
+                checkSpecialDumpIds);
     }
 
     private void mergeTopGraphPatternWithoutGrouping(ObjectGraphCoverage otherObjCoverage,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds) {
         mergeCoverage(dumpId2ObjCoverageWithContext, otherObjCoverage.dumpId2ObjCoverageWithContext,
-                formatCoverageStatus);
+                formatCoverageStatus, checkSpecialDumpIds, specialDumpIds);
     }
 
     private void mergeContextGraphPattern(ObjectGraphCoverage otherObjCoverage,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds) {
         mergeCoverage(dumpId2ContextObjCoverageWithContext,
-                otherObjCoverage.dumpId2ContextObjCoverageWithContext, formatCoverageStatus);
+                otherObjCoverage.dumpId2ContextObjCoverageWithContext, formatCoverageStatus,
+                checkSpecialDumpIds, specialDumpIds);
     }
 
     private static void mergeCoverage(
             Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage1,
             Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage2,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds,
+            Set<Integer> specialDumpIds) {
         for (int dumpId : dumpId2ObjCoverage2.keySet()) {
             Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext = dumpId2ObjCoverage2
                     .get(dumpId);
@@ -503,15 +533,25 @@ public class ObjectGraphCoverage implements Serializable {
                 continue;
             Map<String, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverage1
                     .computeIfAbsent(dumpId, k -> new HashMap<>());
+
+            FormatCoverageStatus currentFormatCoverageStatus = new FormatCoverageStatus();
             mergeGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
-                    formatCoverageStatus, dumpId);
+                    currentFormatCoverageStatus, dumpId);
+
+            if (enableModificationGuidedTesting && checkSpecialDumpIds) {
+                assert specialDumpIds != null;
+                if (specialDumpIds.contains(dumpId)) {
+                    formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
+                }
+            }
+            formatCoverageStatus.incorporate(currentFormatCoverageStatus);
         }
     }
 
     private void mergeAccumCoverage(
             Map<Integer, Map<Integer, Map<String, GraphPattern>>> dumpId2ObjCoverage1,
             Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverage2,
-            FormatCoverageStatus formatCoverageStatus) {
+            FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds) {
         for (int dumpId : dumpId2ObjCoverage2.keySet()) {
             long time1 = System.currentTimeMillis();
 
@@ -522,8 +562,17 @@ public class ObjectGraphCoverage implements Serializable {
             Map<Integer, Map<String, GraphPattern>> objCoverageWithContext = dumpId2ObjCoverage1
                     .computeIfAbsent(dumpId, k -> new HashMap<>());
 
+            FormatCoverageStatus currentFormatCoverageStatus = new FormatCoverageStatus();
             mergeAccumGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
-                    formatCoverageStatus, dumpId);
+                    currentFormatCoverageStatus, dumpId);
+
+            if (enableModificationGuidedTesting && checkSpecialDumpIds) {
+                assert specialDumpIds != null;
+                if (specialDumpIds.contains(dumpId)) {
+                    formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
+                }
+            }
+            formatCoverageStatus.incorporate(currentFormatCoverageStatus);
 
             long time2 = System.currentTimeMillis();
             // Debug, need to disable
@@ -620,16 +669,35 @@ public class ObjectGraphCoverage implements Serializable {
     }
 
     private void mergeSpecialInvariant(ObjectGraphCoverage otherObjCoverage,
-            FormatCoverageStatus formatCoverageStatus, boolean updateInvariantBrokenFrequency) {
+            FormatCoverageStatus formatCoverageStatus, boolean updateInvariantBrokenFrequency,
+            boolean checkSpecialDumpIds) {
         if (equalitySet == null) {
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
+                // Check modified dumpIds
+                if (checkSpecialDumpIds && specialDumpIds != null) {
+                    boolean isRelatedToModifiedDumpIds = false;
+                    for (String compClass : equalitySet.equalSetSameObjDedup.keySet()) {
+                        Map<Integer, Set<Set<String>>> sameObjDedup = equalitySet.equalSetSameObjDedup
+                                .get(compClass);
+                        for (int dumpId : sameObjDedup.keySet()) {
+                            if (specialDumpIds.contains(dumpId)) {
+                                isRelatedToModifiedDumpIds = true;
+                                break;
+                            }
+                        }
+                        if (isRelatedToModifiedDumpIds)
+                            break;
+                    }
+                    if (isRelatedToModifiedDumpIds) {
+                        formatCoverageStatus.setNewFormatAtModifiedMergePoint("equalitySet");
+                    }
+                }
                 formatCoverageStatus.setNewFormat("Add new equalitySet, previous is null");
             }
         } else {
-            if (equalitySet.merge(otherObjCoverage.equalitySet)) {
-                formatCoverageStatus.setNewFormat("New equalitySet");
-            }
+            equalitySet.merge(otherObjCoverage.equalitySet, formatCoverageStatus,
+                    checkSpecialDumpIds, specialDumpIds);
         }
         if (isSerialized == null) {
             if (otherObjCoverage.isSerialized != null) {

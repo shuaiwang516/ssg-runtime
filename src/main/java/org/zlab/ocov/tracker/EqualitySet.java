@@ -26,6 +26,8 @@ public class EqualitySet implements Serializable {
     static final String logPrefixSameObject = "Equality: same object graph";
     static final String logPrefixAcrossObjectSameItinerary = "Equality: across object graphs with same itinerary";
 
+    static final FormatCoverageStatus dummyFormatCoverageStatus = new FormatCoverageStatus();
+
     public EqualitySet() {
         // for json
     }
@@ -96,7 +98,7 @@ public class EqualitySet implements Serializable {
         }
 
         mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, dedupEqualSetSameObj, false,
-                logPrefixSameObject);
+                logPrefixSameObject, dummyFormatCoverageStatus, false, null);
         if (Runtime.debug) {
             Runtime.log("[dumpSameObjectGraph] after merge: dumpId = " + dumpId
                     + ", equalSetSameObjDedup = " + equalSetSameObjDedup + ", equalSetSameObj = "
@@ -106,18 +108,21 @@ public class EqualitySet implements Serializable {
         equalSetSameObj = new HashMap<>();
     }
 
-    public boolean merge(EqualitySet other) {
+    public void merge(EqualitySet other, FormatCoverageStatus formatCoverageStatus,
+            boolean checkSpecialDumpIds, Set<Integer> specialDumpIds) {
         if (other == null) {
-            return false;
+            return;
         }
-        return mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup,
-                other.equalSetSameObjDedup, true, logPrefixSameObject);
+        mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, other.equalSetSameObjDedup,
+                true, logPrefixSameObject, formatCoverageStatus, checkSpecialDumpIds,
+                specialDumpIds);
     }
 
-    public static boolean mergeCompClass2EqualityDedupWithDumpId(
+    public static void mergeCompClass2EqualityDedupWithDumpId(
             Map<String, Map<Integer, Set<Set<String>>>> equalSetDedup1,
             Map<String, Map<Integer, Set<Set<String>>>> equalSetDedup2, boolean useLog,
-            String logPrefix) {
+            String logPrefix, FormatCoverageStatus formatCoverageStatus,
+            boolean checkSpecialDumpIds, Set<Integer> specialDumpIds) {
         boolean changed = false;
         for (String compClass : equalSetDedup2.keySet()) {
             if (!equalSetDedup1.containsKey(compClass)) {
@@ -125,11 +130,18 @@ public class EqualitySet implements Serializable {
                 // deep copy, include the set
                 for (Map.Entry<Integer, Set<Set<String>>> entry : equalSetDedup2.get(compClass)
                         .entrySet()) {
+                    int dumpId = entry.getKey();
                     Set<Set<String>> tmpSet = new HashSet<>();
                     for (Set<String> set : entry.getValue()) {
                         tmpSet.add(new HashSet<>(set));
                     }
-                    tmpMap.put(entry.getKey(), tmpSet);
+                    tmpMap.put(dumpId, tmpSet);
+                    if (checkSpecialDumpIds && specialDumpIds != null) {
+                        if (specialDumpIds.contains(dumpId)) {
+                            formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
+                                    "<Equality> class = %s, dumpId = %d", compClass, dumpId));
+                        }
+                    }
                 }
                 equalSetDedup1.put(compClass, tmpMap);
                 if (useLog) {
@@ -154,17 +166,30 @@ public class EqualitySet implements Serializable {
                                 "<%s: first occur for dumpId> class = %s, dumpId = %d, set = %s",
                                 logPrefix, compClass, dumpId, otherEqualitySets.get(dumpId)));
                     }
+                    if (checkSpecialDumpIds && specialDumpIds != null) {
+                        if (specialDumpIds.contains(dumpId)) {
+                            formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
+                                    "<Equality> class = %s, dumpId = %d", compClass, dumpId));
+                        }
+                    }
                     changed = true;
                     continue;
                 }
                 Set<Set<String>> equalitySet = equalitySets.get(dumpId);
                 Set<Set<String>> otherEqualitySet = otherEqualitySets.get(dumpId);
                 if (mergeSets(equalitySet, otherEqualitySet, compClass, useLog, logPrefix)) {
+                    if (checkSpecialDumpIds && specialDumpIds != null) {
+                        if (specialDumpIds.contains(dumpId)) {
+                            formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
+                                    "<Equality> class = %s, dumpId = %d", compClass, dumpId));
+                        }
+                    }
                     changed = true;
                 }
             }
         }
-        return changed;
+        if (changed)
+            formatCoverageStatus.setNewFormat("New equalitySet");
     }
 
     public static boolean mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className) {

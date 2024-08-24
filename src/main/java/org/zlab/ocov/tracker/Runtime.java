@@ -41,6 +41,7 @@ public class Runtime {
     public static Path modifiedTypeHierarchyPath = Paths.get("/tmp/typeWithModifiedHierarchy.json");
 
     public static Path branch2CollectionPath = Paths.get("/tmp/branch2Collection.json");
+    public static Path specialDumpIdsPath = Paths.get("/tmp/modifiedDumpId.json");
 
     public static Path filePath = Paths.get("/tmp/coverage.log");
     // public static Path filePath = Paths.get("/var/log/cassandra/coverage.log");
@@ -95,7 +96,7 @@ public class Runtime {
             }
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
-                    modifiedTypeHierarchyPath, branch2CollectionPath);
+                    modifiedTypeHierarchyPath, branch2CollectionPath, specialDumpIdsPath);
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (Exception e) {
@@ -295,7 +296,8 @@ public class Runtime {
                         }
                         objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                                 comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
-                                modifiedTypeHierarchyPath, branch2CollectionPath);
+                                modifiedTypeHierarchyPath, branch2CollectionPath,
+                                specialDumpIdsPath);
                     }
                     System.out.println("Coverage has been sent to the client");
                 }
