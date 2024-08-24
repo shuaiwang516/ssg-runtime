@@ -77,8 +77,6 @@ public class ObjectGraphCoverage implements Serializable {
     private transient Set<String> topObjects;
 
     // ------------------- Modification guided testing -------------------
-    // TODO: avoid redundant checking if mod is already true
-    public static final boolean enableModificationGuidedTesting = false;
     private transient Set<Integer> specialDumpIds;
 
     public ObjectGraphCoverage() {
@@ -538,8 +536,7 @@ public class ObjectGraphCoverage implements Serializable {
             mergeGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
                     currentFormatCoverageStatus, dumpId);
 
-            if (enableModificationGuidedTesting && checkSpecialDumpIds) {
-                assert specialDumpIds != null;
+            if (checkSpecialDumpIds && specialDumpIds != null) {
                 if (specialDumpIds.contains(dumpId)) {
                     formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
                 }
@@ -566,8 +563,7 @@ public class ObjectGraphCoverage implements Serializable {
             mergeAccumGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
                     currentFormatCoverageStatus, dumpId);
 
-            if (enableModificationGuidedTesting && checkSpecialDumpIds) {
-                assert specialDumpIds != null;
+            if (checkSpecialDumpIds && specialDumpIds != null) {
                 if (specialDumpIds.contains(dumpId)) {
                     formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
                 }

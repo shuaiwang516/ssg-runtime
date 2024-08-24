@@ -1149,8 +1149,6 @@ public class TestObjectGraphCoverage {
      */
     @Test
     public void testSpecialDumpPoint() {
-        if (!ObjectGraphCoverage.enableModificationGuidedTesting)
-            return;
         String suffix = "SpecialDumpPoint";
         Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
         Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));

@@ -41,7 +41,7 @@ public class Runtime {
     public static Path modifiedTypeHierarchyPath = Paths.get("/tmp/typeWithModifiedHierarchy.json");
 
     public static Path branch2CollectionPath = Paths.get("/tmp/branch2Collection.json");
-    public static Path specialDumpIdsPath = Paths.get("/tmp/modifiedDumpId.json");
+    public static Path specialDumpIdsPath = Paths.get("/tmp/modifiedDumpIds.json");
 
     public static Path filePath = Paths.get("/tmp/coverage.log");
     // public static Path filePath = Paths.get("/var/log/cassandra/coverage.log");
