@@ -39,11 +39,15 @@ public class InvariantCombination implements Serializable {
     }
 
     // With frequency filtering
-    public boolean merge(InvariantCombination other,
-            Map<Integer, Set<String>> invariantBrokenLessFrequently) {
+    public void merge(InvariantCombination other,
+            Map<Integer, Set<String>> invariantBrokenLessFrequently,
+            FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds,
+            Set<Integer> specialDumpIds) {
         boolean changed = false;
         for (Map.Entry<Integer, Set<Set<String>>> entry : other.dumpId2BrokenInv.entrySet()) {
             int dumpId = entry.getKey();
+
+            boolean curChanged = false;
             if (!dumpId2BrokenInv.containsKey(dumpId)) {
                 dumpId2BrokenInv.put(dumpId, new HashSet<>());
             }
@@ -51,22 +55,30 @@ public class InvariantCombination implements Serializable {
             for (Set<String> brokenInvSet : entry.getValue()) {
                 if (dumpId2BrokenInv.get(dumpId).contains(brokenInvSet))
                     continue;
-                if (!changed && invariantBrokenLessFrequently.containsKey(dumpId)) {
+                if (invariantBrokenLessFrequently.containsKey(dumpId)) {
                     Set<String> intersection = new HashSet<>(brokenInvSet);
                     intersection.retainAll(invariantBrokenLessFrequently.get(dumpId));
                     if (!intersection.isEmpty()) {
                         Runtime.log(
                                 "<Invariant Combination with Frequency>: new combinations, dumpId="
                                         + dumpId + ", new combination = " + entry.getValue());
-                        changed = true;
+                        curChanged = true;
                     }
                 }
 
                 // add it anyway
                 dumpId2BrokenInv.get(dumpId).add(brokenInvSet);
             }
+
+            if (curChanged) {
+                changed = true;
+                if (checkSpecialDumpIds && specialDumpIds.contains(dumpId)) {
+                    formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId=" + dumpId);
+                }
+            }
         }
-        return changed;
+        if (changed)
+            formatCoverageStatus.setNewFormat("invariantCombination");
     }
 
     public void clear() {

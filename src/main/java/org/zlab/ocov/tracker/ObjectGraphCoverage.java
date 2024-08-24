@@ -724,10 +724,10 @@ public class ObjectGraphCoverage implements Serializable {
             if (enableInvariantCombinationWithFrequency && updateInvariantBrokenFrequency) {
                 // Update frequency
                 invariantBrokenFrequency.update(otherObjCoverage.invariantCombination);
-                if (invariantCombination.merge(otherObjCoverage.invariantCombination,
+                invariantCombination.merge(otherObjCoverage.invariantCombination,
                         invariantBrokenFrequency
-                                .getMostInfrequentInvariants(topNLessFrequentBrokenInvariant)))
-                    formatCoverageStatus.setNewFormat("invariantCombination");
+                                .getMostInfrequentInvariants(topNLessFrequentBrokenInvariant),
+                        formatCoverageStatus, checkSpecialDumpIds, specialDumpIds);
             } else {
                 if (invariantCombination.merge(otherObjCoverage.invariantCombination))
                     formatCoverageStatus.setNewFormat("invariantCombination");
