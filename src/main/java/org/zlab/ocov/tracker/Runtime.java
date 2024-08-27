@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Runtime {
     public static final boolean debug = false;
@@ -49,7 +50,12 @@ public class Runtime {
             "yyyy-MM-dd HH:mm:ss.SSS");
 
     public static BufferedWriter writer;
-    public static ObjectGraphCoverage objectCoverage;
+
+    public static final ConcurrentLinkedQueue<ObjectGraphCoverage> allStates = new ConcurrentLinkedQueue<>();
+
+    static ThreadLocal<ObjectGraphCoverage> objectCoverageThreadLocal;
+
+    // public static ObjectGraphCoverage objectCoverage;
     private static final Object objectCoverageLock = new Object();
 
     // Debug
@@ -94,9 +100,15 @@ public class Runtime {
             } else {
                 log("Sampling is disabled!");
             }
-            objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                    comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
-                    modifiedTypeHierarchyPath, branch2CollectionPath, specialDumpIdsPath);
+
+            objectCoverageThreadLocal = new ThreadLocal<ObjectGraphCoverage>() {
+                @Override
+                protected ObjectGraphCoverage initialValue() {
+                    return new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                            comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
+                            modifiedTypeHierarchyPath, branch2CollectionPath, specialDumpIdsPath);
+                }
+            };
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (Exception e) {
@@ -112,7 +124,12 @@ public class Runtime {
     public static void init(Path baseClassPath, Path topObjectsPath) {
         try {
             writer = new BufferedWriter(new FileWriter(filePath.toFile(), true));
-            objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+            objectCoverageThreadLocal = new ThreadLocal<ObjectGraphCoverage>() {
+                @Override
+                protected ObjectGraphCoverage initialValue() {
+                    return new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+                }
+            };
             formatCoverageTracker();
             log("Invariant Runtime initialized!");
         } catch (IOException e) {
@@ -157,7 +174,7 @@ public class Runtime {
     }
 
     public static Object monitorCreationContext(Object obj, int dumpId, Object contextObject) {
-        if (!enable || obj == null || objectCoverage == null)
+        if (!enable || obj == null || objectCoverageThreadLocal == null)
             return obj;
 
         if (!enableCreationContextMonitor)
@@ -165,7 +182,7 @@ public class Runtime {
 
         long time1 = System.currentTimeMillis();
 
-        objectCoverage.monitorCreationContext(obj, contextObject, dumpId);
+        objectCoverageThreadLocal.get().monitorCreationContext(obj, contextObject, dumpId);
 
         long time2 = System.currentTimeMillis();
         if (debug && debugTimeUsage) {
@@ -187,7 +204,7 @@ public class Runtime {
 
     // id uniquely identify the program location for dumping
     public static Object update(Object obj, int dumpId, Object... contextArgs) {
-        if (!enable || obj == null || (sample && !isSampled()) || objectCoverage == null)
+        if (!enable || obj == null || (sample && !isSampled()) || objectCoverageThreadLocal == null)
             return obj;
 
         if (!enableUpdate)
@@ -199,41 +216,41 @@ public class Runtime {
 
         long time1 = System.currentTimeMillis();
 
-        synchronized (objectCoverageLock) {
-            long time2 = System.currentTimeMillis();
+        // Thread local implementation
+        ObjectGraphCoverage objectCoverage = objectCoverageThreadLocal.get();
+        long time2 = System.currentTimeMillis();
+        objectCoverage.update(obj, dumpId, contextArgs);
+        allStates.add(objectCoverage);
+        long time3 = System.currentTimeMillis();
 
-            // Runtime.log("dumpId: " + dumpId + ", obj type = : " +
-            // obj.getClass().getName()
-            // + ", hashcode = " + System.identityHashCode(obj));
+        if (debug && debugTimeUsage) {
+            double processTime = (time3 - time2) / 1000.;
+            double totalTime = (time3 - time1) / 1000.;
 
-            objectCoverage.update(obj, dumpId, contextArgs);
-
-            long time3 = System.currentTimeMillis();
-            if (debug && debugTimeUsage) {
-                double processTime = (time3 - time2) / 1000.;
-                double totalTime = (time3 - time1) / 1000.;
-
-                if (totalTime > 5)
-                    log("slow dump id: " + dumpId);
-                // update dumpId2AccumTime
-                if (dumpId2AccumTime.containsKey(dumpId)) {
-                    dumpId2AccumTime.put(dumpId, dumpId2AccumTime.get(dumpId) + totalTime);
-                } else {
-                    dumpId2AccumTime.put(dumpId, totalTime);
-                }
-                log("[debug performance: update] dumpId = " + dumpId + "\t, process time = "
-                        + processTime + "s" + ", total time = " + totalTime + "s"
-                        + ", accum time = " + dumpId2AccumTime.get(dumpId) + "s");
+            if (totalTime > 5)
+                log("slow dump id: " + dumpId);
+            // update dumpId2AccumTime
+            if (dumpId2AccumTime.containsKey(dumpId)) {
+                dumpId2AccumTime.put(dumpId, dumpId2AccumTime.get(dumpId) + totalTime);
+            } else {
+                dumpId2AccumTime.put(dumpId, totalTime);
             }
+            log("[debug performance: update] dumpId = " + dumpId + "\t, process time = "
+                    + processTime + "s" + ", total time = " + totalTime + "s" + ", accum time = "
+                    + dumpId2AccumTime.get(dumpId) + "s");
         }
         return obj;
     }
 
     public static boolean updateBranch(Object lhsOp, Object rhsOp, String operator, int dumpId) {
-        if (enable && enableBoundaryCheck && objectCoverage != null) {
-            synchronized (objectCoverageLock) {
-                return objectCoverage.updateBranch(lhsOp, rhsOp, operator, dumpId);
-            }
+        if (enable && enableBoundaryCheck && objectCoverageThreadLocal != null) {
+            ObjectGraphCoverage objectCoverage = objectCoverageThreadLocal.get();
+            // boolean ret = Utils.computeBinaryComparison(Utils.toLong(lhsOp),
+            // Utils.toLong(rhsOp),
+            // operator);
+            boolean ret = objectCoverage.updateBranch(lhsOp, rhsOp, operator, dumpId);
+            allStates.add(objectCoverage);
+            return ret;
         } else {
             return Utils.computeBinaryComparison(Utils.toLong(lhsOp), Utils.toLong(rhsOp),
                     operator);
@@ -243,10 +260,10 @@ public class Runtime {
     // Deprecated
     public static boolean updateBranch(boolean status, int dumpId) {
         if (enable) {
-            if (objectCoverage != null) {
-                synchronized (objectCoverageLock) {
-                    objectCoverage.updateBranch(status, dumpId);
-                }
+            if (objectCoverageThreadLocal != null) {
+                ObjectGraphCoverage objectCoverage = objectCoverageThreadLocal.get();
+                objectCoverage.updateBranch(status, dumpId);
+                allStates.add(objectCoverage);
             } else {
                 log("objectCoverage is null, Invariant Runtime is not initialized properly!");
             }
@@ -294,10 +311,6 @@ public class Runtime {
                             response = processCommand(inputLine);
                             out.writeObject(response);
                         }
-                        objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
-                                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
-                                modifiedTypeHierarchyPath, branch2CollectionPath,
-                                specialDumpIdsPath);
                     }
                     System.out.println("Coverage has been sent to the client");
                 }
@@ -314,7 +327,16 @@ public class Runtime {
     }
 
     private static ObjectGraphCoverage processCommand(String command) {
-        objectCoverage.inferInvariant();
+        // merge all ObjectCoverage
+        ObjectGraphCoverage objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
+                modifiedTypeHierarchyPath, branch2CollectionPath, specialDumpIdsPath);
+        synchronized (allStates) {
+            for (ObjectGraphCoverage state : allStates) {
+                objectCoverage.merge(state);
+                state.clear();
+            }
+        }
         return objectCoverage;
     }
 }

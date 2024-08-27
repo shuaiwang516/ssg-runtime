@@ -188,8 +188,12 @@ public class EqualitySet implements Serializable {
                 }
             }
         }
-        if (changed)
-            formatCoverageStatus.setNewFormat("New equalitySet");
+        if (changed) {
+            if (useLog)
+                formatCoverageStatus.setNewFormat("New equalitySet");
+            else
+                formatCoverageStatus.setNewFormat();
+        }
     }
 
     public static boolean mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className) {

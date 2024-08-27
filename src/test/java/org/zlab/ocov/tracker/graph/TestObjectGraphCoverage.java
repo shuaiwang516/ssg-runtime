@@ -1177,4 +1177,41 @@ public class TestObjectGraphCoverage {
         assert formatCoverageStatus.isNewFormat();
         assert formatCoverageStatus.isNewFormatAtModifiedMergePoint();
     }
+
+    // @Test
+    public void testRuntime() throws InterruptedException {
+        /**
+         * Start up 2 threads to invoke Runtime.update() method
+         */
+        String suffix = "SpecialDumpPoint";
+        Path baseClassPath = Paths.get(String.format("input/baseClassInfoFor%s.json", suffix));
+        Path topObjectsPath = Paths.get(String.format("input/topObjectsFor%s.json", suffix));
+
+        TargetClass.TargetClassForSpecialDumpPoint obj1 = new TargetClass.TargetClassForSpecialDumpPoint(
+                0);
+        TargetClass.TargetClassForSpecialDumpPoint obj2 = new TargetClass.TargetClassForSpecialDumpPoint(
+                0);
+
+        Runtime.init(baseClassPath, topObjectsPath);
+        Thread t1 = new Thread() {
+            @Override
+            public void run() {
+                Runtime.update(obj1, 0);
+            }
+        };
+        Thread t2 = new Thread() {
+            @Override
+            public void run() {
+                Runtime.update(obj2, 0);
+            }
+        };
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("state size = " + Runtime.allStates.size());
+    }
 }

@@ -35,6 +35,9 @@ public class ObjectGraphCoverage implements Serializable {
     // DumpId -> classname -> graph pattern (Only top objects)
     transient Map<Integer, Map<String, Integer>> dumpId2Context2GroupId = new HashMap<>();
     transient Map<Integer, Integer> dumpId2CurrentGroupId = new HashMap<>();
+
+    // ----------------------- Core Coverage -----------------------
+    // Accumulated coverage
     public transient Map<Integer, Map<Integer, Map<String, GraphPattern>>> accumDumpId2ObjCoverageWithContext = new HashMap<>();
 
     // Runtime: collector side
@@ -45,13 +48,12 @@ public class ObjectGraphCoverage implements Serializable {
     public EqualitySet equalitySet;
     public IsSerialize isSerialized;
     public Boundary boundary;
+    public InvariantCombination invariantCombination;
+    public transient InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
 
     public static final boolean enableInvariantCombination = false;
     public static final boolean enableInvariantCombinationWithFrequency = false;
-
-    public InvariantCombination invariantCombination;
-    public int topNLessFrequentBrokenInvariant = 5;
-    public transient InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
+    public static int topNLessFrequentBrokenInvariant = 5;
 
     // ----------------------- Runtime -----------------------
     public transient Set<Integer> visitedObjects = new HashSet<>();
@@ -61,7 +63,7 @@ public class ObjectGraphCoverage implements Serializable {
     private transient final Map<Integer, String> topObj2CreationStacktrace = new HashMap<>();
     private transient final Map<Integer, Integer> dumpId2monitorCount = new HashMap<>();
 
-    // Sample if the object if the dump point occur too often
+    // Sample if the dump point occur too often
     private static final boolean enableSampleMonitorThreshold = true;
     private static final int monitorSampleThreshold = 100;
     private static final double monitorSampleRate = 0.001;
@@ -432,6 +434,9 @@ public class ObjectGraphCoverage implements Serializable {
     // Not in use as we create a new ObjectGraphCoverage for each test
     public void clear() {
         // Separate format coverage across tests
+        dumpId2ObjCoverageWithContext.clear();
+        dumpId2ContextObjCoverageWithContext.clear();
+
         visitedObjects.clear();
         objAddress2TopObjAddress.clear();
         topObj2CreationStacktrace.clear();
@@ -444,9 +449,9 @@ public class ObjectGraphCoverage implements Serializable {
             equalitySet.clear();
         if (isSerialized != null)
             isSerialized.clear();
+        boundary.clear();
         if (enableInvariantCombination)
             invariantCombination.clear();
-        boundary.clear();
     }
 
     public FormatCoverageStatus merge(ObjectGraphCoverage otherObjCoverage) {

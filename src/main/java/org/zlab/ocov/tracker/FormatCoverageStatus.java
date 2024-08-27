@@ -16,6 +16,10 @@ public class FormatCoverageStatus implements Serializable {
     private boolean isNewFormatAtModifiedMergePoint = false;
     private boolean isNewFormatRelatedToModifiedType = false;
 
+    public void setNewFormat() {
+        this.newFormat = true;
+    }
+
     public void setNewFormat(String log) {
         Runtime.log("[New format] " + log);
         this.newFormat = true;
