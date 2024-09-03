@@ -46,8 +46,8 @@ public class ObjectGraphCoverage implements Serializable {
     public IsSerialize isSerialized;
     public Boundary boundary;
 
-    public static final boolean enableInvariantCombination = false;
-    public static final boolean enableInvariantCombinationWithFrequency = false;
+    public static final boolean enableInvariantCombination = true;
+    public static final boolean enableInvariantCombinationWithFrequency = true;
 
     public InvariantCombination invariantCombination;
     public int topNLessFrequentBrokenInvariant = 5;
