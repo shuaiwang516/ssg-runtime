@@ -72,7 +72,8 @@ public class InvariantCombination implements Serializable {
 
             if (curChanged) {
                 changed = true;
-                if (checkSpecialDumpIds && specialDumpIds.contains(dumpId)) {
+                if (checkSpecialDumpIds && specialDumpIds != null
+                        && specialDumpIds.contains(dumpId)) {
                     formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId=" + dumpId);
                 }
             }
