@@ -440,6 +440,12 @@ public class GraphPattern implements Serializable {
             for (GraphPattern.Edge edge : otherGraphPattern.graph.outgoingEdgesOf(otherVertex)) {
                 // check whether the edge is in the graphPattern
                 boolean found = false;
+
+                // Runtime.log("[debug] vertex set size = " +
+                // graphPattern.graph.vertexSet().size()
+                // + ", edge set size = " + graphPattern.graph.edgeSet().size()
+                // + ", graph.contains = " + graphPattern.graph.containsVertex(this));
+
                 for (GraphPattern.Edge patternEdge : graphPattern.graph.outgoingEdgesOf(this)) {
                     if (patternEdge.name.equals(edge.name)) {
                         GraphPattern.Vertex target = graphPattern.graph.getEdgeTarget(patternEdge);

@@ -35,7 +35,7 @@ public class ObjectGraphCoverage implements Serializable {
     // DumpId -> classname -> graph pattern (Only top objects)
     transient Map<Integer, Map<String, Integer>> dumpId2Context2GroupId = new HashMap<>();
     transient Map<Integer, Integer> dumpId2CurrentGroupId = new HashMap<>();
-    public transient Map<Integer, Map<Integer, Map<String, GraphPattern>>> accumDumpId2ObjCoverageWithContext = new HashMap<>();
+    public Map<Integer, Map<Integer, Map<String, GraphPattern>>> accumDumpId2ObjCoverageWithContext = new HashMap<>();
 
     // Runtime: collector side
     public Map<Integer, Map<String, Map<String, GraphPattern>>> dumpId2ObjCoverageWithContext = new HashMap<>();
@@ -51,7 +51,7 @@ public class ObjectGraphCoverage implements Serializable {
 
     public InvariantCombination invariantCombination;
     public int topNLessFrequentBrokenInvariant = 5;
-    public transient InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
+    public InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
 
     // ----------------------- Runtime -----------------------
     public transient Set<Integer> visitedObjects = new HashSet<>();
@@ -734,6 +734,12 @@ public class ObjectGraphCoverage implements Serializable {
     // Test usage only
     public Map<Integer, String> getObjectCreationStacktrace() {
         return topObj2CreationStacktrace;
+    }
+
+    public void copyBasicInfo(ObjectGraphCoverage otherObjCoverage) {
+        classInfoOri = otherObjCoverage.classInfoOri;
+        topObjects = otherObjCoverage.topObjects;
+        baseClassInfo = otherObjCoverage.baseClassInfo;
     }
 
     public static IsSerialize constructIsSerialize(Path modifiedFieldsPath, Path modifiedEnumsPath,
