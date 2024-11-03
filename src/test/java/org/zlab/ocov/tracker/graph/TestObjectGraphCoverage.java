@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jgrapht.graph.DirectedMultigraph;
+import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.label.LabelConstraint;
 import org.zlab.ocov.tracker.graph.label.ValueConstraint;
 import org.zlab.ocov.tracker.graph.structure.AccumulatedSizeConstraint;
@@ -911,7 +912,8 @@ public class TestObjectGraphCoverage {
         obj2.next = child2;
 
         curCoverage.update(obj2);
-        assert !allCoverage.merge(curCoverage, 1).isNewFormat();
+        FormatCoverageStatus status = allCoverage.merge(curCoverage, 1);
+        assert !status.isNewFormat();
         curCoverage.clear();
     }
 
@@ -1176,5 +1178,58 @@ public class TestObjectGraphCoverage {
         formatCoverageStatus = coverage1.merge(coverage, 1, true, false, true);
         assert formatCoverageStatus.isNewFormat();
         assert formatCoverageStatus.isNewFormatAtModifiedMergePoint();
+    }
+
+    @Test
+    public void testMatchableFormatChecking() {
+        // Modified from testCollection
+        Path baseClassPath = Paths.get("input/baseClassInfo1.json");
+        Path topObjectsPath = Paths.get("input/topObjects1.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+
+        Map<String, Map<String, String>> modifiedClassInfo = new HashMap<>();
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
+        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
+                "java.util.List");
+        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
+        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
+        coverage1.setMatchableClassInfo(modifiedClassInfo);
+
+        // Testing
+        TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
+        obj2.fList.add(new TargetClass.TargetClassF1());
+        assert (coverage.update(obj2));
+        assert coverage1.merge(coverage).isNewFormat();
+
+        TargetClass.TargetClassE obj3 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF31 = new TargetClass.TargetClassF1();
+        tmpF31.f1 = 0;
+        obj3.fList.add(tmpF31);
+        coverage.update(obj3);
+        FormatCoverageStatus formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isMatchableNewFormat();
+
+        TargetClass.TargetClassE obj4 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF41 = new TargetClass.TargetClassF1();
+        tmpF41.f1 = 2;
+        obj4.fList.add(tmpF41);
+        coverage.update(obj4);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isMatchableNewFormat();
+
+        TargetClass.TargetClassE obj5 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF51 = new TargetClass.TargetClassF1();
+        TargetClass.TargetClassF1 tmpF52 = new TargetClass.TargetClassF1();
+        tmpF51.f1 = 0;
+        obj5.fList.add(tmpF51);
+        tmpF52.f1 = 0;
+        obj5.fList.add(tmpF52);
+        assert (coverage.update(obj5));
+        assert coverage1.merge(coverage).isNewFormat();
     }
 }

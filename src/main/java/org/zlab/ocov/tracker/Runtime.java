@@ -17,7 +17,8 @@ public class Runtime {
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
 
-    // Debug
+    public static boolean enableMatchableFormatCheck = true;
+
     public static boolean enableCreationContextMonitor = false;
     public static boolean enableUpdate = true;
 

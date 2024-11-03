@@ -19,7 +19,7 @@ import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
 public class ObjectGraphCoverage implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    // ----------------------- General Config -----------------------
+    // ----------------------- General Config -------------------------
     // If object with the same addr occur twice, avoid processing it
     public static final boolean avoidRecordObjectWithSameAddress = false;
     public static final boolean useContextFromArgs = true;
@@ -53,10 +53,10 @@ public class ObjectGraphCoverage implements Serializable {
     public int topNLessFrequentBrokenInvariant = 5;
     public InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
 
-    // ----------------------- Runtime -----------------------
+    // ----------------------- Runtime --------------------------------
     public transient Set<Integer> visitedObjects = new HashSet<>();
 
-    // -------------------- Creation context ------------------
+    // -------------------- Creation context --------------------------
     private transient final Map<Integer, Integer> objAddress2TopObjAddress = new HashMap<>();
     private transient final Map<Integer, String> topObj2CreationStacktrace = new HashMap<>();
     private transient final Map<Integer, Integer> dumpId2monitorCount = new HashMap<>();
@@ -66,7 +66,7 @@ public class ObjectGraphCoverage implements Serializable {
     private static final int monitorSampleThreshold = 100;
     private static final double monitorSampleRate = 0.001;
 
-    // ----------------------- Graph Pattern -----------------------
+    // ----------------------- Graph Pattern --------------------------
     private transient final Map<Integer, Integer> dumpId2UpdateCount = new HashMap<>();
     private static final boolean enableSampleUpdateThreshold = true;
     private static final int updateSampleThreshold = 100;
@@ -76,8 +76,9 @@ public class ObjectGraphCoverage implements Serializable {
     private transient Map<String, GraphPattern> baseClassInfo;
     private transient Set<String> topObjects;
 
-    // ------------------- Modification guided testing -------------------
+    // ------------------- Modification guided testing ----------------
     private transient Set<Integer> specialDumpIds;
+    private transient Map<String, Map<String, String>> matchableClassInfo;
 
     public ObjectGraphCoverage() {
         // for json
@@ -413,6 +414,10 @@ public class ObjectGraphCoverage implements Serializable {
         }
     }
 
+    public void setMatchableClassInfo(Map<String, Map<String, String>> matchableClassInfo) {
+        this.matchableClassInfo = matchableClassInfo;
+    }
+
     // ----Boundary Related----
     public boolean updateBranch(Object obj, int id) {
         if (boundary == null)
@@ -561,7 +566,7 @@ public class ObjectGraphCoverage implements Serializable {
 
             FormatCoverageStatus currentFormatCoverageStatus = new FormatCoverageStatus();
             mergeAccumGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
-                    currentFormatCoverageStatus, dumpId);
+                    currentFormatCoverageStatus, dumpId, matchableClassInfo);
 
             if (checkSpecialDumpIds && specialDumpIds != null) {
                 if (specialDumpIds.contains(dumpId)) {
@@ -615,7 +620,8 @@ public class ObjectGraphCoverage implements Serializable {
     private void mergeAccumGraphPattern(
             Map<Integer, Map<String, GraphPattern>> objCoverageWithContext,
             Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext,
-            FormatCoverageStatus formatCoverageStatus, int dumpId) {
+            FormatCoverageStatus formatCoverageStatus, int dumpId,
+            Map<String, Map<String, String>> matchableClassInfo) {
         if (otherObjCoverageWithContext == null)
             return;
         for (String context : otherObjCoverageWithContext.keySet()) {
@@ -654,8 +660,11 @@ public class ObjectGraphCoverage implements Serializable {
                     formatCoverageStatus.setNewFormat(
                             "Add new graphPattern for " + className + ", context hashcode = "
                                     + context.hashCode() + ", dumpId = " + dumpId);
+                    // Matchable format check 1: a new GP is added
+                    if (matchableClassInfo != null && matchableClassInfo.containsKey(className))
+                        formatCoverageStatus.setMatchableNewFormat("");
                 } else {
-                    LogInfo logInfo = new LogInfo(dumpId, context.hashCode());
+                    LogInfo logInfo = new LogInfo(dumpId, context.hashCode(), matchableClassInfo);
                     FormatCoverageStatus otherFormatCoverageStatus = graphPattern
                             .merge(otherGraphPattern, logInfo);
                     formatCoverageStatus.incorporate(otherFormatCoverageStatus);

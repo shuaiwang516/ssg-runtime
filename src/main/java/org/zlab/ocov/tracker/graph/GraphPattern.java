@@ -21,6 +21,9 @@ import java.util.*;
 public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
+    private static final String ItiRefEdge = "->";
+    private static final String ItiInstanceEdge = "=>";
+
     // Likely Invariant Options
     public static boolean limitGraphPatternDepth = true;
     public static int maxDepth = 7;
@@ -71,7 +74,7 @@ public class GraphPattern implements Serializable {
 
         public static void updateItinerary(GraphPattern graphPattern, String itineraryPrefix) {
             for (Vertex v : graphPattern.graph.vertexSet()) {
-                v.itinerary = itineraryPrefix + "->" + v.itinerary;
+                v.itinerary = itineraryPrefix + ItiInstanceEdge + v.itinerary;
                 v.depth = computeDepthOutOfItinerary(v.itinerary);
             }
         }
@@ -133,7 +136,7 @@ public class GraphPattern implements Serializable {
                     // If not found, create a new one
                     // Skip it if it's recursive type (linked list...)
                     if (graphPatternMap.containsKey(objectType)
-                            && !itinerary.contains(objectType + ".")) {
+                            && !itinerary.contains(objectType + ItiRefEdge)) {
                         // Include the subgraph's edges and vertices
                         GraphPattern subGraphPattern = SerializationUtils
                                 .clone(graphPatternMap.get(objectType));
@@ -427,16 +430,29 @@ public class GraphPattern implements Serializable {
             FormatCoverageStatus formatCoverageStatus = new FormatCoverageStatus();
             // merge label constraints
             assert labelConstraints.size() == otherVertex.labelConstraints.size();
+
+            // Matchable format check2: vertex level check
+            boolean matchableFormat = false;
+            if (!formatCoverageStatus.isMatchableNewFormat())
+                matchableFormat = isMatchableFormat(logInfo.matchableClassInfo);
+
             for (int i = 0; i < labelConstraints.size(); i++) {
-                formatCoverageStatus.incorporate(labelConstraints.get(i)
-                        .merge(otherVertex.labelConstraints.get(i), itinerary, logInfo));
+                FormatCoverageStatus labelFormatCoverageStatus = labelConstraints.get(i)
+                        .merge(otherVertex.labelConstraints.get(i), itinerary, logInfo);
+                if (matchableFormat)
+                    labelFormatCoverageStatus.setMatchableNewFormat("");
+                formatCoverageStatus.incorporate(labelFormatCoverageStatus);
             }
-            // merge structure constraints
+            // Merge structure constraints
             assert structureConstraints.size() == otherVertex.structureConstraints.size();
             for (int i = 0; i < structureConstraints.size(); i++) {
-                formatCoverageStatus.incorporate(structureConstraints.get(i)
-                        .merge(otherVertex.structureConstraints.get(i), itinerary, logInfo));
+                FormatCoverageStatus structureFormatCoverageStatus = structureConstraints.get(i)
+                        .merge(otherVertex.structureConstraints.get(i), itinerary, logInfo);
+                if (matchableFormat)
+                    structureFormatCoverageStatus.setMatchableNewFormat("");
+                formatCoverageStatus.incorporate(structureFormatCoverageStatus);
             }
+
             for (GraphPattern.Edge edge : otherGraphPattern.graph.outgoingEdgesOf(otherVertex)) {
                 // check whether the edge is in the graphPattern
                 boolean found = false;
@@ -458,7 +474,7 @@ public class GraphPattern implements Serializable {
                     }
                 }
                 if (!found) {
-                    // Add a new edge => a new format
+                    // Add a new edge (new format)
                     formatCoverageStatus.setNewFormat("<new edge in ref graph> iti = " + itinerary
                             + ", edge name = " + edge.name + ", dumpId = " + logInfo.dumpId
                             + ", context hash = " + logInfo.contextHashCode);
@@ -469,12 +485,42 @@ public class GraphPattern implements Serializable {
                     newVertex.reset();
                     graphPattern.graph.addVertex(newVertex);
                     graphPattern.graph.addEdge(this, newVertex, edge);
+                    if (newVertex.isMatchableFormat(logInfo.matchableClassInfo))
+                        formatCoverageStatus.setMatchableNewFormat("");
                     formatCoverageStatus.incorporate(
                             newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
                                     otherGraphPattern, graphPattern, logInfo));
                 }
             }
             return formatCoverageStatus;
+        }
+
+        // check whether the ref path only contain matchable formats
+        public boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
+            if (matchableClassInfo == null)
+                return false;
+
+            System.out.println("[hklog] iti = " + itinerary);
+
+            String[] refs = itinerary.split(ItiInstanceEdge);
+
+            for (String ref : refs) {
+                String[] items = ref.split(ItiRefEdge);
+                if (items.length == 1) {
+                    // Only check classname
+                    if (!matchableClassInfo.containsKey(items[0]))
+                        return false;
+                } else {
+                    assert items.length == 2;
+                    // Check the pair
+                    String className = items[0];
+                    String fieldName = items[1];
+                    if (!matchableClassInfo.containsKey(className)
+                            || !matchableClassInfo.get(className).containsKey(fieldName))
+                        return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -775,7 +821,7 @@ public class GraphPattern implements Serializable {
 
         Edge edge = new Edge(edgeName);
 
-        String itinerary = parentVertex.itinerary + "." + edgeName;
+        String itinerary = parentVertex.itinerary + ItiRefEdge + edgeName;
         Vertex vertex = createVertex(vertexType, itinerary);
         graphPattern.graph.addVertex(vertex);
         graphPattern.graph.addEdge(parentVertex, vertex, edge);
@@ -783,34 +829,36 @@ public class GraphPattern implements Serializable {
             // Do nothing
         } else if (isCollection(vertexType)) {
             Vertex collectionItemVertex = createVertex("ObjectPlaceHolder",
-                    itinerary + ".collection_item");
+                    itinerary + ItiInstanceEdge + "Collection" + ItiRefEdge + "collection_item");
             graphPattern.graph.addVertex(collectionItemVertex);
             graphPattern.graph.addEdge(vertex, collectionItemVertex, new Edge("collection_item"));
 
             // Special handle the first/last item if there's order
             if (specialHandleFirstLastItem && isCollectionWithOrder(vertexType)) {
-                Vertex firstItemVertex = createVertex("ObjectPlaceHolder",
-                        itinerary + ".collection_firstItem");
+                Vertex firstItemVertex = createVertex("ObjectPlaceHolder", itinerary
+                        + ItiInstanceEdge + "Collection" + ItiRefEdge + "collection_firstItem");
                 graphPattern.graph.addVertex(firstItemVertex);
                 graphPattern.graph.addEdge(vertex, firstItemVertex,
                         new Edge("collection_firstItem"));
 
-                Vertex lastItemVertex = createVertex("ObjectPlaceHolder",
-                        itinerary + ".collection_lastItem");
+                Vertex lastItemVertex = createVertex("ObjectPlaceHolder", itinerary
+                        + ItiInstanceEdge + "Collection" + ItiRefEdge + "collection_lastItem");
                 graphPattern.graph.addVertex(lastItemVertex);
                 graphPattern.graph.addEdge(vertex, lastItemVertex, new Edge("collection_lastItem"));
             }
         } else if (isMap(vertexType)) {
-            Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder", itinerary + ".map_keyItem");
+            Vertex mapKeyItemVertex = createVertex("ObjectPlaceHolder",
+                    itinerary + ItiInstanceEdge + "Map" + ItiRefEdge + "map_keyItem");
             graphPattern.graph.addVertex(mapKeyItemVertex);
             graphPattern.graph.addEdge(vertex, mapKeyItemVertex, new Edge("map_keyItem"));
 
             Vertex mapValueItemVertex = createVertex("ObjectPlaceHolder",
-                    itinerary + ".map_valueItem");
+                    itinerary + ItiInstanceEdge + "Map" + ItiRefEdge + "map_valueItem");
             graphPattern.graph.addVertex(mapValueItemVertex);
             graphPattern.graph.addEdge(vertex, mapValueItemVertex, new Edge("map_valueItem"));
         } else if (isArray(vertexType)) {
-            Vertex arrayItemVertex = createVertex("ObjectPlaceHolder", itinerary + ".array_item");
+            Vertex arrayItemVertex = createVertex("ObjectPlaceHolder",
+                    itinerary + ItiInstanceEdge + "Array" + ItiRefEdge + "array_item");
             graphPattern.graph.addVertex(arrayItemVertex);
             graphPattern.graph.addEdge(vertex, arrayItemVertex, new Edge("array_item"));
         }
@@ -913,25 +961,6 @@ public class GraphPattern implements Serializable {
     }
 
     public static int computeDepthOutOfItinerary(String itinerary) {
-        int countArrow = itinerary.split("->", -1).length - 1;
-
-        String[] targets = {".collection_", ".map_", ".array_"};
-
-        int totalOccurrence = 0;
-        // Loop over each target substring
-        for (String target : targets) {
-            int count = 0;
-            int index = 0;
-            // Find each occurrence of the current target substring
-            while ((index = itinerary.indexOf(target, index)) != -1) {
-                count++;
-                index += target.length(); // Move index to end of the current match
-            }
-            totalOccurrence += count;
-            // System.out.println("The substring '" + target + "' occurs " + count + "
-            // times.");
-        }
-
-        return countArrow + 1 + totalOccurrence;
+        return itinerary.split(ItiRefEdge).length - 1;
     }
 }
