@@ -30,12 +30,12 @@ public class FormatCoverageStatus implements Serializable {
     }
 
     public void setNewFormatAtModifiedMergePoint(String log) {
-        Runtime.log("[New format at modified merge point] " + log);
+        // Runtime.log("[New format at modified merge point] " + log);
         this.newFormatAtModifiedMergePoint = true;
     }
 
     public void setNewFormatRelatedToModifiedType(String log) {
-        Runtime.log("[New format related to modified type] " + log);
+        // Runtime.log("[New format related to modified type] " + log);
         this.newFormatRelatedToModifiedType = true;
     }
 
@@ -78,7 +78,7 @@ public class FormatCoverageStatus implements Serializable {
     }
 
     public void setMatchableNewFormat(String log) {
-        Runtime.log("[Matchable new format] " + log);
+        // Runtime.log("[Matchable new format] " + log);
         this.matchableNewFormat = true;
     }
 

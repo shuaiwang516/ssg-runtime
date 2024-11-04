@@ -497,13 +497,15 @@ public class GraphPattern implements Serializable {
 
         // check whether the ref path only contain matchable formats
         public boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
+            return isMatchableFormat(matchableClassInfo, itinerary);
+        }
+
+        public static boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
+                String itinerary) {
             if (matchableClassInfo == null)
                 return false;
 
-            System.out.println("[hklog] iti = " + itinerary);
-
             String[] refs = itinerary.split(ItiInstanceEdge);
-
             for (String ref : refs) {
                 String[] items = ref.split(ItiRefEdge);
                 if (items.length == 1) {
@@ -515,6 +517,12 @@ public class GraphPattern implements Serializable {
                     // Check the pair
                     String className = items[0];
                     String fieldName = items[1];
+
+                    // Skip Collection/Map/Array
+                    if (className.equals("Collection") || className.equals("Map")
+                            || className.equals("Array"))
+                        continue;
+
                     if (!matchableClassInfo.containsKey(className)
                             || !matchableClassInfo.get(className).containsKey(fieldName))
                         return false;
