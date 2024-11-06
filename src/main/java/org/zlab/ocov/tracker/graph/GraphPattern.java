@@ -524,8 +524,11 @@ public class GraphPattern implements Serializable {
                         continue;
 
                     if (!matchableClassInfo.containsKey(className)
-                            || !matchableClassInfo.get(className).containsKey(fieldName))
+                            || !matchableClassInfo.get(className).containsKey(fieldName)) {
+                        // Runtime.log("[debug] unmatchable format: " + className + ", " +
+                        // fieldName);
                         return false;
+                    }
                 }
             }
             return true;
