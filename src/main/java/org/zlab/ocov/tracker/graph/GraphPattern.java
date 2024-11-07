@@ -439,7 +439,7 @@ public class GraphPattern implements Serializable {
             for (int i = 0; i < labelConstraints.size(); i++) {
                 FormatCoverageStatus labelFormatCoverageStatus = labelConstraints.get(i)
                         .merge(otherVertex.labelConstraints.get(i), itinerary, logInfo);
-                if (matchableFormat)
+                if (matchableFormat && labelFormatCoverageStatus.isNewFormat())
                     labelFormatCoverageStatus.setMatchableNewFormat("");
                 formatCoverageStatus.incorporate(labelFormatCoverageStatus);
             }
@@ -448,7 +448,7 @@ public class GraphPattern implements Serializable {
             for (int i = 0; i < structureConstraints.size(); i++) {
                 FormatCoverageStatus structureFormatCoverageStatus = structureConstraints.get(i)
                         .merge(otherVertex.structureConstraints.get(i), itinerary, logInfo);
-                if (matchableFormat)
+                if (matchableFormat && structureFormatCoverageStatus.isNewFormat())
                     structureFormatCoverageStatus.setMatchableNewFormat("");
                 formatCoverageStatus.incorporate(structureFormatCoverageStatus);
             }
