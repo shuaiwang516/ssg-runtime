@@ -17,9 +17,8 @@ public class Runtime {
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
 
-    public static boolean enableMatchableFormatCheck = true;
-
-    public static boolean enableCreationContextMonitor = false;
+    // FIXME: This was disabled in BC+FC evaluation
+    public static boolean enableCreationContextMonitor = true;
     public static boolean enableUpdate = true;
 
     public static boolean enableBoundaryCheck = true;
