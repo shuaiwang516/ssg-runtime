@@ -17,7 +17,7 @@ public class Runtime {
     // Only enable the runtime when the environment variable is set
     public static boolean enable = true;
 
-    // FIXME: This was disabled in BC+FC evaluation
+    // FIXME: This is disabled in BC+FC evaluation
     public static boolean enableCreationContextMonitor = true;
     public static boolean enableUpdate = true;
 
