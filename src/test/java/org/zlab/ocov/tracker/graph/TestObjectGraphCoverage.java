@@ -1232,4 +1232,45 @@ public class TestObjectGraphCoverage {
         assert (coverage.update(obj5));
         assert coverage1.merge(coverage).isNewFormat();
     }
+
+    @Test
+    public void testNonMatchableFormatChecking() {
+        // Modified from testCollection
+        Path baseClassPath = Paths.get("input/baseClassInfo1.json");
+        Path topObjectsPath = Paths.get("input/topObjects1.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+
+        Map<String, Map<String, String>> modifiedClassInfo = new HashMap<>();
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
+        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
+                "java.util.List");
+        coverage1.setMatchableClassInfo(modifiedClassInfo);
+
+        // Testing
+        TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
+        obj2.fList.add(new TargetClass.TargetClassF1());
+        assert (coverage.update(obj2));
+        assert coverage1.merge(coverage).isNewFormat();
+
+        TargetClass.TargetClassE obj3 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF31 = new TargetClass.TargetClassF1();
+        tmpF31.f1 = 0;
+        obj3.fList.add(tmpF31);
+        coverage.update(obj3);
+        FormatCoverageStatus formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isNonMatchableNewFormat();
+
+        TargetClass.TargetClassE obj4 = new TargetClass.TargetClassE();
+        TargetClass.TargetClassF1 tmpF41 = new TargetClass.TargetClassF1();
+        tmpF41.f1 = 2;
+        obj4.fList.add(tmpF41);
+        coverage.update(obj4);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isNonMatchableNewFormat();
+    }
 }

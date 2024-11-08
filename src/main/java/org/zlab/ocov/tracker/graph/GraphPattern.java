@@ -432,15 +432,17 @@ public class GraphPattern implements Serializable {
             assert labelConstraints.size() == otherVertex.labelConstraints.size();
 
             // Matchable format check2: vertex level check
-            boolean matchableFormat = false;
-            if (!formatCoverageStatus.isMatchableNewFormat())
-                matchableFormat = isMatchableFormat(logInfo.matchableClassInfo);
+            boolean matchable = isMatchableFormat(logInfo.matchableClassInfo);
 
             for (int i = 0; i < labelConstraints.size(); i++) {
                 FormatCoverageStatus labelFormatCoverageStatus = labelConstraints.get(i)
                         .merge(otherVertex.labelConstraints.get(i), itinerary, logInfo);
-                if (matchableFormat && labelFormatCoverageStatus.isNewFormat())
-                    labelFormatCoverageStatus.setMatchableNewFormat("");
+                if (labelFormatCoverageStatus.isNewFormat()) {
+                    if (matchable)
+                        labelFormatCoverageStatus.setMatchableNewFormat("");
+                    else
+                        labelFormatCoverageStatus.setNonMatchableNewFormat("");
+                }
                 formatCoverageStatus.incorporate(labelFormatCoverageStatus);
             }
             // Merge structure constraints
@@ -448,8 +450,12 @@ public class GraphPattern implements Serializable {
             for (int i = 0; i < structureConstraints.size(); i++) {
                 FormatCoverageStatus structureFormatCoverageStatus = structureConstraints.get(i)
                         .merge(otherVertex.structureConstraints.get(i), itinerary, logInfo);
-                if (matchableFormat && structureFormatCoverageStatus.isNewFormat())
-                    structureFormatCoverageStatus.setMatchableNewFormat("");
+                if (structureFormatCoverageStatus.isNewFormat()) {
+                    if (matchable)
+                        structureFormatCoverageStatus.setMatchableNewFormat("");
+                    else
+                        structureFormatCoverageStatus.setNonMatchableNewFormat("");
+                }
                 formatCoverageStatus.incorporate(structureFormatCoverageStatus);
             }
 
@@ -487,6 +493,8 @@ public class GraphPattern implements Serializable {
                     graphPattern.graph.addEdge(this, newVertex, edge);
                     if (newVertex.isMatchableFormat(logInfo.matchableClassInfo))
                         formatCoverageStatus.setMatchableNewFormat("");
+                    else
+                        formatCoverageStatus.setNonMatchableNewFormat("");
                     formatCoverageStatus.incorporate(
                             newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
                                     otherGraphPattern, graphPattern, logInfo));
@@ -495,7 +503,7 @@ public class GraphPattern implements Serializable {
             return formatCoverageStatus;
         }
 
-        // check whether the ref path only contain matchable formats
+        // All refs in ref_path are matchable
         public boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
             return isMatchableFormat(matchableClassInfo, itinerary);
         }

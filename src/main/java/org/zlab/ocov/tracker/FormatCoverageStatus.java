@@ -18,6 +18,7 @@ public class FormatCoverageStatus implements Serializable {
 
     // Matchable new format
     private boolean matchableNewFormat = false;
+    private boolean nonMatchableNewFormat = false;
 
     public void setNewFormat(String log) {
         Runtime.log("[New format] " + log);
@@ -50,7 +51,7 @@ public class FormatCoverageStatus implements Serializable {
         this.newFormatRelatedToModifiedType = this.newFormatRelatedToModifiedType
                 || other.newFormatRelatedToModifiedType;
         this.matchableNewFormat = this.matchableNewFormat || other.matchableNewFormat;
-
+        this.nonMatchableNewFormat = this.nonMatchableNewFormat || other.nonMatchableNewFormat;
     }
 
     public boolean isChanged() {
@@ -77,9 +78,18 @@ public class FormatCoverageStatus implements Serializable {
         return matchableNewFormat;
     }
 
+    public boolean isNonMatchableNewFormat() {
+        return nonMatchableNewFormat;
+    }
+
     public void setMatchableNewFormat(String log) {
         // Runtime.log("[Matchable new format] " + log);
         this.matchableNewFormat = true;
+    }
+
+    public void setNonMatchableNewFormat(String log) {
+        // Runtime.log("[Matchable new format] " + log);
+        this.nonMatchableNewFormat = true;
     }
 
     @Override

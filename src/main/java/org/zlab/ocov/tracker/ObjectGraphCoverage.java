@@ -640,35 +640,25 @@ public class ObjectGraphCoverage implements Serializable {
                 GraphPattern otherGraphPattern = otherClassInfo.get(className);
                 if (otherGraphPattern == null)
                     continue;
-                GraphPattern graphPattern = classInfo.get(className);
-                if (graphPattern == null) {
-                    long time1 = System.currentTimeMillis();
-                    classInfo.put(className, SerializationUtils.clone(otherGraphPattern));
-                    long time2 = System.currentTimeMillis();
-                    if (Runtime.debug) {
-                        double time = (time2 - time1) / 1000.;
-                        Runtime.log(String.format(
-                                "[hklog] Add new graphPattern for %s, context hashcode = %d, clone time = %.2fs",
-                                className, context.hashCode(), time));
-                        if (time > 1)
-                            Runtime.log("[hklog] clone slow for " + className + ", time = " + time
-                                    + ", node num = "
-                                    + otherGraphPattern.getGraph().vertexSet().size()
-                                    + ", edge num = "
-                                    + otherGraphPattern.getGraph().edgeSet().size());
-                    }
+                if (!classInfo.containsKey(className)) {
+                    assert baseClassInfo.containsKey(className);
+                    classInfo.put(className,
+                            SerializationUtils.clone(baseClassInfo.get(className)));
                     formatCoverageStatus.setNewFormat(
                             "Add new graphPattern for " + className + ", context hashcode = "
                                     + context.hashCode() + ", dumpId = " + dumpId);
-                    // Matchable format check 1: a new GP is added
-                    if (matchableClassInfo != null && matchableClassInfo.containsKey(className))
-                        formatCoverageStatus.setMatchableNewFormat("");
-                } else {
-                    LogInfo logInfo = new LogInfo(dumpId, context.hashCode(), matchableClassInfo);
-                    FormatCoverageStatus otherFormatCoverageStatus = graphPattern
-                            .merge(otherGraphPattern, logInfo);
-                    formatCoverageStatus.incorporate(otherFormatCoverageStatus);
+                    if (matchableClassInfo != null) {
+                        if (matchableClassInfo.containsKey(className))
+                            formatCoverageStatus.setMatchableNewFormat("");
+                        else
+                            formatCoverageStatus.setNonMatchableNewFormat("");
+                    }
                 }
+                GraphPattern graphPattern = classInfo.get(className);
+                LogInfo logInfo = new LogInfo(dumpId, context.hashCode(), matchableClassInfo);
+                FormatCoverageStatus otherFormatCoverageStatus = graphPattern
+                        .merge(otherGraphPattern, logInfo);
+                formatCoverageStatus.incorporate(otherFormatCoverageStatus);
             }
         }
     }
