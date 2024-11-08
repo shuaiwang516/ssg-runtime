@@ -137,10 +137,10 @@ public class EqualitySet implements Serializable {
                     }
                     tmpMap.put(dumpId, tmpSet);
                     if (checkSpecialDumpIds && specialDumpIds != null) {
-                        if (specialDumpIds.contains(dumpId)) {
-                            formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
-                                    "<Equality> class = %s, dumpId = %d", compClass, dumpId));
-                        }
+                        // if (specialDumpIds.contains(dumpId)) {
+                        // formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
+                        // "<Equality> class = %s, dumpId = %d", compClass, dumpId));
+                        // }
                     }
                 }
                 equalSetDedup1.put(compClass, tmpMap);
@@ -167,10 +167,10 @@ public class EqualitySet implements Serializable {
                                 logPrefix, compClass, dumpId, otherEqualitySets.get(dumpId)));
                     }
                     if (checkSpecialDumpIds && specialDumpIds != null) {
-                        if (specialDumpIds.contains(dumpId)) {
-                            formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
-                                    "<Equality> class = %s, dumpId = %d", compClass, dumpId));
-                        }
+                        // if (specialDumpIds.contains(dumpId)) {
+                        // formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
+                        // "<Equality> class = %s, dumpId = %d", compClass, dumpId));
+                        // }
                     }
                     changed = true;
                     continue;
@@ -179,10 +179,10 @@ public class EqualitySet implements Serializable {
                 Set<Set<String>> otherEqualitySet = otherEqualitySets.get(dumpId);
                 if (mergeSets(equalitySet, otherEqualitySet, compClass, useLog, logPrefix)) {
                     if (checkSpecialDumpIds && specialDumpIds != null) {
-                        if (specialDumpIds.contains(dumpId)) {
-                            formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
-                                    "<Equality> class = %s, dumpId = %d", compClass, dumpId));
-                        }
+                        // if (specialDumpIds.contains(dumpId)) {
+                        // formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
+                        // "<Equality> class = %s, dumpId = %d", compClass, dumpId));
+                        // }
                     }
                     changed = true;
                 }

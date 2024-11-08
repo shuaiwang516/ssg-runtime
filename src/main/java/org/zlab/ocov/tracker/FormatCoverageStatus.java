@@ -12,10 +12,6 @@ public class FormatCoverageStatus implements Serializable {
     private boolean newFormat = false;
     private boolean boundaryChange = false;
 
-    // Modification Guided Testing
-    private boolean newFormatAtModifiedMergePoint = false;
-    private boolean newFormatRelatedToModifiedType = false;
-
     // Matchable new format
     private boolean matchableNewFormat = false;
     private boolean nonMatchableNewFormat = false;
@@ -30,26 +26,12 @@ public class FormatCoverageStatus implements Serializable {
         this.boundaryChange = true;
     }
 
-    public void setNewFormatAtModifiedMergePoint(String log) {
-        // Runtime.log("[New format at modified merge point] " + log);
-        this.newFormatAtModifiedMergePoint = true;
-    }
-
-    public void setNewFormatRelatedToModifiedType(String log) {
-        // Runtime.log("[New format related to modified type] " + log);
-        this.newFormatRelatedToModifiedType = true;
-    }
-
     public void incorporate(FormatCoverageStatus other) {
         if (other == null) {
             return;
         }
         this.newFormat = this.newFormat || other.newFormat;
         this.boundaryChange = this.boundaryChange || other.boundaryChange;
-        this.newFormatAtModifiedMergePoint = this.newFormatAtModifiedMergePoint
-                || other.newFormatAtModifiedMergePoint;
-        this.newFormatRelatedToModifiedType = this.newFormatRelatedToModifiedType
-                || other.newFormatRelatedToModifiedType;
         this.matchableNewFormat = this.matchableNewFormat || other.matchableNewFormat;
         this.nonMatchableNewFormat = this.nonMatchableNewFormat || other.nonMatchableNewFormat;
     }
@@ -64,14 +46,6 @@ public class FormatCoverageStatus implements Serializable {
 
     public boolean isBoundaryChange() {
         return boundaryChange;
-    }
-
-    public boolean isNewFormatAtModifiedMergePoint() {
-        return newFormatAtModifiedMergePoint;
-    }
-
-    public boolean isNewFormatRelatedToModifiedType() {
-        return newFormatRelatedToModifiedType;
     }
 
     public boolean isMatchableNewFormat() {
@@ -95,9 +69,8 @@ public class FormatCoverageStatus implements Serializable {
     @Override
     public String toString() {
         return "FormatCoverageStatus{" + "newFormat=" + newFormat + ", boundaryChange="
-                + boundaryChange + ", newFormatAtModifiedMergePoint="
-                + newFormatAtModifiedMergePoint + ", newFormatRelatedToModifiedType="
-                + newFormatRelatedToModifiedType + '}';
+                + boundaryChange + ", matchableNewFormat=" + matchableNewFormat
+                + ", nonMatchableNewFormat=" + nonMatchableNewFormat + '}';
     }
 
 }

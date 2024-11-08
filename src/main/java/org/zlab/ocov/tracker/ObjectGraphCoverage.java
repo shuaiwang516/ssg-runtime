@@ -542,9 +542,9 @@ public class ObjectGraphCoverage implements Serializable {
                     currentFormatCoverageStatus, dumpId);
 
             if (checkSpecialDumpIds && specialDumpIds != null) {
-                if (specialDumpIds.contains(dumpId)) {
-                    formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
-                }
+                // if (specialDumpIds.contains(dumpId)) {
+                // formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
+                // }
             }
             formatCoverageStatus.incorporate(currentFormatCoverageStatus);
         }
@@ -569,9 +569,9 @@ public class ObjectGraphCoverage implements Serializable {
                     currentFormatCoverageStatus, dumpId, matchableClassInfo);
 
             if (checkSpecialDumpIds && specialDumpIds != null) {
-                if (specialDumpIds.contains(dumpId)) {
-                    formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
-                }
+                // if (specialDumpIds.contains(dumpId)) {
+                // formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
+                // }
             }
             formatCoverageStatus.incorporate(currentFormatCoverageStatus);
 
@@ -684,9 +684,9 @@ public class ObjectGraphCoverage implements Serializable {
                         if (isRelatedToModifiedDumpIds)
                             break;
                     }
-                    if (isRelatedToModifiedDumpIds) {
-                        formatCoverageStatus.setNewFormatAtModifiedMergePoint("equalitySet");
-                    }
+                    // if (isRelatedToModifiedDumpIds) {
+                    // formatCoverageStatus.setNewFormatAtModifiedMergePoint("equalitySet");
+                    // }
                 }
                 formatCoverageStatus.setNewFormat("Add new equalitySet, previous is null");
             }
