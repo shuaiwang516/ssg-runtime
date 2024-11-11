@@ -21,8 +21,8 @@ import java.util.*;
 public class GraphPattern implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
-    private static final String ItiRefEdge = "->";
-    private static final String ItiInstanceEdge = "=>";
+    public static final String ItiRefEdge = "->";
+    public static final String ItiInstanceEdge = "=>";
 
     // Likely Invariant Options
     public static boolean limitGraphPatternDepth = true;
@@ -505,41 +505,7 @@ public class GraphPattern implements Serializable {
 
         // All refs in ref_path are matchable
         public boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
-            return isMatchableFormat(matchableClassInfo, itinerary);
-        }
-
-        public static boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
-                String itinerary) {
-            if (matchableClassInfo == null)
-                return false;
-
-            String[] refs = itinerary.split(ItiInstanceEdge);
-            for (String ref : refs) {
-                String[] items = ref.split(ItiRefEdge);
-                if (items.length == 1) {
-                    // Only check classname
-                    if (!matchableClassInfo.containsKey(items[0]))
-                        return false;
-                } else {
-                    assert items.length == 2;
-                    // Check the pair
-                    String className = items[0];
-                    String fieldName = items[1];
-
-                    // Skip Collection/Map/Array
-                    if (className.equals("Collection") || className.equals("Map")
-                            || className.equals("Array"))
-                        continue;
-
-                    if (!matchableClassInfo.containsKey(className)
-                            || !matchableClassInfo.get(className).containsKey(fieldName)) {
-                        // Runtime.log("[debug] unmatchable format: " + className + ", " +
-                        // fieldName);
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return Utils.isMatchableFormat(matchableClassInfo, itinerary);
         }
 
         @Override

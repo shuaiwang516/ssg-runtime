@@ -2,8 +2,8 @@ package org.zlab.ocov;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.zlab.ocov.tracker.graph.GraphPattern;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -269,6 +269,41 @@ public class Utils {
             tokens.add(line.trim());
         }
         return tokens;
+    }
+
+    public static boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
+            String itinerary) {
+        // If it's null, the ret value won't be used anyway
+        if (matchableClassInfo == null)
+            return false;
+
+        String[] refs = itinerary.split(GraphPattern.ItiInstanceEdge);
+        for (String ref : refs) {
+            String[] items = ref.split(GraphPattern.ItiRefEdge);
+            if (items.length == 1) {
+                // Only check classname
+                if (!matchableClassInfo.containsKey(items[0]))
+                    return false;
+            } else {
+                assert items.length == 2;
+                // Check the pair
+                String className = items[0];
+                String fieldName = items[1];
+
+                // Skip Collection/Map/Array
+                if (className.equals("Collection") || className.equals("Map")
+                        || className.equals("Array"))
+                    continue;
+
+                if (!matchableClassInfo.containsKey(className)
+                        || !matchableClassInfo.get(className).containsKey(fieldName)) {
+                    // Runtime.log("[debug] unmatchable format: " + className + ", " +
+                    // fieldName);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 }

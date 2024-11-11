@@ -1,5 +1,6 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.inv.unary.LogInfo;
 
 import java.io.Serializable;
@@ -98,7 +99,7 @@ public class EqualitySet implements Serializable {
         }
 
         mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, dedupEqualSetSameObj, false,
-                logPrefixSameObject, dummyFormatCoverageStatus, false, null);
+                logPrefixSameObject, dummyFormatCoverageStatus, null);
         if (Runtime.debug) {
             Runtime.log("[dumpSameObjectGraph] after merge: dumpId = " + dumpId
                     + ", equalSetSameObjDedup = " + equalSetSameObjDedup + ", equalSetSameObj = "
@@ -109,21 +110,21 @@ public class EqualitySet implements Serializable {
     }
 
     public void merge(EqualitySet other, FormatCoverageStatus formatCoverageStatus,
-            boolean checkSpecialDumpIds, Set<Integer> specialDumpIds) {
+            Map<String, Map<String, String>> matchableClassInfo) {
         if (other == null) {
             return;
         }
         mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, other.equalSetSameObjDedup,
-                true, logPrefixSameObject, formatCoverageStatus, checkSpecialDumpIds,
-                specialDumpIds);
+                true, logPrefixSameObject, formatCoverageStatus, matchableClassInfo);
     }
 
     public static void mergeCompClass2EqualityDedupWithDumpId(
             Map<String, Map<Integer, Set<Set<String>>>> equalSetDedup1,
             Map<String, Map<Integer, Set<Set<String>>>> equalSetDedup2, boolean useLog,
             String logPrefix, FormatCoverageStatus formatCoverageStatus,
-            boolean checkSpecialDumpIds, Set<Integer> specialDumpIds) {
+            Map<String, Map<String, String>> matchableClassInfo) {
         boolean changed = false;
+        boolean nonMatchable = false;
         for (String compClass : equalSetDedup2.keySet()) {
             if (!equalSetDedup1.containsKey(compClass)) {
                 Map<Integer, Set<Set<String>>> tmpMap = new HashMap<>();
@@ -136,12 +137,9 @@ public class EqualitySet implements Serializable {
                         tmpSet.add(new HashSet<>(set));
                     }
                     tmpMap.put(dumpId, tmpSet);
-                    if (checkSpecialDumpIds && specialDumpIds != null) {
-                        // if (specialDumpIds.contains(dumpId)) {
-                        // formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
-                        // "<Equality> class = %s, dumpId = %d", compClass, dumpId));
-                        // }
-                    }
+                    // No need to check modification here.
+                    // If a comp class occur firstly, it must have led to new likely invariants
+                    // The mod check is already performed previously
                 }
                 equalSetDedup1.put(compClass, tmpMap);
                 if (useLog) {
@@ -166,42 +164,36 @@ public class EqualitySet implements Serializable {
                                 "<%s: first occur for dumpId> class = %s, dumpId = %d, set = %s",
                                 logPrefix, compClass, dumpId, otherEqualitySets.get(dumpId)));
                     }
-                    if (checkSpecialDumpIds && specialDumpIds != null) {
-                        // if (specialDumpIds.contains(dumpId)) {
-                        // formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
-                        // "<Equality> class = %s, dumpId = %d", compClass, dumpId));
-                        // }
-                    }
+                    // No modification check: similar reason as above
                     changed = true;
                     continue;
                 }
                 Set<Set<String>> equalitySet = equalitySets.get(dumpId);
                 Set<Set<String>> otherEqualitySet = otherEqualitySets.get(dumpId);
-                if (mergeSets(equalitySet, otherEqualitySet, compClass, useLog, logPrefix)) {
-                    if (checkSpecialDumpIds && specialDumpIds != null) {
-                        // if (specialDumpIds.contains(dumpId)) {
-                        // formatCoverageStatus.setNewFormatAtModifiedMergePoint(String.format(
-                        // "<Equality> class = %s, dumpId = %d", compClass, dumpId));
-                        // }
-                    }
+                MergeStatus mergeStatus = mergeSets(equalitySet, otherEqualitySet, compClass,
+                        useLog, logPrefix, matchableClassInfo);
+                if (mergeStatus.changed) {
                     changed = true;
                 }
+                if (mergeStatus.nonMatchable)
+                    nonMatchable = true;
             }
         }
         if (changed)
             formatCoverageStatus.setNewFormat("New equalitySet");
+        if (nonMatchable)
+            formatCoverageStatus.setNonMatchableNewFormat("Non-matchable equalitySet");
     }
 
     public static boolean mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className) {
-        return mergeSets(s1, s2, className, true, "Equality:");
+        return mergeSets(s1, s2, className, true, "Equality:", new HashMap<>()).changed;
     }
 
-    public static boolean mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className,
-            boolean useLog, String logPrefix) {
+    // Merge s2 into s1
+    public static MergeStatus mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className,
+            boolean useLog, String logPrefix, Map<String, Map<String, String>> matchableClassInfo) {
         boolean isChanged = false;
-
-        // Seems no need to do this
-        // s2.removeIf(Set::isEmpty);
+        boolean nonMatchable = false;
 
         for (Set<String> setFromS2 : s2) {
             // skip empty set
@@ -215,6 +207,7 @@ public class EqualitySet implements Serializable {
             Set<Set<String>> setsToRemove = new HashSet<>();
 
             for (Set<String> setFromS1 : s1) {
+                // Check larger set: setFromS2 > setFromS1
                 if (setFromS2.containsAll(setFromS1) && !setFromS2.equals(setFromS1)) {
                     setsToRemove.add(setFromS1);
                     if (useLog) {
@@ -225,7 +218,7 @@ public class EqualitySet implements Serializable {
                     isStrictSupersetFound = true;
                     isChanged = true;
                 }
-                // See if it's a subset set
+                // Check smaller set: setFromS1 >= setFromS2
                 if (setFromS1.containsAll(setFromS2)) {
                     // log: a smaller equality set!
                     isSubsetFound = true;
@@ -237,6 +230,10 @@ public class EqualitySet implements Serializable {
 
             if (isStrictSupersetFound) {
                 s1.add(setFromS2);
+                if (!nonMatchable && matchableClassInfo != null
+                        && checkNonMatchable(setFromS2, matchableClassInfo)) {
+                    nonMatchable = true;
+                }
             } else {
                 if (!isSubsetFound) {
                     // A distinguished set
@@ -247,10 +244,24 @@ public class EqualitySet implements Serializable {
                     }
                     isChanged = true;
                     s1.add(setFromS2);
+                    if (!nonMatchable && matchableClassInfo != null
+                            && checkNonMatchable(setFromS2, matchableClassInfo)) {
+                        nonMatchable = true;
+                    }
                 }
             }
         }
-        return isChanged;
+        return new MergeStatus(isChanged, nonMatchable);
+    }
+
+    public static boolean checkNonMatchable(Set<String> itis,
+            Map<String, Map<String, String>> matchableClassInfo) {
+        for (String iti : itis) {
+            if (!Utils.isMatchableFormat(matchableClassInfo, iti)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Deduplication and containment filtering
@@ -314,5 +325,15 @@ public class EqualitySet implements Serializable {
             }
         }
         return collapsedSet;
+    }
+
+    public static class MergeStatus {
+        public boolean changed;
+        public boolean nonMatchable;
+
+        public MergeStatus(boolean changed, boolean nonMatchable) {
+            this.changed = changed;
+            this.nonMatchable = nonMatchable;
+        }
     }
 }

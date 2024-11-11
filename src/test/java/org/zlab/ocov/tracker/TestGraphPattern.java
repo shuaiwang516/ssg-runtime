@@ -1,7 +1,7 @@
 package org.zlab.ocov.tracker;
 
 import org.junit.jupiter.api.Test;
-import org.zlab.ocov.tracker.graph.GraphPattern;
+import org.zlab.ocov.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +18,10 @@ public class TestGraphPattern {
         String iti1 = "org.apache.cassandra.db.RowIndexEntry$IndexedEntry->columnsIndex";
         String iti2 = "org.apache.cassandra.db.RowIndexEntry$IndexedEntry->columnsIndex=>Collection->collection_firstItem";
 
-        boolean result = GraphPattern.Vertex.isMatchableFormat(matchableClassInfo, iti1);
+        boolean result = Utils.isMatchableFormat(matchableClassInfo, iti1);
         assert result;
 
-        boolean result2 = GraphPattern.Vertex.isMatchableFormat(matchableClassInfo, iti2);
+        boolean result2 = Utils.isMatchableFormat(matchableClassInfo, iti2);
         assert result2;
     }
 }

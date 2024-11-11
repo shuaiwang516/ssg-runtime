@@ -669,30 +669,11 @@ public class ObjectGraphCoverage implements Serializable {
         if (equalitySet == null) {
             if (otherObjCoverage.equalitySet != null) {
                 equalitySet = SerializationUtils.clone(otherObjCoverage.equalitySet);
-                // Check modified dumpIds
-                if (checkSpecialDumpIds && specialDumpIds != null) {
-                    boolean isRelatedToModifiedDumpIds = false;
-                    for (String compClass : equalitySet.equalSetSameObjDedup.keySet()) {
-                        Map<Integer, Set<Set<String>>> sameObjDedup = equalitySet.equalSetSameObjDedup
-                                .get(compClass);
-                        for (int dumpId : sameObjDedup.keySet()) {
-                            if (specialDumpIds.contains(dumpId)) {
-                                isRelatedToModifiedDumpIds = true;
-                                break;
-                            }
-                        }
-                        if (isRelatedToModifiedDumpIds)
-                            break;
-                    }
-                    // if (isRelatedToModifiedDumpIds) {
-                    // formatCoverageStatus.setNewFormatAtModifiedMergePoint("equalitySet");
-                    // }
-                }
                 formatCoverageStatus.setNewFormat("Add new equalitySet, previous is null");
             }
         } else {
             equalitySet.merge(otherObjCoverage.equalitySet, formatCoverageStatus,
-                    checkSpecialDumpIds, specialDumpIds);
+                    matchableClassInfo);
         }
         if (isSerialized == null) {
             if (otherObjCoverage.isSerialized != null) {
