@@ -19,6 +19,7 @@ public class EqualitySet implements Serializable {
      * Equality within one object graph - Itinerary is different Equality ClassName
      * -> DumpId -> Equalities
      */
+    public static final boolean enableContextHash = false;
     public static final boolean enableSameObjEquality = true;
     public transient Map<String, Map<Integer, Map<Integer, Set<String>>>> equalSetSameObj = new HashMap<>();
     public Map<String, Map<Integer, Set<Set<String>>>> equalSetSameObjDedup = new HashMap<>();
@@ -78,7 +79,11 @@ public class EqualitySet implements Serializable {
                     .computeIfAbsent(logInfo.dumpId, k -> new HashMap<>());
             Set<String> itinerarySet1 = hashCodeMap1.computeIfAbsent(hashCode,
                     k -> new HashSet<>());
-            itinerarySet1.add(logInfo.contextHashCode + ":" + itinerary);
+
+            if (enableContextHash)
+                itinerarySet1.add(logInfo.contextHashCode + ":" + itinerary);
+            else
+                itinerarySet1.add(itinerary);
         }
     }
 
