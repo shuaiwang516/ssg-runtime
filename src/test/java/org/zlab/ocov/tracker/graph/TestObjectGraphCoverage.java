@@ -283,6 +283,42 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
+    public void testEqualityForSameObjectGraph1MatchableFormat() {
+        if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality)
+            return;
+        Path baseClassPath = Paths.get("input/baseClassInfoForEquality.json");
+        Path topObjectsPath = Paths.get("input/topObjectsForEquality.json");
+        Path comparableClassesPath = Paths.get("input/comparableClassesForEquality.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
+                comparableClassesPath);
+
+        Map<String, Map<String, String>> modifiedClassInfo = new HashMap<>();
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassEquality", new HashMap<>());
+        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassEquality").put("targetClassEqualityA",
+                "org.zlab.ocov.tracker.TargetClass$TargetClassEqualityA");
+        coverage1.setMatchableClassInfo(modifiedClassInfo);
+
+        // obj1--->compClass == obj2--->compClass
+
+        // 2, 3
+        TargetClass.TargetClassEquality obj1 = new TargetClass.TargetClassEquality();
+        coverage.update(obj1);
+        assert coverage1.merge(coverage).isNewFormat();
+
+        // 2, 2
+        TargetClass.TargetClassEquality obj3 = new TargetClass.TargetClassEquality();
+        obj3.targetClassEqualityC.compClass.a = 2;
+        coverage.update(obj3);
+        FormatCoverageStatus formatCoverageStatus = coverage1.merge(coverage);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isNonMatchableNewFormat();
+    }
+
+    @Test
     public void testIsSerialized() {
         Path baseClassPath = Paths.get("input/baseClassInfoForIsSerialized.json");
         Path topObjectsPath = Paths.get("input/topObjectsForIsSerialized.json");
