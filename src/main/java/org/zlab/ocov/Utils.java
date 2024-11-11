@@ -306,4 +306,58 @@ public class Utils {
         return true;
     }
 
+    // Based on the model
+    public static boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
+            String itinerary) {
+        // If it's null, the ret value won't be used anyway
+        if (matchableClassInfo == null)
+            return false;
+
+        int nonMatchableNum = 0;
+
+        String[] refs = itinerary.split(GraphPattern.ItiInstanceEdge);
+        for (String ref : refs) {
+            String[] items = ref.split(GraphPattern.ItiRefEdge);
+            if (items.length == 1) {
+                // Only check classname
+                if (!matchableClassInfo.containsKey(items[0]))
+                    nonMatchableNum++;
+            } else {
+                assert items.length == 2;
+                // Check the pair
+                String className = items[0];
+                String fieldName = items[1];
+
+                // Skip Collection/Map/Array
+                if (className.equals("Collection") || className.equals("Map")
+                        || className.equals("Array"))
+                    continue;
+
+                if (!matchableClassInfo.containsKey(className)
+                        || !matchableClassInfo.get(className).containsKey(fieldName)) {
+                    // Runtime.log("[debug] unmatchable format: " + className + ", " +
+                    // fieldName);
+                    nonMatchableNum++;
+                }
+            }
+        }
+        return computeNonMatchable(nonMatchableNum);
+    }
+
+    // Constants based on the logistic model parameters
+    // N = 0, P = 0,
+    // N = 1, P = 0.1,
+    // N = 5, P = 0.8...
+    private static final double A = 0.95;
+    private static final double B = 3.53;
+
+    // Method to calculate the probability based on N
+    public static double calculateProbability(double N) {
+        return 1 / (1 + Math.exp(-A * (N - B)));
+    }
+
+    // If matchableNum is larger, the probability is smaller
+    public static boolean computeNonMatchable(int nonMatchableNum) {
+        return rand.nextDouble() < calculateProbability(nonMatchableNum);
+    }
 }

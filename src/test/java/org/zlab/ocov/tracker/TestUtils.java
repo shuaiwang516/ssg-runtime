@@ -516,4 +516,10 @@ public class TestUtils {
             System.out.println(entry.getKey() + " : " + entry.getValue());
         }
     }
+
+    @Test
+    public void testIsNonMatchable() {
+        assert !Utils.computeNonMatchable(0);
+        // System.out.println(Utils.calculateProbability(5));
+    }
 }
