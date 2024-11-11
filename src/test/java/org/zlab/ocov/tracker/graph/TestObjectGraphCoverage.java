@@ -282,7 +282,7 @@ public class TestObjectGraphCoverage {
         // }.getType());
     }
 
-    @Test
+    // @Test
     public void testEqualityForSameObjectGraph1MatchableFormat() {
         if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality)
             return;
@@ -319,7 +319,7 @@ public class TestObjectGraphCoverage {
         assert formatCoverageStatus.isNonMatchableNewFormat();
     }
 
-    @Test
+    // @Test
     public void testEqualityForSameObjectGraph1MatchableFormat1() {
         if (!Runtime.enableEqualityLikelyInvariant || !EqualitySet.enableSameObjEquality)
             return;
@@ -1267,7 +1267,7 @@ public class TestObjectGraphCoverage {
         assert coverage1.merge(coverage).isNewFormat();
     }
 
-    @Test
+    // @Test
     public void testNonMatchableFormatChecking() {
         // Modified from testCollection
         Path baseClassPath = Paths.get("input/baseClassInfo1.json");

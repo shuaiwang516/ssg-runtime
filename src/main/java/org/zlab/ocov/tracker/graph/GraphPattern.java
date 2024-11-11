@@ -433,6 +433,7 @@ public class GraphPattern implements Serializable {
 
             // Matchable format check2: vertex level check
             boolean matchable = isMatchableFormat(logInfo.matchableClassInfo);
+            boolean nonMatchable = isNonMatchableFormat(logInfo.matchableClassInfo);
 
             for (int i = 0; i < labelConstraints.size(); i++) {
                 FormatCoverageStatus labelFormatCoverageStatus = labelConstraints.get(i)
@@ -440,7 +441,7 @@ public class GraphPattern implements Serializable {
                 if (labelFormatCoverageStatus.isNewFormat()) {
                     if (matchable)
                         labelFormatCoverageStatus.setMatchableNewFormat("");
-                    else
+                    if (nonMatchable)
                         labelFormatCoverageStatus.setNonMatchableNewFormat("");
                 }
                 formatCoverageStatus.incorporate(labelFormatCoverageStatus);
@@ -453,7 +454,7 @@ public class GraphPattern implements Serializable {
                 if (structureFormatCoverageStatus.isNewFormat()) {
                     if (matchable)
                         structureFormatCoverageStatus.setMatchableNewFormat("");
-                    else
+                    if (nonMatchable)
                         structureFormatCoverageStatus.setNonMatchableNewFormat("");
                 }
                 formatCoverageStatus.incorporate(structureFormatCoverageStatus);
@@ -493,7 +494,7 @@ public class GraphPattern implements Serializable {
                     graphPattern.graph.addEdge(this, newVertex, edge);
                     if (newVertex.isMatchableFormat(logInfo.matchableClassInfo))
                         formatCoverageStatus.setMatchableNewFormat("");
-                    else
+                    if (newVertex.isNonMatchableFormat(logInfo.matchableClassInfo))
                         formatCoverageStatus.setNonMatchableNewFormat("");
                     formatCoverageStatus.incorporate(
                             newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
@@ -506,6 +507,10 @@ public class GraphPattern implements Serializable {
         // All refs in ref_path are matchable
         public boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
             return Utils.isMatchableFormat(matchableClassInfo, itinerary);
+        }
+
+        public boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
+            return Utils.isNonMatchableFormat(matchableClassInfo, itinerary);
         }
 
         @Override

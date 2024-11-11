@@ -262,7 +262,7 @@ public class EqualitySet implements Serializable {
     public static boolean checkNonMatchable(Set<String> itis,
             Map<String, Map<String, String>> matchableClassInfo) {
         for (String iti : itis) {
-            if (!Utils.isMatchableFormat(matchableClassInfo, iti)) {
+            if (Utils.isNonMatchableFormat(matchableClassInfo, iti)) {
                 return true;
             }
         }
