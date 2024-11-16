@@ -16,6 +16,9 @@ public class FormatCoverageStatus implements Serializable {
     private boolean matchableNewFormat = false;
     private boolean nonMatchableNewFormat = false;
 
+    // isSerialize likely invariant
+    private boolean isSerialized = false;
+
     public void setNewFormat(String log) {
         Runtime.log("[New format] " + log);
         this.newFormat = true;
@@ -34,6 +37,7 @@ public class FormatCoverageStatus implements Serializable {
         this.boundaryChange = this.boundaryChange || other.boundaryChange;
         this.matchableNewFormat = this.matchableNewFormat || other.matchableNewFormat;
         this.nonMatchableNewFormat = this.nonMatchableNewFormat || other.nonMatchableNewFormat;
+        this.isSerialized = this.isSerialized || other.isSerialized;
     }
 
     public boolean isChanged() {
@@ -56,6 +60,10 @@ public class FormatCoverageStatus implements Serializable {
         return nonMatchableNewFormat;
     }
 
+    public boolean isNewIsSerialize() {
+        return isSerialized;
+    }
+
     public void setMatchableNewFormat(String log) {
         // Runtime.log("[Matchable new format] " + log);
         this.matchableNewFormat = true;
@@ -66,11 +74,17 @@ public class FormatCoverageStatus implements Serializable {
         this.nonMatchableNewFormat = true;
     }
 
+    public void setIsSerialize(String log) {
+        // Runtime.log("[Matchable new format] " + log);
+        this.isSerialized = true;
+    }
+
     @Override
     public String toString() {
         return "FormatCoverageStatus{" + "newFormat=" + newFormat + ", boundaryChange="
                 + boundaryChange + ", matchableNewFormat=" + matchableNewFormat
-                + ", nonMatchableNewFormat=" + nonMatchableNewFormat + '}';
+                + ", nonMatchableNewFormat=" + nonMatchableNewFormat + ", isSerialized="
+                + isSerialized + '}';
     }
 
 }

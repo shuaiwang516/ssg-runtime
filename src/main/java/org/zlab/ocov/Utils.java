@@ -361,4 +361,6 @@ public class Utils {
     public static boolean computeNonMatchable(int nonMatchableNum) {
         return rand.nextDouble() < calculateProbability(nonMatchableNum);
     }
+
+    // isSerialized
 }

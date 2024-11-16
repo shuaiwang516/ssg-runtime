@@ -120,7 +120,7 @@ public class GraphPattern implements Serializable {
             String objectType = obj.getClass().getName();
 
             if (isObjectType) {
-                // Marker vetrex for polymorphism
+                // Marker vertex for polymorphism
                 boolean found = false;
                 Set<GraphPattern.Edge> outgoingEdges = graphPattern.graph.outgoingEdgesOf(this);
                 for (GraphPattern.Edge edge : outgoingEdges) {
@@ -134,7 +134,7 @@ public class GraphPattern implements Serializable {
                 }
                 if (!found) {
                     // If not found, create a new one
-                    // Skip it if it's recursive type (linked list...)
+                    // Skip if it's recursive type (E.g. linked list)
                     if (graphPatternMap.containsKey(objectType)
                             && !itinerary.contains(objectType + ItiRefEdge)) {
                         // Include the subgraph's edges and vertices
@@ -431,6 +431,9 @@ public class GraphPattern implements Serializable {
             // merge label constraints
             assert labelConstraints.size() == otherVertex.labelConstraints.size();
 
+            // Check at every object
+            updateIsSerialized(formatCoverageStatus, otherVertex, logInfo);
+
             // Matchable format check2: vertex level check
             boolean matchable = isMatchableFormat(logInfo.matchableClassInfo);
             boolean nonMatchable = isNonMatchableFormat(logInfo.matchableClassInfo);
@@ -444,6 +447,7 @@ public class GraphPattern implements Serializable {
                     if (nonMatchable)
                         labelFormatCoverageStatus.setNonMatchableNewFormat("");
                 }
+                // Special handle ENUM constant as the non-matchable cannot be detected using
                 formatCoverageStatus.incorporate(labelFormatCoverageStatus);
             }
             // Merge structure constraints
@@ -492,6 +496,10 @@ public class GraphPattern implements Serializable {
                     newVertex.reset();
                     graphPattern.graph.addVertex(newVertex);
                     graphPattern.graph.addEdge(this, newVertex, edge);
+                    // ? Check isSerialized here: whether a new class is serialized
+                    // Extract all references, check all reached non-matchable references
+                    // If new => new isSerialized likely invariants
+                    // Or do we only perform check at the end point?
                     if (newVertex.isMatchableFormat(logInfo.matchableClassInfo))
                         formatCoverageStatus.setMatchableNewFormat("");
                     if (newVertex.isNonMatchableFormat(logInfo.matchableClassInfo))
@@ -952,5 +960,18 @@ public class GraphPattern implements Serializable {
 
     public static int computeDepthOutOfItinerary(String itinerary) {
         return itinerary.split(ItiRefEdge).length - 1;
+    }
+
+    public static void updateIsSerialized(FormatCoverageStatus formatCoverageStatus, Vertex vertex,
+            LogInfo logInfo) {
+        if (logInfo.changedClasses == null)
+            return;
+        if (!logInfo.changedClasses.contains(vertex.type)
+                || logInfo.visitedChangedClasses.contains(vertex.type))
+            return;
+        logInfo.visitedChangedClasses.add(vertex.type);
+        formatCoverageStatus.setNewFormat("<isSerialized> iti = " + vertex.itinerary + ", dumpId = "
+                + logInfo.dumpId + ", context hash = " + logInfo.contextHashCode);
+        formatCoverageStatus.setIsSerialize("");
     }
 }

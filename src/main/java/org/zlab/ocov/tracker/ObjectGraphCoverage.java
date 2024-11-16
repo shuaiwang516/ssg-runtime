@@ -78,7 +78,12 @@ public class ObjectGraphCoverage implements Serializable {
 
     // ------------------- Modification guided testing ----------------
     private transient Set<Integer> specialDumpIds;
-    private transient Map<String, Map<String, String>> matchableClassInfo;
+    private transient Map<String, Map<String, String>> matchableClassInfo; // This actually should
+                                                                           // be matched references
+
+    // IsSerialized likely invariants
+    private transient Set<String> changedClasses;
+    private transient Set<String> visitedChangedClasses = new HashSet<>();
 
     public ObjectGraphCoverage() {
         // for json
@@ -418,6 +423,10 @@ public class ObjectGraphCoverage implements Serializable {
         this.matchableClassInfo = matchableClassInfo;
     }
 
+    public void setChangedClasses(Set<String> changedClasses) {
+        this.changedClasses = changedClasses;
+    }
+
     // ----Boundary Related----
     public boolean updateBranch(Object obj, int id) {
         if (boundary == null)
@@ -566,7 +575,8 @@ public class ObjectGraphCoverage implements Serializable {
 
             FormatCoverageStatus currentFormatCoverageStatus = new FormatCoverageStatus();
             mergeAccumGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
-                    currentFormatCoverageStatus, dumpId, matchableClassInfo);
+                    currentFormatCoverageStatus, dumpId, matchableClassInfo, changedClasses,
+                    visitedChangedClasses);
 
             if (checkSpecialDumpIds && specialDumpIds != null) {
                 // if (specialDumpIds.contains(dumpId)) {
@@ -621,7 +631,8 @@ public class ObjectGraphCoverage implements Serializable {
             Map<Integer, Map<String, GraphPattern>> objCoverageWithContext,
             Map<String, Map<String, GraphPattern>> otherObjCoverageWithContext,
             FormatCoverageStatus formatCoverageStatus, int dumpId,
-            Map<String, Map<String, String>> matchableClassInfo) {
+            Map<String, Map<String, String>> matchableClassInfo, Set<String> changedClasses,
+            Set<String> visitedChangedClasses) {
         if (otherObjCoverageWithContext == null)
             return;
         for (String context : otherObjCoverageWithContext.keySet()) {
@@ -653,9 +664,15 @@ public class ObjectGraphCoverage implements Serializable {
                         else
                             formatCoverageStatus.setNonMatchableNewFormat("");
                     }
+                    if (changedClasses != null && changedClasses.contains(className)
+                            && !visitedChangedClasses.contains(className)) {
+                        formatCoverageStatus.setIsSerialize("");
+                        visitedChangedClasses.add(className);
+                    }
                 }
                 GraphPattern graphPattern = classInfo.get(className);
-                LogInfo logInfo = new LogInfo(dumpId, context.hashCode(), matchableClassInfo);
+                LogInfo logInfo = new LogInfo(dumpId, context.hashCode(), matchableClassInfo,
+                        changedClasses, visitedChangedClasses);
                 FormatCoverageStatus otherFormatCoverageStatus = graphPattern
                         .merge(otherGraphPattern, logInfo);
                 formatCoverageStatus.incorporate(otherFormatCoverageStatus);
