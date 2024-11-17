@@ -271,6 +271,7 @@ public class Utils {
         return tokens;
     }
 
+    // Deprecated: based on number of modified ref path
     public static boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
             String itinerary) {
         // If it's null, the ret value won't be used anyway
@@ -306,10 +307,26 @@ public class Utils {
         return true;
     }
 
-    // Based on the model
+    // Constants based on the logistic model parameters
+    // N = 0, P = 0,
+    // N = 1, P = 0.1,
+    // N = 5, P = 0.8...
+    private static final double A = 0.95;
+    private static final double B = 3.53;
+
+    // Logistic model (increasing)
+    public static double calculateProbLogisticModel(double N) {
+        return 1 / (1 + Math.exp(-A * (N - B)));
+    }
+
+    public static boolean computeNonMatchable(int nonMatchableNum) {
+        return rand.nextDouble() < calculateProbLogisticModel(nonMatchableNum);
+    }
+
+    // Deprecated: Based on a probabilistic model: input is modified ref num
     public static boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
             String itinerary) {
-        // If it's null, the ret value won't be used anyway
+        // If it's null, the return value won't be used anyway
         if (matchableClassInfo == null)
             return false;
 
@@ -345,22 +362,91 @@ public class Utils {
         return computeNonMatchable(nonMatchableNum);
     }
 
-    // Constants based on the logistic model parameters
-    // N = 0, P = 0,
-    // N = 1, P = 0.1,
-    // N = 5, P = 0.8...
-    private static final double A = 0.95;
-    private static final double B = 3.53;
+    // Linear decreasing model
+    public static double calculateProbLinearModel(int N) {
+        // Define the boundary conditions
+        int N1 = 1; // When N = 1, prob = 90%
+        int N2 = 6; // When N = 6, prob = 10%
+        double P1 = 90.0; // Probability at N = 1
+        double P2 = 10.0; // Probability at N = 6
 
-    // Method to calculate the probability based on N
-    public static double calculateProbability(double N) {
-        return 1 / (1 + Math.exp(-A * (N - B)));
+        // Linearly interpolate the probability for the given N
+        if (N >= N1 && N <= N2) {
+            return P1 + (P2 - P1) * ((double) (N - N1) / (N2 - N1));
+        } else if (N > N2) {
+            return P2; // Probability levels off at 10% beyond N = 6
+        } else {
+            return P1; // Probability levels off at 90% below N = 1
+        }
     }
 
-    // If matchableNum is larger, the probability is smaller
-    public static boolean computeNonMatchable(int nonMatchableNum) {
-        return rand.nextDouble() < calculateProbability(nonMatchableNum);
+    // Decreasing based on closest idx of modified ref path
+    public static boolean computeNonMatchableProb(int closestModifiedRefIdx) {
+        if (closestModifiedRefIdx == -1)
+            return false;
+        assert closestModifiedRefIdx > 0;
+        return rand.nextDouble() < calculateProbLinearModel(closestModifiedRefIdx);
     }
 
-    // isSerialized
+    public static boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
+            Set<String> changedClasses, String itinerary) {
+        if (matchableClassInfo == null || changedClasses == null)
+            return false;
+
+        // Iterate the ref path reversely
+        // 1. Check the object type (if exists)
+        // 2. Find the closest modified ref path
+        boolean isObjectDirectlyChanged = false;
+        int closestModifiedRefIdx = -1;
+
+        String[] refs = itinerary.split(GraphPattern.ItiInstanceEdge);
+
+        // iterate it reversely
+        int refCount = 0;
+        for (int i = refs.length - 1; i >= 0; i--) {
+            String ref = refs[i];
+            String[] items = ref.split(GraphPattern.ItiRefEdge);
+
+            // ClassA -> f1 => ClassB (A new ENUM, or a Class first appears)
+            if (i == refs.length - 1 && items.length == 1 && changedClasses.contains(items[0])) {
+                isObjectDirectlyChanged = true;
+                continue;
+            }
+
+            if (items.length == 2) {
+                refCount++;
+                // Check the pair
+                String className = items[0];
+                String fieldName = items[1];
+
+                // Skip Collection/Map/Array
+                if (className.equals("Collection") || className.equals("Map")
+                        || className.equals("Array"))
+                    continue;
+
+                // ref is not matchable
+                if (!matchableClassInfo.containsKey(className)
+                        || !matchableClassInfo.get(className).containsKey(fieldName)) {
+                    closestModifiedRefIdx = refCount;
+                    break;
+                }
+            }
+        }
+
+        // Based on these 2 input: give it a priority to for prioritization
+        // return nonMatchableNum > 0;
+        return isObjectDirectlyChanged || computeNonMatchableProb(closestModifiedRefIdx);
+    }
+
+    // Store version delta information
+    public static class DeltaInfo {
+        public Map<String, Map<String, String>> matchableClassInfo;
+        public Set<String> changedClasses;
+
+        public DeltaInfo(Map<String, Map<String, String>> matchableClassInfo,
+                Set<String> changedClasses) {
+            this.matchableClassInfo = matchableClassInfo;
+            this.changedClasses = changedClasses;
+        }
+    }
 }

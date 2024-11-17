@@ -436,7 +436,8 @@ public class GraphPattern implements Serializable {
 
             // Matchable format check2: vertex level check
             boolean matchable = isMatchableFormat(logInfo.matchableClassInfo);
-            boolean nonMatchable = isNonMatchableFormat(logInfo.matchableClassInfo);
+            boolean nonMatchable = isNonMatchableFormat(logInfo.matchableClassInfo,
+                    logInfo.changedClasses);
 
             for (int i = 0; i < labelConstraints.size(); i++) {
                 FormatCoverageStatus labelFormatCoverageStatus = labelConstraints.get(i)
@@ -502,7 +503,8 @@ public class GraphPattern implements Serializable {
                     // Or do we only perform check at the end point?
                     if (newVertex.isMatchableFormat(logInfo.matchableClassInfo))
                         formatCoverageStatus.setMatchableNewFormat("");
-                    if (newVertex.isNonMatchableFormat(logInfo.matchableClassInfo))
+                    if (newVertex.isNonMatchableFormat(logInfo.matchableClassInfo,
+                            logInfo.changedClasses))
                         formatCoverageStatus.setNonMatchableNewFormat("");
                     formatCoverageStatus.incorporate(
                             newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
@@ -517,8 +519,9 @@ public class GraphPattern implements Serializable {
             return Utils.isMatchableFormat(matchableClassInfo, itinerary);
         }
 
-        public boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo) {
-            return Utils.isNonMatchableFormat(matchableClassInfo, itinerary);
+        public boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
+                Set<String> changedClasses) {
+            return Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, itinerary);
         }
 
         @Override

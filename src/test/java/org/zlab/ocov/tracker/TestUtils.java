@@ -520,6 +520,42 @@ public class TestUtils {
     @Test
     public void testIsNonMatchable() {
         assert !Utils.computeNonMatchable(0);
-        // System.out.println(Utils.calculateProbability(5));
+    }
+
+    @Test
+    public void testCalculateProbLinearModel() {
+        assert Utils.calculateProbLinearModel(1) > Utils.calculateProbLinearModel(2);
+    }
+
+    @Test
+    public void testComputeNonMatchableProb() {
+        assert !Utils.computeNonMatchableProb(-1);
+    }
+
+    @Test
+    public void testIsNonMatchableFormat1() {
+        Map<String, Map<String, String>> matchableClassInfo = new HashMap<>();
+        matchableClassInfo.put("A", new HashMap<>());
+        matchableClassInfo.get("A").put("f1", "B");
+
+        Set<String> changedClasses = new HashSet<>();
+        changedClasses.add("B");
+
+        String iti = "A->f1=>B";
+
+        assert Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
+    }
+
+    @Test
+    public void testIsNonMatchableFormat2() {
+        Map<String, Map<String, String>> matchableClassInfo = new HashMap<>();
+        matchableClassInfo.put("A", new HashMap<>());
+        matchableClassInfo.get("A").put("f1", "B");
+
+        Set<String> changedClasses = new HashSet<>();
+
+        String iti = "A->f1=>B";
+
+        assert !Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
     }
 }

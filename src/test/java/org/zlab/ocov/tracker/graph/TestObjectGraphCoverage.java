@@ -295,13 +295,13 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
-        Map<String, Map<String, String>> modifiedClassInfo = new HashMap<>();
+        Map<String, Map<String, String>> matchableClassInfo = new HashMap<>();
         // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
-        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassEquality",
+        matchableClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassEquality",
                 new HashMap<>());
-        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassEquality").put(
+        matchableClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassEquality").put(
                 "targetClassEqualityA", "org.zlab.ocov.tracker.TargetClass$TargetClassEqualityA");
-        coverage1.setMatchableClassInfo(modifiedClassInfo);
+        coverage1.setMatchableClassInfo(matchableClassInfo);
 
         // obj1--->compClass == obj2--->compClass
 
@@ -332,8 +332,8 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                 comparableClassesPath);
 
-        Map<String, Map<String, String>> modifiedClassInfo = Utils.loadMapFromFile(baseClassPath);
-        coverage1.setMatchableClassInfo(modifiedClassInfo);
+        Map<String, Map<String, String>> matchableClassInfo = Utils.loadMapFromFile(baseClassPath);
+        coverage1.setMatchableClassInfo(matchableClassInfo);
 
         // obj1--->compClass == obj2--->compClass
 
@@ -1223,14 +1223,14 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
 
-        Map<String, Map<String, String>> modifiedClassInfo = new HashMap<>();
+        Map<String, Map<String, String>> matchableClassInfo = new HashMap<>();
         // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
-        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
-        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
+        matchableClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
+        matchableClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
                 "java.util.List");
-        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
-        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
-        coverage1.setMatchableClassInfo(modifiedClassInfo);
+        matchableClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1", new HashMap<>());
+        matchableClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").put("f1", "int");
+        coverage1.setMatchableClassInfo(matchableClassInfo);
 
         // Testing
         TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
@@ -1280,12 +1280,12 @@ public class TestObjectGraphCoverage {
         ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
         ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
 
-        Map<String, Map<String, String>> modifiedClassInfo = new HashMap<>();
+        Map<String, Map<String, String>> matchableClassInfo = new HashMap<>();
         // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
-        modifiedClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
-        modifiedClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
+        matchableClassInfo.put("org.zlab.ocov.tracker.TargetClass$TargetClassE", new HashMap<>());
+        matchableClassInfo.get("org.zlab.ocov.tracker.TargetClass$TargetClassE").put("fList",
                 "java.util.List");
-        coverage1.setMatchableClassInfo(modifiedClassInfo);
+        coverage1.setMatchableClassInfo(matchableClassInfo);
 
         // Testing
         TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();

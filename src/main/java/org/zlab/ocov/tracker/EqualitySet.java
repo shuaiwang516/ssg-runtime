@@ -115,19 +115,19 @@ public class EqualitySet implements Serializable {
     }
 
     public void merge(EqualitySet other, FormatCoverageStatus formatCoverageStatus,
-            Map<String, Map<String, String>> matchableClassInfo) {
+            Utils.DeltaInfo deltaInfo) {
         if (other == null) {
             return;
         }
         mergeCompClass2EqualityDedupWithDumpId(equalSetSameObjDedup, other.equalSetSameObjDedup,
-                true, logPrefixSameObject, formatCoverageStatus, matchableClassInfo);
+                true, logPrefixSameObject, formatCoverageStatus, deltaInfo);
     }
 
     public static void mergeCompClass2EqualityDedupWithDumpId(
             Map<String, Map<Integer, Set<Set<String>>>> equalSetDedup1,
             Map<String, Map<Integer, Set<Set<String>>>> equalSetDedup2, boolean useLog,
             String logPrefix, FormatCoverageStatus formatCoverageStatus,
-            Map<String, Map<String, String>> matchableClassInfo) {
+            Utils.DeltaInfo deltaInfo) {
         boolean changed = false;
         boolean nonMatchable = false;
         for (String compClass : equalSetDedup2.keySet()) {
@@ -176,7 +176,7 @@ public class EqualitySet implements Serializable {
                 Set<Set<String>> equalitySet = equalitySets.get(dumpId);
                 Set<Set<String>> otherEqualitySet = otherEqualitySets.get(dumpId);
                 MergeStatus mergeStatus = mergeSets(equalitySet, otherEqualitySet, compClass,
-                        useLog, logPrefix, matchableClassInfo);
+                        useLog, logPrefix, deltaInfo);
                 if (mergeStatus.changed) {
                     changed = true;
                 }
@@ -191,12 +191,12 @@ public class EqualitySet implements Serializable {
     }
 
     public static boolean mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className) {
-        return mergeSets(s1, s2, className, true, "Equality:", new HashMap<>()).changed;
+        return mergeSets(s1, s2, className, true, "Equality:", null).changed;
     }
 
     // Merge s2 into s1
     public static MergeStatus mergeSets(Set<Set<String>> s1, Set<Set<String>> s2, String className,
-            boolean useLog, String logPrefix, Map<String, Map<String, String>> matchableClassInfo) {
+            boolean useLog, String logPrefix, Utils.DeltaInfo deltaInfo) {
         boolean isChanged = false;
         boolean nonMatchable = false;
 
@@ -235,8 +235,7 @@ public class EqualitySet implements Serializable {
 
             if (isStrictSupersetFound) {
                 s1.add(setFromS2);
-                if (!nonMatchable && matchableClassInfo != null
-                        && checkNonMatchable(setFromS2, matchableClassInfo)) {
+                if (!nonMatchable && checkNonMatchable(setFromS2, deltaInfo)) {
                     nonMatchable = true;
                 }
             } else {
@@ -249,8 +248,7 @@ public class EqualitySet implements Serializable {
                     }
                     isChanged = true;
                     s1.add(setFromS2);
-                    if (!nonMatchable && matchableClassInfo != null
-                            && checkNonMatchable(setFromS2, matchableClassInfo)) {
+                    if (!nonMatchable && checkNonMatchable(setFromS2, deltaInfo)) {
                         nonMatchable = true;
                     }
                 }
@@ -259,12 +257,13 @@ public class EqualitySet implements Serializable {
         return new MergeStatus(isChanged, nonMatchable);
     }
 
-    public static boolean checkNonMatchable(Set<String> itis,
-            Map<String, Map<String, String>> matchableClassInfo) {
+    public static boolean checkNonMatchable(Set<String> itis, Utils.DeltaInfo deltaInfo) {
+        if (deltaInfo == null)
+            return false;
         for (String iti : itis) {
-            if (Utils.isNonMatchableFormat(matchableClassInfo, iti)) {
+            if (Utils.isNonMatchableFormat(deltaInfo.matchableClassInfo, deltaInfo.changedClasses,
+                    iti))
                 return true;
-            }
         }
         return false;
     }

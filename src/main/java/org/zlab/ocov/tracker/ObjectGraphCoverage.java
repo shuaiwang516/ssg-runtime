@@ -78,9 +78,8 @@ public class ObjectGraphCoverage implements Serializable {
 
     // ------------------- Modification guided testing ----------------
     private transient Set<Integer> specialDumpIds;
-    private transient Map<String, Map<String, String>> matchableClassInfo; // This actually should
-                                                                           // be matched references
 
+    private transient Map<String, Map<String, String>> matchableClassInfo;
     // IsSerialized likely invariants
     private transient Set<String> changedClasses;
     private transient Set<String> visitedChangedClasses = new HashSet<>();
@@ -549,12 +548,6 @@ public class ObjectGraphCoverage implements Serializable {
             FormatCoverageStatus currentFormatCoverageStatus = new FormatCoverageStatus();
             mergeGraphPattern(objCoverageWithContext, otherObjCoverageWithContext,
                     currentFormatCoverageStatus, dumpId);
-
-            if (checkSpecialDumpIds && specialDumpIds != null) {
-                // if (specialDumpIds.contains(dumpId)) {
-                // formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
-                // }
-            }
             formatCoverageStatus.incorporate(currentFormatCoverageStatus);
         }
     }
@@ -578,11 +571,6 @@ public class ObjectGraphCoverage implements Serializable {
                     currentFormatCoverageStatus, dumpId, matchableClassInfo, changedClasses,
                     visitedChangedClasses);
 
-            if (checkSpecialDumpIds && specialDumpIds != null) {
-                // if (specialDumpIds.contains(dumpId)) {
-                // formatCoverageStatus.setNewFormatAtModifiedMergePoint("dumpId = " + dumpId);
-                // }
-            }
             formatCoverageStatus.incorporate(currentFormatCoverageStatus);
 
             long time2 = System.currentTimeMillis();
@@ -690,7 +678,7 @@ public class ObjectGraphCoverage implements Serializable {
             }
         } else {
             equalitySet.merge(otherObjCoverage.equalitySet, formatCoverageStatus,
-                    matchableClassInfo);
+                    new Utils.DeltaInfo(matchableClassInfo, changedClasses));
         }
         if (isSerialized == null) {
             if (otherObjCoverage.isSerialized != null) {
