@@ -558,4 +558,33 @@ public class TestUtils {
 
         assert !Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
     }
+
+    // @Test
+    public void testExpModel() {
+        /**
+         * N = 1, Probability = 1.0 N = 2, Probability = 0.5848035476425733 N = 3,
+         * Probability = 0.3419951893353394 N = 4, Probability = 0.19999999999999998 N =
+         * 5, Probability = 0.11696070952851464 N = 6, Probability = 0.06839903786706789
+         * N = 7, Probability = 0.03999999999999999 N = 8, Probability =
+         * 0.023392141905702924 N = 9, Probability = 0.013679807573413576 N = 10,
+         * Probability = 0.007999999999999997
+         */
+        for (int N = 1; N <= 10; N++) {
+            System.out.println("N = " + N + ", Probability = "
+                    + Utils.expDecreaseModel.calculateProbability(N));
+        }
+    }
+
+    // @Test
+    public void testLinearModel() {
+        /**
+         * N = 1, Probability = 90.0 N = 2, Probability = 74.0 N = 3, Probability = 58.0
+         * N = 4, Probability = 42.0 N = 5, Probability = 26.0 N = 6, Probability = 10.0
+         * N = 7, Probability = 10.0 N = 8, Probability = 10.0 N = 9, Probability = 10.0
+         * N = 10, Probability = 10.0
+         */
+        for (int N = 1; N <= 10; N++) {
+            System.out.println("N = " + N + ", Probability = " + Utils.calculateProbLinearModel(N));
+        }
+    }
 }

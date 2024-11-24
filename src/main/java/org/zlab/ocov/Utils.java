@@ -380,12 +380,30 @@ public class Utils {
         }
     }
 
+    public static class ExponentialProbabilityModel {
+        private final double c; // Initial probability
+        private final double k; // Decay constant
+
+        public ExponentialProbabilityModel(double initialProbability, double targetProbability,
+                int targetN) {
+            this.c = initialProbability;
+            this.k = -Math.log(targetProbability / initialProbability) / (targetN - 1);
+        }
+
+        public double calculateProbability(int N) {
+            return c * Math.exp(-k * (N - 1));
+        }
+    }
+
+    public static ExponentialProbabilityModel expDecreaseModel = new ExponentialProbabilityModel(
+            1.0, 0.2, 4);
+
     // Decreasing based on closest idx of modified ref path
     public static boolean computeNonMatchableProb(int closestModifiedRefIdx) {
         if (closestModifiedRefIdx == -1)
             return false;
         assert closestModifiedRefIdx > 0;
-        return rand.nextDouble() < calculateProbLinearModel(closestModifiedRefIdx);
+        return rand.nextDouble() < expDecreaseModel.calculateProbability(closestModifiedRefIdx);
     }
 
     public static boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
