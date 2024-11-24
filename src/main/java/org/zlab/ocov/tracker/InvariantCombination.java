@@ -1,5 +1,7 @@
 package org.zlab.ocov.tracker;
 
+import org.zlab.ocov.Utils;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,15 +44,14 @@ public class InvariantCombination implements Serializable {
     public void merge(InvariantCombination other,
             Map<Integer, Set<String>> invariantBrokenLessFrequently,
             FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds,
-            Set<Integer> specialDumpIds) {
+            Set<Integer> specialDumpIds, Utils.DeltaInfo deltaInfo) {
         boolean changed = false;
+        boolean isNonMatchable = false;
         for (Map.Entry<Integer, Set<Set<String>>> entry : other.dumpId2BrokenInv.entrySet()) {
             int dumpId = entry.getKey();
 
-            boolean curChanged = false;
-            if (!dumpId2BrokenInv.containsKey(dumpId)) {
+            if (!dumpId2BrokenInv.containsKey(dumpId))
                 dumpId2BrokenInv.put(dumpId, new HashSet<>());
-            }
 
             for (Set<String> brokenInvSet : entry.getValue()) {
                 if (dumpId2BrokenInv.get(dumpId).contains(brokenInvSet))
@@ -62,23 +63,46 @@ public class InvariantCombination implements Serializable {
                         Runtime.log(
                                 "<Invariant Combination with Frequency>: new combinations, dumpId="
                                         + dumpId + ", new combination = " + entry.getValue());
-                        curChanged = true;
+                        changed = true;
+                        // Check NonMatchable
+                        if (!isNonMatchable && checkNonMatchable(brokenInvSet, deltaInfo))
+                            isNonMatchable = true;
                     }
                 }
-
-                // add it anyway
+                // Add it anyway
                 dumpId2BrokenInv.get(dumpId).add(brokenInvSet);
-            }
-
-            if (curChanged) {
-                changed = true;
             }
         }
         if (changed)
-            formatCoverageStatus.setNewFormat("invariantCombination");
+            formatCoverageStatus.setNewFormat("InvariantCombination");
+        if (isNonMatchable)
+            formatCoverageStatus.setNonMatchableNewFormat("");
     }
 
     public void clear() {
         dumpId2BrokenInv.clear();
+    }
+
+    public static boolean checkNonMatchable(Set<String> brokenInvs, Utils.DeltaInfo deltaInfo) {
+        if (deltaInfo == null)
+            return false;
+        for (String inv : brokenInvs) {
+            String iti = extractRefPath(inv);
+            if (iti == null)
+                continue;
+            if (Utils.isNonMatchableFormat(deltaInfo.matchableClassInfo, deltaInfo.changedClasses,
+                    iti))
+                return true;
+        }
+        return false;
+    }
+
+    public static String extractRefPath(String inv) {
+        // brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
+        // get everything after iti = ...
+        int idx = inv.indexOf("iti = ");
+        if (idx == -1)
+            return null;
+        return inv.substring(idx + 6);
     }
 }

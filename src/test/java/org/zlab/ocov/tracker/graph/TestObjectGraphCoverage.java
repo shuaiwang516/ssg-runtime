@@ -1361,4 +1361,11 @@ public class TestObjectGraphCoverage {
         assert formatCoverageStatus.isNewFormat();
         assert !formatCoverageStatus.isNewIsSerialize();
     }
+
+    @Test
+    public void testExtractRefPath() {
+        String inv = "<Int>, iti = a->b";
+        String iti = InvariantCombination.extractRefPath(inv);
+        assert iti.equals("a->b");
+    }
 }

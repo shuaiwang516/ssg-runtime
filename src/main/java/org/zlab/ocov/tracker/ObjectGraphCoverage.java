@@ -708,8 +708,10 @@ public class ObjectGraphCoverage implements Serializable {
                 invariantCombination.merge(otherObjCoverage.invariantCombination,
                         invariantBrokenFrequency
                                 .getMostInfrequentInvariants(topNLessFrequentBrokenInvariant),
-                        formatCoverageStatus, checkSpecialDumpIds, specialDumpIds);
+                        formatCoverageStatus, checkSpecialDumpIds, specialDumpIds,
+                        new Utils.DeltaInfo(matchableClassInfo, changedClasses));
             } else {
+                // Deprecated
                 if (invariantCombination.merge(otherObjCoverage.invariantCombination))
                     formatCoverageStatus.setNewFormat("invariantCombination");
             }
