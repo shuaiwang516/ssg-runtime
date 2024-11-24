@@ -11,6 +11,7 @@ import java.util.Set;
 public class InvariantCombination implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
+    private static final boolean enableVDCheck = false;
     public Map<Integer, Set<Set<String>>> dumpId2BrokenInv = new HashMap<>();
 
     public InvariantCombination() {
@@ -65,7 +66,8 @@ public class InvariantCombination implements Serializable {
                                         + dumpId + ", new combination = " + entry.getValue());
                         changed = true;
                         // Check NonMatchable
-                        if (!isNonMatchable && checkNonMatchable(brokenInvSet, deltaInfo))
+                        if (enableVDCheck && !isNonMatchable
+                                && checkNonMatchable(brokenInvSet, deltaInfo))
                             isNonMatchable = true;
                     }
                 }
