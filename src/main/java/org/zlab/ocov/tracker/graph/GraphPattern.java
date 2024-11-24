@@ -503,9 +503,11 @@ public class GraphPattern implements Serializable {
                     // Or do we only perform check at the end point?
                     if (newVertex.isMatchableFormat(logInfo.matchableClassInfo))
                         formatCoverageStatus.setMatchableNewFormat("");
-                    if (newVertex.isNonMatchableFormat(logInfo.matchableClassInfo,
-                            logInfo.changedClasses))
-                        formatCoverageStatus.setNonMatchableNewFormat("");
+                    // We don't check non-matchable here, if it's non-matchable, we examine
+                    // the broken invs from its fields
+                    // if (newVertex.isNonMatchableFormat(logInfo.matchableClassInfo,
+                    // logInfo.changedClasses))
+                    // formatCoverageStatus.setNonMatchableNewFormat("");
                     formatCoverageStatus.incorporate(
                             newVertex.merge(otherGraphPattern.graph.getEdgeTarget(edge),
                                     otherGraphPattern, graphPattern, logInfo));

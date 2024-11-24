@@ -307,20 +307,60 @@ public class Utils {
         return true;
     }
 
-    // Constants based on the logistic model parameters
-    // N = 0, P = 0,
-    // N = 1, P = 0.1,
-    // N = 5, P = 0.8...
-    private static final double A = 0.95;
-    private static final double B = 3.53;
+    public static class LogisticModel {
+        // Constants based on the logistic model parameters
+        // N = 0, P = 0,
+        // N = 1, P = 0.1,
+        // N = 5, P = 0.8...
+        double A = 0.95;
+        double B = 3.53;
 
-    // Logistic model (increasing)
-    public static double calculateProbLogisticModel(double N) {
-        return 1 / (1 + Math.exp(-A * (N - B)));
+        // Logistic model (increasing)
+        public double calculateProbLogisticModel(double N) {
+            return 1 / (1 + Math.exp(-A * (N - B)));
+        }
+    }
+    public static LogisticModel logisticModel = new LogisticModel();
+
+    public static class LinearModel {
+        // Linear decreasing model
+        public double calculateProbLinearModel(int N) {
+            // Define the boundary conditions
+            int N1 = 1; // When N = 1, prob = 90%
+            int N2 = 6; // When N = 6, prob = 10%
+            double P1 = 90.0; // Probability at N = 1
+            double P2 = 10.0; // Probability at N = 6
+
+            // Linearly interpolate the probability for the given N
+            if (N >= N1 && N <= N2) {
+                return P1 + (P2 - P1) * ((double) (N - N1) / (N2 - N1));
+            } else if (N > N2) {
+                return P2; // Probability levels off at 10% beyond N = 6
+            } else {
+                return P1; // Probability levels off at 90% below N = 1
+            }
+        }
+    }
+    public static LinearModel linearModel = new LinearModel();
+
+    public static class ExponentialProbabilityModel {
+        private final double c; // Initial probability
+        private final double k; // Decay constant
+
+        public ExponentialProbabilityModel() {
+            this.c = 0.9; // Probability when N = 0
+            this.k = -Math.log(0.1 / 0.9) / 4; // Calculating k using N = 1
+        }
+
+        public double calculateProbability(int N) {
+            return c * Math.exp(-k * N); // Direct use of N for simpler and correct formula
+        }
     }
 
+    public static ExponentialProbabilityModel expDecreaseModel = new ExponentialProbabilityModel();
+
     public static boolean computeNonMatchable(int nonMatchableNum) {
-        return rand.nextDouble() < calculateProbLogisticModel(nonMatchableNum);
+        return rand.nextDouble() < logisticModel.calculateProbLogisticModel(nonMatchableNum);
     }
 
     // Deprecated: Based on a probabilistic model: input is modified ref num
@@ -362,47 +402,11 @@ public class Utils {
         return computeNonMatchable(nonMatchableNum);
     }
 
-    // Linear decreasing model
-    public static double calculateProbLinearModel(int N) {
-        // Define the boundary conditions
-        int N1 = 1; // When N = 1, prob = 90%
-        int N2 = 6; // When N = 6, prob = 10%
-        double P1 = 90.0; // Probability at N = 1
-        double P2 = 10.0; // Probability at N = 6
-
-        // Linearly interpolate the probability for the given N
-        if (N >= N1 && N <= N2) {
-            return P1 + (P2 - P1) * ((double) (N - N1) / (N2 - N1));
-        } else if (N > N2) {
-            return P2; // Probability levels off at 10% beyond N = 6
-        } else {
-            return P1; // Probability levels off at 90% below N = 1
-        }
-    }
-
-    public static class ExponentialProbabilityModel {
-        private final double c; // Initial probability
-        private final double k; // Decay constant
-
-        public ExponentialProbabilityModel(double initialProbability, double targetProbability,
-                int targetN) {
-            this.c = initialProbability;
-            this.k = -Math.log(targetProbability / initialProbability) / (targetN - 1);
-        }
-
-        public double calculateProbability(int N) {
-            return c * Math.exp(-k * (N - 1));
-        }
-    }
-
-    public static ExponentialProbabilityModel expDecreaseModel = new ExponentialProbabilityModel(
-            1.0, 0.2, 4);
-
     // Decreasing based on closest idx of modified ref path
     public static boolean computeNonMatchableProb(int closestModifiedRefIdx) {
         if (closestModifiedRefIdx == -1)
             return false;
-        assert closestModifiedRefIdx > 0;
+        assert closestModifiedRefIdx >= 0;
         return rand.nextDouble() < expDecreaseModel.calculateProbability(closestModifiedRefIdx);
     }
 
@@ -419,8 +423,8 @@ public class Utils {
 
         String[] refs = itinerary.split(GraphPattern.ItiInstanceEdge);
 
-        // iterate it reversely
-        int refCount = 0;
+        // Iterate reversely
+        int refCount = -1;
         for (int i = refs.length - 1; i >= 0; i--) {
             String ref = refs[i];
             String[] items = ref.split(GraphPattern.ItiRefEdge);

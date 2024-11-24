@@ -524,7 +524,8 @@ public class TestUtils {
 
     @Test
     public void testCalculateProbLinearModel() {
-        assert Utils.calculateProbLinearModel(1) > Utils.calculateProbLinearModel(2);
+        assert Utils.linearModel.calculateProbLinearModel(1) > Utils.linearModel
+                .calculateProbLinearModel(2);
     }
 
     @Test
@@ -569,7 +570,7 @@ public class TestUtils {
          * 0.023392141905702924 N = 9, Probability = 0.013679807573413576 N = 10,
          * Probability = 0.007999999999999997
          */
-        for (int N = 1; N <= 10; N++) {
+        for (int N = 0; N <= 10; N++) {
             System.out.println("N = " + N + ", Probability = "
                     + Utils.expDecreaseModel.calculateProbability(N));
         }
@@ -583,8 +584,9 @@ public class TestUtils {
          * N = 7, Probability = 10.0 N = 8, Probability = 10.0 N = 9, Probability = 10.0
          * N = 10, Probability = 10.0
          */
-        for (int N = 1; N <= 10; N++) {
-            System.out.println("N = " + N + ", Probability = " + Utils.calculateProbLinearModel(N));
+        for (int N = 0; N <= 10; N++) {
+            System.out.println("N = " + N + ", Probability = "
+                    + Utils.linearModel.calculateProbLinearModel(N));
         }
     }
 }
