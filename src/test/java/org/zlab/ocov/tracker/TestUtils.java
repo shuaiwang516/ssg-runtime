@@ -560,16 +560,8 @@ public class TestUtils {
         assert !Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
     }
 
-    // @Test
+    @Test
     public void testExpModel() {
-        /**
-         * N = 1, Probability = 1.0 N = 2, Probability = 0.5848035476425733 N = 3,
-         * Probability = 0.3419951893353394 N = 4, Probability = 0.19999999999999998 N =
-         * 5, Probability = 0.11696070952851464 N = 6, Probability = 0.06839903786706789
-         * N = 7, Probability = 0.03999999999999999 N = 8, Probability =
-         * 0.023392141905702924 N = 9, Probability = 0.013679807573413576 N = 10,
-         * Probability = 0.007999999999999997
-         */
         for (int N = 0; N <= 10; N++) {
             System.out.println("N = " + N + ", Probability = "
                     + Utils.expDecreaseModel.calculateProbability(N));
@@ -588,5 +580,23 @@ public class TestUtils {
             System.out.println("N = " + N + ", Probability = "
                     + Utils.linearModel.calculateProbLinearModel(N));
         }
+    }
+
+    // @Test
+    public void testNonMatchableCompute() {
+        // <Equality> org.apache.cassandra.cql3.ColumnIdentifier:
+        // [org.apache.cassandra.db.RowIndexEntry$IndexedEntry->columnsIndex=>Collection->collection_firstItem=>org.apache.cassandra.io.sstable.IndexHelper$IndexInfo->lastName=>org.apache.cassandra.db.composites.CompoundSparseCellName->columnName],
+        String iti = "org.apache.cassandra.db.RowIndexEntry$IndexedEntry->columnsIndex=>Collection->collection_firstItem=>org.apache.cassandra.io.sstable.IndexHelper$IndexInfo->lastName=>org.apache.cassandra.db.composites.CompoundSparseCellName->columnName";
+
+        Map<String, Map<String, String>> matchableClassInfo = new HashMap<>();
+        // org.apache.cassandra.io.sstable.IndexHelper$IndexInfo->lastName
+        matchableClassInfo.put("org.apache.cassandra.db.RowIndexEntry$IndexedEntry",
+                new HashMap<>());
+        matchableClassInfo.get("org.apache.cassandra.db.RowIndexEntry$IndexedEntry")
+                .put("columnsIndex", "Collection");
+
+        Set<String> changedClasses = new HashSet<>();
+
+        assert Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
     }
 }

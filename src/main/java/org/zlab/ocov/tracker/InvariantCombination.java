@@ -11,6 +11,8 @@ import java.util.Set;
 public class InvariantCombination implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
+    // FIXME: inv-combine also contains <Equality>, this affects the computation of
+    // non-matchable format
     private static final boolean enableVDCheck = false;
     public Map<Integer, Set<Set<String>>> dumpId2BrokenInv = new HashMap<>();
 
