@@ -348,8 +348,8 @@ public class Utils {
         private final double k; // Decay constant
 
         public ExponentialProbabilityModel() {
-            this.c = 0.9; // Probability when N = 0
-            this.k = -Math.log(0.1 / 0.9) / 4; // Calculating k using N = 1
+            this.c = 0.8; // Probability when N = 0
+            this.k = -Math.log(0.1 / 0.8) / 4; // Calculating k using N = 1
         }
 
         public double calculateProbability(int N) {
