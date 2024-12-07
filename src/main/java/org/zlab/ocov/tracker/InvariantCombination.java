@@ -77,8 +77,10 @@ public class InvariantCombination implements Serializable {
                 dumpId2BrokenInv.get(dumpId).add(brokenInvSet);
             }
         }
-        if (changed)
+        if (changed) {
             formatCoverageStatus.setNewFormat("InvariantCombination");
+            formatCoverageStatus.setMultiInvBroken("Multi-Inv Broken");
+        }
         if (isNonMatchable)
             formatCoverageStatus.setNonMatchableNewFormat("");
     }
