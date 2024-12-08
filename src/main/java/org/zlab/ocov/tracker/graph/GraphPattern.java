@@ -188,6 +188,14 @@ public class GraphPattern implements Serializable {
                             break;
                         }
                     }
+                    // Certain map types do not have the keySet() method
+                    // if obj is instance of org.apache.hadoop.hbase.types.CopyOnWriteArrayMap, set
+                    // mapKeyItemVertex and mapValueItemVertex to null
+                    if (obj.getClass().getName()
+                            .equals("org.apache.hadoop.hbase.types.CopyOnWriteArrayMap")) {
+                        mapKeyItemVertex = null;
+                        mapValueItemVertex = null;
+                    }
                     if (mapKeyItemVertex != null) {
                         int length = ((java.util.Map) obj).keySet().size();
                         List<Integer> sampleIdxs;
