@@ -210,10 +210,10 @@ public class GraphPattern implements Serializable {
                                 sampleIdxs.add(i);
                         }
                         for (int i : sampleIdxs) {
-                            Object object = ((java.util.Map) obj).keySet().toArray()[i];
-                            if (object == null) {
+                            Object[] array = ((java.util.Map) obj).keySet().toArray();
+                            Object object = i >= array.length ? null : array[i];
+                            if (object == null)
                                 continue;
-                            }
                             if (mapKeyItemVertex.update(object, graphPattern, graphPatternMap,
                                     classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs,
                                     objId, computeEquality))
@@ -234,10 +234,10 @@ public class GraphPattern implements Serializable {
                                 sampleIdxs.add(i);
                         }
                         for (int i : sampleIdxs) {
-                            Object object = ((java.util.Map) obj).values().toArray()[i];
-                            if (object == null) {
+                            Object[] array = ((java.util.Map) obj).values().toArray();
+                            Object object = i >= array.length ? null : array[i];
+                            if (object == null)
                                 continue;
-                            }
                             if (mapValueItemVertex.update(object, graphPattern, graphPatternMap,
                                     classInfoOri, logInfo, equalitySet, isSerialized, brokenInvs,
                                     objId, computeEquality))

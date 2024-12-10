@@ -531,6 +531,11 @@ public class TestUtils {
     @Test
     public void testComputeNonMatchableProb() {
         assert !Utils.computeNonMatchableProb(-1);
+        // compute N = 0 => 9
+        for (int N = 0; N <= 9; N++) {
+            System.out.println("N = " + N + ", Probability = "
+                    + Utils.computeNonMatchableProb(N));
+        }
     }
 
     @Test
