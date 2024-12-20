@@ -2,6 +2,7 @@ package org.zlab.ocov;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.zlab.ocov.tracker.Runtime;
 import org.zlab.ocov.tracker.graph.GraphPattern;
 
 import java.io.IOException;
@@ -363,46 +364,7 @@ public class Utils {
         return rand.nextDouble() < logisticModel.calculateProbLogisticModel(nonMatchableNum);
     }
 
-    // Deprecated: Based on a probabilistic model: input is modified ref num
-    public static boolean isNonMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
-            String itinerary) {
-        // If it's null, the return value won't be used anyway
-        if (matchableClassInfo == null)
-            return false;
-
-        int nonMatchableNum = 0;
-
-        String[] refs = itinerary.split(GraphPattern.ItiInstanceEdge);
-        for (String ref : refs) {
-            String[] items = ref.split(GraphPattern.ItiRefEdge);
-            if (items.length == 1) {
-                // Only check classname
-                if (!matchableClassInfo.containsKey(items[0]))
-                    nonMatchableNum++;
-            } else {
-                assert items.length == 2;
-                // Check the pair
-                String className = items[0];
-                String fieldName = items[1];
-
-                // Skip Collection/Map/Array
-                if (className.equals("Collection") || className.equals("Map")
-                        || className.equals("Array"))
-                    continue;
-
-                if (!matchableClassInfo.containsKey(className)
-                        || !matchableClassInfo.get(className).containsKey(fieldName)) {
-                    // Runtime.log("[debug] unmatchable format: " + className + ", " +
-                    // fieldName);
-                    nonMatchableNum++;
-                }
-            }
-        }
-        // return nonMatchableNum > 0;
-        return computeNonMatchable(nonMatchableNum);
-    }
-
-    // Decreasing based on closest idx of modified ref path
+    // Decrease based on closest idx of modified ref path
     public static boolean computeNonMatchableProb(int closestModifiedRefIdx) {
         if (closestModifiedRefIdx == -1)
             return false;
@@ -455,9 +417,13 @@ public class Utils {
             }
         }
 
-        // Based on these 2 input: give it a priority to for prioritization
-        // return nonMatchableNum > 0;
-        return isObjectDirectlyChanged || computeNonMatchableProb(closestModifiedRefIdx);
+        if (isObjectDirectlyChanged)
+            return true;
+        if (closestModifiedRefIdx == -1)
+            return false;
+        return Runtime.useProbabilityModel
+                ? computeNonMatchableProb(closestModifiedRefIdx)
+                : closestModifiedRefIdx <= Runtime.distanceThreshold;
     }
 
     // Store version delta information

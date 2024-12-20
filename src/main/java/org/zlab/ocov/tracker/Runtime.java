@@ -29,6 +29,10 @@ public class Runtime {
 
     public static final Random rand = new Random();
 
+    // VD: whether to use prob
+    public static final boolean useProbabilityModel = false;
+    public static final int distanceThreshold = 2;
+
     public static boolean sample = false;
     public static double sampleRate = 0.2; // default value
 
