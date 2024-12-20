@@ -10,6 +10,7 @@ public class FormatCoverageStatus implements Serializable {
     private static final long serialVersionUID = 20231215L;
 
     private boolean newFormat = false;
+    private int newFormatCount = 0;
     private boolean boundaryChange = false;
 
     private boolean multiInvBroken = false;
@@ -25,6 +26,7 @@ public class FormatCoverageStatus implements Serializable {
     public void setNewFormat(String log) {
         Runtime.log("[New format] " + log);
         this.newFormat = true;
+        this.newFormatCount++;
     }
 
     public void setBoundaryChange(String log) {
@@ -42,6 +44,7 @@ public class FormatCoverageStatus implements Serializable {
             return;
         }
         this.newFormat = this.newFormat || other.newFormat;
+        this.newFormatCount += other.newFormatCount;
         this.boundaryChange = this.boundaryChange || other.boundaryChange;
         this.multiInvBroken = this.multiInvBroken || other.multiInvBroken;
         this.matchableNewFormat = this.matchableNewFormat || other.matchableNewFormat;
@@ -56,6 +59,10 @@ public class FormatCoverageStatus implements Serializable {
 
     public boolean isNewFormat() {
         return newFormat;
+    }
+
+    public int getNewFormatCount() {
+        return newFormatCount;
     }
 
     public boolean isBoundaryChange() {
@@ -100,9 +107,10 @@ public class FormatCoverageStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "FormatCoverageStatus{" + "newFormat=" + newFormat + ", boundaryChange="
-                + boundaryChange + ", multiInvBroken=" + multiInvBroken + ", matchableNewFormat="
-                + matchableNewFormat + ", nonMatchableNewFormat=" + nonMatchableNewFormat
+        return "FormatCoverageStatus{" + "newFormat=" + newFormat + ", newFormatCount="
+                + newFormatCount + ", boundaryChange=" + boundaryChange + ", multiInvBroken="
+                + multiInvBroken + ", matchableNewFormat=" + matchableNewFormat
+                + ", nonMatchableNewFormat=" + nonMatchableNewFormat
                 + ", nonMatchableNewFormatCount=" + nonMatchableNewFormatCount + ", isSerialized="
                 + isSerialized + '}';
     }
