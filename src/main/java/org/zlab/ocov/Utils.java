@@ -417,7 +417,7 @@ public class Utils {
             }
         }
 
-        if (isObjectDirectlyChanged)
+        if (Runtime.captureObjectChangedDirectly && isObjectDirectlyChanged)
             return true;
         if (closestModifiedRefIdx == -1)
             return false;

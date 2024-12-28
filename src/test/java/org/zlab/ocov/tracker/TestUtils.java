@@ -548,7 +548,8 @@ public class TestUtils {
 
         String iti = "A->f1=>B";
 
-        assert Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
+        if (Runtime.captureObjectChangedDirectly)
+            assert Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
     }
 
     @Test
