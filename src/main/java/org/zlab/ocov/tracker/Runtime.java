@@ -31,8 +31,8 @@ public class Runtime {
 
     // VD: whether to use prob
     public static final boolean useProbabilityModel = false;
-    public static final boolean captureObjectChangedDirectly = false;
-    public static final int distanceThreshold = 1;
+    public static final boolean captureObjectChangedDirectly = true;
+    public static final int distanceThreshold = 2;
 
     public static boolean sample = false;
     public static double sampleRate = 0.2; // default value
