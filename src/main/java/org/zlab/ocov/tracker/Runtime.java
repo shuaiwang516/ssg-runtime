@@ -30,8 +30,8 @@ public class Runtime {
     public static final Random rand = new Random();
 
     // VD: whether to use prob
-    public static final boolean useProbabilityModel = false;
-    public static final boolean captureObjectChangedDirectly = true;
+    public static final boolean useProbabilityModel = true;
+    public static final boolean captureObjectChangedDirectly = false;
     public static final int distanceThreshold = 2;
 
     public static boolean sample = false;
