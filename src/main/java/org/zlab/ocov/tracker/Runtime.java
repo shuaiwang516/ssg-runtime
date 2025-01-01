@@ -29,10 +29,11 @@ public class Runtime {
 
     public static final Random rand = new Random();
 
-    // VD: whether to use prob
+    // == VD ==
     public static final boolean useProbabilityModel = true;
     public static final boolean captureObjectChangedDirectly = false;
     public static final int distanceThreshold = 2;
+    public static final boolean countMultiInvVD = true;
 
     public static boolean sample = false;
     public static double sampleRate = 0.2; // default value

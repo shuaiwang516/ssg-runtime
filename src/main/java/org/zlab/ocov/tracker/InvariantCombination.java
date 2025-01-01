@@ -13,7 +13,6 @@ public class InvariantCombination implements Serializable {
 
     // FIXME: inv-combine also contains <Equality>, this affects the computation of
     // non-matchable format
-    private static final boolean enableVDCheck = false;
     public Map<Integer, Set<Set<String>>> dumpId2BrokenInv = new HashMap<>();
 
     public InvariantCombination() {
@@ -49,7 +48,6 @@ public class InvariantCombination implements Serializable {
             FormatCoverageStatus formatCoverageStatus, boolean checkSpecialDumpIds,
             Set<Integer> specialDumpIds, Utils.DeltaInfo deltaInfo) {
         boolean changed = false;
-        boolean isNonMatchable = false;
         for (Map.Entry<Integer, Set<Set<String>>> entry : other.dumpId2BrokenInv.entrySet()) {
             int dumpId = entry.getKey();
 
@@ -67,10 +65,9 @@ public class InvariantCombination implements Serializable {
                                 "<Invariant Combination with Frequency>: new combinations, dumpId="
                                         + dumpId + ", new combination = " + entry.getValue());
                         changed = true;
-                        // Check NonMatchable
-                        if (enableVDCheck && !isNonMatchable
-                                && checkNonMatchable(brokenInvSet, deltaInfo))
-                            isNonMatchable = true;
+                        // Check whether it's vd-related and count
+                        if (Runtime.countMultiInvVD && checkNonMatchable(brokenInvSet, deltaInfo))
+                            formatCoverageStatus.setNonMatchableMultiInv("Multi-Inv Broken");
                     }
                 }
                 // Add it anyway
@@ -81,8 +78,6 @@ public class InvariantCombination implements Serializable {
             formatCoverageStatus.setNewFormat("InvariantCombination");
             formatCoverageStatus.setMultiInvBroken("Multi-Inv Broken");
         }
-        if (isNonMatchable)
-            formatCoverageStatus.setNonMatchableNewFormat("");
     }
 
     public void clear() {
@@ -106,6 +101,7 @@ public class InvariantCombination implements Serializable {
     public static String extractRefPath(String inv) {
         // brokenInvs.add("<" + invariant.typeName + ">, iti = " + itinerary);
         // get everything after iti = ...
+        // Skip <Equality> for now
         int idx = inv.indexOf("iti = ");
         if (idx == -1)
             return null;
