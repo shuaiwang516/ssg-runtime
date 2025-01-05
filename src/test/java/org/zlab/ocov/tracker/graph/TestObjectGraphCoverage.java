@@ -1238,12 +1238,14 @@ public class TestObjectGraphCoverage {
         assert (coverage.update(obj2));
         assert coverage1.merge(coverage).isNewFormat();
 
+        FormatCoverageStatus formatCoverageStatus;
+
         TargetClass.TargetClassE obj3 = new TargetClass.TargetClassE();
         TargetClass.TargetClassF1 tmpF31 = new TargetClass.TargetClassF1();
         tmpF31.f1 = 0;
         obj3.fList.add(tmpF31);
         coverage.update(obj3);
-        FormatCoverageStatus formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
         assert formatCoverageStatus.isNewFormat();
         assert formatCoverageStatus.isMatchableNewFormat();
 

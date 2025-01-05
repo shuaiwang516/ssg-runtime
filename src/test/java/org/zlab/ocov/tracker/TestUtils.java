@@ -7,6 +7,8 @@ import org.zlab.ocov.Utils;
 import org.zlab.ocov.tracker.graph.GraphPattern;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
@@ -603,5 +605,16 @@ public class TestUtils {
         Set<String> changedClasses = new HashSet<>();
 
         assert Utils.isNonMatchableFormat(matchableClassInfo, changedClasses, iti);
+    }
+
+    // @Test
+    public void testNonMatchableCompute1() {
+        String iti = "org.apache.hadoop.hdfs.server.namenode.INodesInPath->inodes=>Array->array_item=>org.apache.hadoop.hdfs.server.namenode.INodeDirectory->children=>Collection->collection_item=>org.apache.hadoop.hdfs.server.namenode.INodeFile->id";
+        Path p = Paths.get(
+                "/Users/kehan/project/upfuzz/configInfo/hadoop-2.10.2/serializedFields_alg1.json");;
+        Map<String, Map<String, String>> matchableClassInfo = Utils.loadMapFromFile(p);
+
+        boolean ret = Utils.isNonMatchableFormat(matchableClassInfo, new HashSet<>(), iti);
+        System.out.println(ret);
     }
 }

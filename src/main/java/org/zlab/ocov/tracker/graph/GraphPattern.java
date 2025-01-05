@@ -416,7 +416,7 @@ public class GraphPattern implements Serializable {
                                             .get(fieldName);
                                     // if it does not exist, add it
                                     GraphPattern.Vertex newVertex = addVertexWithEdge(fieldType,
-                                            graphPattern, this, edgeName);
+                                            graphPattern, this, currentClassName, edgeName);
                                     if (newVertex.update(value, graphPattern, graphPatternMap,
                                             classInfoOri, logInfo, equalitySet, isSerialized,
                                             brokenInvs, objId, computeEquality))
@@ -814,17 +814,17 @@ public class GraphPattern implements Serializable {
         Map<String, GraphPattern> graphPatterns = new HashMap<>();
         for (String className : classInfoOri.keySet()) {
             GraphPattern graphPattern = new GraphPattern(className);
-            for (String fieldName : classInfoOri.get(className).keySet()) {
-                String fieldType = classInfoOri.get(className).get(fieldName);
-                addVertexWithEdge(fieldType, graphPattern, graphPattern.root, fieldName);
-            }
+            // for (String fieldName : classInfoOri.get(className).keySet()) {
+            // String fieldType = classInfoOri.get(className).get(fieldName);
+            // addVertexWithEdge(fieldType, graphPattern, graphPattern.root, fieldName);
+            // }
             graphPatterns.put(className, graphPattern);
         }
         return graphPatterns;
     }
 
     public static Vertex addVertexWithEdge(String vertexType, GraphPattern graphPattern,
-            Vertex parentVertex, String edgeName) {
+            Vertex parentVertex, String fieldDeclarationClassName, String edgeName) {
         // We should also store the className to handle the situation when Base class
         // and the extended class have the fields with the same name but different types
         // See testInheritedPrivateField
@@ -832,7 +832,14 @@ public class GraphPattern implements Serializable {
 
         Edge edge = new Edge(edgeName);
 
-        String itinerary = parentVertex.itinerary + ItiRefEdge + edgeName;
+        boolean recordDeclarationClassName = true;
+        String itinerary;
+        if (recordDeclarationClassName) {
+            itinerary = parentVertex.itinerary + ItiRefEdge + "(" + fieldDeclarationClassName + ")"
+                    + edgeName;
+        } else {
+            itinerary = parentVertex.itinerary + ItiRefEdge + edgeName;
+        }
         Vertex vertex = createVertex(vertexType, itinerary);
         graphPattern.graph.addVertex(vertex);
         graphPattern.graph.addEdge(parentVertex, vertex, edge);

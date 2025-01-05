@@ -292,6 +292,15 @@ public class Utils {
                 String className = items[0];
                 String fieldName = items[1];
 
+                // Special handle the condition where declaration class is involved
+                if (fieldName.contains(")")) {
+                    // extract the declaration class: e.g.
+                    // (org.zlab.ocov.tracker.TargetClass$TargetClassE)fList by split ")"
+                    className = fieldName.substring(fieldName.indexOf("(") + 1,
+                            fieldName.indexOf(")"));
+                    fieldName = fieldName.substring(fieldName.indexOf(")") + 1);
+                }
+
                 // Skip Collection/Map/Array
                 if (className.equals("Collection") || className.equals("Map")
                         || className.equals("Array"))
@@ -403,6 +412,15 @@ public class Utils {
                 String className = items[0];
                 String fieldName = items[1];
 
+                // Special handle the condition where declaration class is involved
+                if (fieldName.contains(")")) {
+                    // extract the declaration class: e.g.
+                    // (org.zlab.ocov.tracker.TargetClass$TargetClassE)fList by split ")"
+                    className = fieldName.substring(fieldName.indexOf("(") + 1,
+                            fieldName.indexOf(")"));
+                    fieldName = fieldName.substring(fieldName.indexOf(")") + 1);
+                }
+
                 // Skip Collection/Map/Array
                 if (className.equals("Collection") || className.equals("Map")
                         || className.equals("Array"))
@@ -421,9 +439,14 @@ public class Utils {
             return true;
         if (closestModifiedRefIdx == -1)
             return false;
-        return Runtime.useProbabilityModel
+        boolean ret = Runtime.useProbabilityModel
                 ? computeNonMatchableProb(closestModifiedRefIdx)
                 : closestModifiedRefIdx <= Runtime.distanceThreshold;
+        // Debug
+        // if (ret) {
+        // Runtime.log("[Debug: Non-matchable] " + itinerary);
+        // }
+        return ret;
     }
 
     // Store version delta information
