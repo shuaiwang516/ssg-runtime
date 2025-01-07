@@ -814,13 +814,20 @@ public class GraphPattern implements Serializable {
         Map<String, GraphPattern> graphPatterns = new HashMap<>();
         for (String className : classInfoOri.keySet()) {
             GraphPattern graphPattern = new GraphPattern(className);
-            // for (String fieldName : classInfoOri.get(className).keySet()) {
-            // String fieldType = classInfoOri.get(className).get(fieldName);
-            // addVertexWithEdge(fieldType, graphPattern, graphPattern.root, fieldName);
-            // }
+            if (!Runtime.recordDeclarationClassName) {
+                for (String fieldName : classInfoOri.get(className).keySet()) {
+                    String fieldType = classInfoOri.get(className).get(fieldName);
+                    addVertexWithEdge(fieldType, graphPattern, graphPattern.root, fieldName);
+                }
+            }
             graphPatterns.put(className, graphPattern);
         }
         return graphPatterns;
+    }
+
+    public static Vertex addVertexWithEdge(String vertexType, GraphPattern graphPattern,
+            Vertex parentVertex, String edgeName) {
+        return addVertexWithEdge(vertexType, graphPattern, parentVertex, null, edgeName);
     }
 
     public static Vertex addVertexWithEdge(String vertexType, GraphPattern graphPattern,
@@ -832,9 +839,9 @@ public class GraphPattern implements Serializable {
 
         Edge edge = new Edge(edgeName);
 
-        boolean recordDeclarationClassName = true;
         String itinerary;
-        if (recordDeclarationClassName) {
+        if (Runtime.recordDeclarationClassName) {
+            assert fieldDeclarationClassName != null;
             itinerary = parentVertex.itinerary + ItiRefEdge + "(" + fieldDeclarationClassName + ")"
                     + edgeName;
         } else {

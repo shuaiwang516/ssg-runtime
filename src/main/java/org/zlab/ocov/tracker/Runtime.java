@@ -19,6 +19,7 @@ public class Runtime {
 
     // FIXME: This is disabled in BC+FC evaluation
     public static boolean enableCreationContextMonitor = false;
+    public static boolean recordDeclarationClassName = false;
 
     public static boolean enableUpdate = true;
     public static boolean enableBoundaryCheck = true;
