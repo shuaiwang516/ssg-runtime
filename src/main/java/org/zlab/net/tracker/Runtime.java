@@ -38,6 +38,7 @@ public class Runtime {
             return;
 
         synchronized (lock) {
+            log("[Runtime] Recording trace entry: " + id);
             trace.record(name, id, contextArgs);
         }
     }
