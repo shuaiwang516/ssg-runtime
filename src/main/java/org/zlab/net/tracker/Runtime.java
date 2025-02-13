@@ -17,6 +17,8 @@ public class Runtime {
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss.SSS");
 
+    private static final int PORT = 62000; // the port to listen on
+
     private static Trace trace;
 
     public static void init() {
@@ -56,8 +58,6 @@ public class Runtime {
             e.printStackTrace();
         }
     }
-
-    private static final int PORT = 62000; // the port to listen on
 
     public static void Tracker() throws IOException {
         Thread serverThread = new Thread(() -> {
