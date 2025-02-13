@@ -32,7 +32,7 @@ public class Runtime {
         log("Invariant Runtime initialized!");
     }
 
-    public static void record(String name, int id, String... contextArgs) {
+    public static void record(String name, int id, Object... contextArgs) {
         // record this information
         if (trace == null)
             return;

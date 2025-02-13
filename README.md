@@ -87,3 +87,8 @@ and add this jar file.
 1. Statically, it's an object type, but dynamically, it's a map/set/collection, check whether we handle it correctly?
 2. Accumulated size for collection type, if it's integer, is it handled correctly?
 
+# Network
+
+```java
+org.zlab.net.tracker.Runtime.init(); // Add this line
+```
