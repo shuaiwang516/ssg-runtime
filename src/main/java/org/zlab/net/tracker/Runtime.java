@@ -29,7 +29,7 @@ public class Runtime {
             // rt exception
             throw new RuntimeException(e);
         }
-        log("Invariant Runtime initialized!");
+        log("Net Runtime initialized!");
     }
 
     public static void record(String name, int id, Object... contextArgs) {
@@ -62,7 +62,7 @@ public class Runtime {
         Thread serverThread = new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(PORT)) {
                 while (true) {
-                    log("[hklog] Invariant Runtime waiting!");
+                    log("[hklog] Net Runtime waiting!");
                     Socket clientSocket = serverSocket.accept();
                     new Thread(new ClientHandler(clientSocket)).start();
                 }
