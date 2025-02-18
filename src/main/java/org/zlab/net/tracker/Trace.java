@@ -11,4 +11,8 @@ public class Trace implements Serializable {
         traceEntries.add(new TraceEntry(id));
         Runtime.log("Recorded trace entry: " + id);
     }
+
+    public void merge(Trace trace) {
+        traceEntries.addAll(trace.traceEntries);
+    }
 }
