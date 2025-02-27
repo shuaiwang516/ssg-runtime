@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Trace implements Serializable {
-    List<TraceEntry> traceEntries = new LinkedList<>();
+    private final List<TraceEntry> traceEntries = new LinkedList<>();
 
     public void record(String name, int id, Object... contextArgs) {
         traceEntries.add(new TraceEntry(id));
@@ -13,6 +13,12 @@ public class Trace implements Serializable {
     }
 
     public void merge(Trace trace) {
+        if (trace == null)
+            return;
         traceEntries.addAll(trace.traceEntries);
+    }
+
+    public int size() {
+        return traceEntries.size();
     }
 }
