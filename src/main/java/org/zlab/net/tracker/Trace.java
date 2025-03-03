@@ -70,6 +70,9 @@ public class Trace implements Serializable {
     public static Trace mergeBasedOnTimestamp(Trace[] traces) {
         Trace mergedTrace = new Trace();
         for (Trace trace : traces) {
+            // skip if the trace is null or empty
+            if (trace == null || trace.size() == 0)
+                continue;
             mergedTrace.mergeBasedOnTimestamp(trace);
         }
         return mergedTrace;
