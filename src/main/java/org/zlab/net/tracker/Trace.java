@@ -17,6 +17,9 @@ public class Trace implements Serializable {
     public void append(Trace trace) {
         if (trace == null)
             return;
+        assert traceEntries.isEmpty() || traceEntries
+                .get(traceEntries.size() - 1).timestamp < trace.traceEntries.get(0).timestamp
+                : "The trace to be appended is not in the correct order";
         traceEntries.addAll(trace.traceEntries);
     }
 
