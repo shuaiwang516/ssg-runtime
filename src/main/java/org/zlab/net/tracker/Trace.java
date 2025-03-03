@@ -22,4 +22,12 @@ public class Trace implements Serializable {
     public int size() {
         return traceEntries.size();
     }
+
+    public List<String> getHashCodes() {
+        List<String> hashCodes = new LinkedList<>();
+        for (TraceEntry entry : traceEntries) {
+            hashCodes.add(String.valueOf(entry.hashcode));
+        }
+        return hashCodes;
+    }
 }
