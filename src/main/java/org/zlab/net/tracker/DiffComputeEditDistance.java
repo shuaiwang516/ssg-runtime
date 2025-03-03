@@ -2,6 +2,8 @@ package org.zlab.net.tracker;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import java.util.List;
+
 public class DiffComputeEditDistance {
     public static int compute(Trace trace0, Trace trace1) {
         // diff 0 and 1

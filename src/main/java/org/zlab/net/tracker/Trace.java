@@ -8,7 +8,8 @@ public class Trace implements Serializable {
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
     public void record(String name, int id, Object... contextArgs) {
-        traceEntries.add(new TraceEntry(id));
+        // TODO: record contents
+        traceEntries.add(new TraceEntry(id, name.hashCode()));
         Runtime.log("Recorded trace entry: " + id);
     }
 
