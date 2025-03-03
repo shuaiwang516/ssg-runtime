@@ -23,4 +23,11 @@ public class TraceEntry implements Serializable {
         this.hashcode = hashcode;
         this.timestamp = timestamp;
     }
+
+    // toString method
+    @Override
+    public String toString() {
+        return "TraceEntry{" + "id=" + id + ", methodName='" + methodName + '\'' + ", hashcode="
+                + hashcode + ", timestamp=" + timestamp + '}';
+    }
 }

@@ -80,4 +80,10 @@ public class Trace implements Serializable {
         }
         return mergedTrace;
     }
+
+    public void print() {
+        for (TraceEntry entry : traceEntries) {
+            System.out.println(entry);
+        }
+    }
 }

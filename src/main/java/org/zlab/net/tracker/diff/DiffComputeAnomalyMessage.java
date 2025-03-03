@@ -1,6 +1,7 @@
-package org.zlab.net.tracker;
+package org.zlab.net.tracker.diff;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.zlab.net.tracker.Trace;
 
 public class DiffComputeAnomalyMessage {
     public static void compute(Trace trace0, Trace trace1) {

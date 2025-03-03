@@ -1,4 +1,7 @@
-package org.zlab.net.tracker;
+package org.zlab.net.tracker.diff;
+
+import org.zlab.net.tracker.Trace;
+import org.zlab.net.tracker.Utils;
 
 import java.util.List;
 

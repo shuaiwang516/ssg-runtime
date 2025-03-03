@@ -1,7 +1,7 @@
-package net.tracker;
+package net.tracker.diff;
 
 import org.junit.jupiter.api.Test;
-import org.zlab.net.tracker.DiffComputeEditDistance;
+import org.zlab.net.tracker.diff.DiffComputeEditDistance;
 import org.zlab.net.tracker.Trace;
 
 public class TestDiffComputeEditDistance {
