@@ -3,12 +3,12 @@ package org.zlab.net.tracker;
 import java.io.Serializable;
 
 public class TraceEntry implements Serializable {
-    public int id;
-    public String methodName;
-    public int hashcode;
+    public final int id;
+    public final String methodName;
+    public final int hashcode;
 
     // Serialize messages across the cluster
-    public long timestamp;
+    public final long timestamp;
 
     public TraceEntry(int id, String methodName, int hashcode) {
         this.id = id;

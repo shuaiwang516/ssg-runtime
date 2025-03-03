@@ -14,7 +14,7 @@ public class Trace implements Serializable {
     }
 
     // This is actually an append operation
-    public void merge(Trace trace) {
+    public void append(Trace trace) {
         if (trace == null)
             return;
         traceEntries.addAll(trace.traceEntries);
@@ -34,6 +34,12 @@ public class Trace implements Serializable {
 
     public List<TraceEntry> getTraceEntries() {
         return traceEntries;
+    }
+
+    public void mergeBasedOnTimestamp(Trace otherTrace) {
+        Trace mergedTrace = mergeBasedOnTimestamp(this, otherTrace);
+        traceEntries.clear();
+        traceEntries.addAll(mergedTrace.traceEntries);
     }
 
     public static Trace mergeBasedOnTimestamp(Trace trace0, Trace trace1) {
@@ -57,6 +63,14 @@ public class Trace implements Serializable {
         while (j < trace1.size()) {
             mergedTrace.traceEntries.add(trace1.traceEntries.get(j));
             j++;
+        }
+        return mergedTrace;
+    }
+
+    public static Trace mergeBasedOnTimestamp(Trace[] traces) {
+        Trace mergedTrace = new Trace();
+        for (Trace trace : traces) {
+            mergedTrace.mergeBasedOnTimestamp(trace);
         }
         return mergedTrace;
     }
