@@ -10,17 +10,22 @@ public class TraceEntry implements Serializable {
     // Serialize messages across the cluster
     public final long timestamp;
 
-    public TraceEntry(int id, String methodName, int hashcode) {
+    public final boolean changedMessage;
+
+    public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
+        this.changedMessage = changedMessage;
         this.timestamp = System.currentTimeMillis();
     }
 
-    public TraceEntry(int id, String methodName, int hashcode, long timestamp) {
+    public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage,
+            long timestamp) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
+        this.changedMessage = changedMessage;
         this.timestamp = timestamp;
     }
 

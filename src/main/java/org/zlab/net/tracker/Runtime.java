@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class Runtime {
 
@@ -14,6 +15,8 @@ public class Runtime {
 
     public static BufferedWriter writer;
     public static final Path filePath = Paths.get("/tmp/coverage.log");
+    public static List<String> changedClasses;
+
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss.SSS");
 

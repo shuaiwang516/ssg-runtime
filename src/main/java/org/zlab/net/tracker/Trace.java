@@ -1,16 +1,48 @@
 package org.zlab.net.tracker;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class Trace implements Serializable {
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
+    // id: unique identifier for the instrumented location
     public void record(String name, int id, Object... contextArgs) {
         // TODO: record contents
-        traceEntries.add(new TraceEntry(id, name, name.hashCode()));
+        // Iterate the args, (1) identify messages with special type (2) special content
+        boolean changedMessage = examineChangedMessage(contextArgs);
+        traceEntries.add(new TraceEntry(id, name, name.hashCode(), changedMessage));
         Runtime.log("Recorded trace entry: " + id);
+    }
+
+    public boolean examineChangedMessage(Object... contextArgs) {
+        for (Object arg : contextArgs) {
+            if (examineChangedMessage(arg))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean examineChangedMessage(Object message) {
+        if (Runtime.changedClasses == null)
+            return false;
+
+        Set<String> types = extractTypes(message);
+        // TODO: Iterate the object call graph, collect all types (custom)
+
+        for (String changedClass : Runtime.changedClasses)
+            if (types.contains(changedClass))
+                return true;
+
+        return false;
+    }
+
+    public static Set<String> extractTypes(Object message) {
+        Set<String> types = new HashSet<>();
+        return types;
     }
 
     // This is actually an append operation
