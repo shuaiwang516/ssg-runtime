@@ -13,6 +13,7 @@ public class Trace implements Serializable {
         Runtime.log("Recorded trace entry: " + id);
     }
 
+    // This is actually an append operation
     public void merge(Trace trace) {
         if (trace == null)
             return;
