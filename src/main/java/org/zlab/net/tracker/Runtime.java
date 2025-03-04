@@ -1,5 +1,7 @@
 package org.zlab.net.tracker;
 
+import org.zlab.ocov.Utils;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -7,16 +9,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Runtime {
-
     private static final Object lock = new Object();
 
     public static BufferedWriter writer;
     public static final Path filePath = Paths.get("/tmp/coverage.log");
-    public static List<String> changedClasses;
+    public static Set<String> changedClasses;
 
+    // Hardcoded path
+    private static final Path modifiedFieldsPath = Paths.get("/tmp/modifiedFields.json");
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -33,6 +37,15 @@ public class Runtime {
             log("Error initializing Tracker: " + e);
             // rt exception
             throw new RuntimeException(e);
+        }
+
+        // Load the changed classes if it exists
+        if (modifiedFieldsPath.toFile().exists()) {
+            Map<String, Set<String>> modifiedFields = Utils.loadModifiedFields(modifiedFieldsPath);
+            changedClasses = modifiedFields.keySet();
+            log("Loaded changed classes, size = " + changedClasses.size());
+        } else {
+            log("No modified fields file found");
         }
         log("Net Runtime initialized!");
     }

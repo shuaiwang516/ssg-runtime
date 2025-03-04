@@ -27,16 +27,13 @@ public class Trace implements Serializable {
     }
 
     public boolean examineChangedMessage(Object message) {
-        if (Runtime.changedClasses == null)
+        if (Runtime.changedClasses == null || Runtime.changedClasses.isEmpty())
             return false;
 
         Set<String> types = extractTypes(message);
-        // TODO: Iterate the object call graph, collect all types (custom)
-
         for (String changedClass : Runtime.changedClasses)
             if (types.contains(changedClass))
                 return true;
-
         return false;
     }
 
