@@ -41,8 +41,9 @@ public class Trace implements Serializable {
     }
 
     public static Set<String> extractTypes(Object message) {
-        Set<String> types = new HashSet<>();
-        return types;
+        ObjectGraphTraverser traverser = new ObjectGraphTraverser();
+        traverser.traverse(message);
+        return traverser.getVisitedTypes();
     }
 
     // This is actually an append operation
