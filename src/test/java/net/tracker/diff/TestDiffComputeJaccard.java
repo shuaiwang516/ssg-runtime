@@ -6,7 +6,9 @@ import org.zlab.net.tracker.diff.DiffComputeJaccardSimilarity;
 
 public class TestDiffComputeJaccard {
     @Test
-    public void testEditDistance() {
+    public void testJaccard() {
+        // When useNGrams: 0.33
+        // When !useNGrams: 1.0
         Trace trace0 = new Trace();
         Trace trace1 = new Trace();
 
