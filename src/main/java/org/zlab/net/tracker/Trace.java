@@ -1,12 +1,13 @@
 package org.zlab.net.tracker;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class Trace implements Serializable {
+    private static final long serialVersionUID = 20250311L;
+
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
     // id: unique identifier for the instrumented location

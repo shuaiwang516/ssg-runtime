@@ -39,6 +39,7 @@ public class Runtime {
             throw new RuntimeException(e);
         }
 
+        log("Net Runtime initialization started!");
         // Load the changed classes if it exists
         if (modifiedFieldsPath.toFile().exists()) {
             Map<String, Set<String>> modifiedFields = Utils.loadModifiedFields(modifiedFieldsPath);

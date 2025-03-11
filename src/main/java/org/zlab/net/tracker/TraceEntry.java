@@ -3,6 +3,8 @@ package org.zlab.net.tracker;
 import java.io.Serializable;
 
 public class TraceEntry implements Serializable {
+    private static final long serialVersionUID = 20250311L;
+
     public final int id;
     public final String methodName;
     public final int hashcode;
