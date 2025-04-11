@@ -740,6 +740,8 @@ public class ObjectGraphCoverage implements Serializable {
 
     public double measureCoverageOfModifiedReferences(
             Map<String, Set<String>> modifiedSerializedReferences, boolean save) {
+        long start = System.nanoTime();
+
         int allModifiedReferenceSize = Utils.count(modifiedSerializedReferences);
 
         Map<String, Set<String>> occurredReferences = extractOccurredReferences();
@@ -761,10 +763,19 @@ public class ObjectGraphCoverage implements Serializable {
 
         // Coverage (Percentage)
         double coveredPercentage = occurredModifiedReferenceSize * 1.0 / allModifiedReferenceSize;
-        // print it
-        System.out.println("Total modified ref size = " + allModifiedReferenceSize);
-        System.out.println("Occurred modified ref size = " + occurredModifiedReferenceSize);
-        System.out.println("Coverage = " + coveredPercentage);
+        // print this double with only 2 decimal places after the dot
+
+        String formattedCoveredPercentage = String.format("%.2f", coveredPercentage);
+
+        long end = System.nanoTime();
+
+        long duration = end - start;
+
+        System.out.format("|%30s|%30s|%30s|%30s|\n",
+                "All mod ref size : " + allModifiedReferenceSize,
+                "Occurred Mod ref size : " + occurredModifiedReferenceSize,
+                "Covered Percentage : " + formattedCoveredPercentage,
+                "compute time : " + duration / 1000000 + "ms");
         return coveredPercentage;
     }
 
