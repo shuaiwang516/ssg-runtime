@@ -12,6 +12,7 @@ import org.zlab.ocov.tracker.inv.unary.*;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
@@ -735,5 +736,50 @@ public class ObjectGraphCoverage implements Serializable {
         Set<String> modifiedEnums = Utils.loadSetFromFile(modifiedEnumsPath);
         Set<String> typeWithModifiedHierarchy = Utils.loadSetFromFile(modifiedHierarchyPath);
         return new IsSerialize(modifiedFields, modifiedEnums, typeWithModifiedHierarchy);
+    }
+
+    public double measureCoverageOfModifiedReferences(
+            Map<String, Set<String>> modifiedSerializedReferences, boolean save) {
+        int allModifiedReferenceSize = Utils.count(modifiedSerializedReferences);
+
+        Map<String, Set<String>> occurredReferences = extractOccurredReferences();
+
+        // Compute the occurred modified references
+        Map<String, Set<String>> occurredModifiedReferences = Utils.intersect(occurredReferences,
+                modifiedSerializedReferences);
+        int occurredModifiedReferenceSize = Utils.count(occurredModifiedReferences);
+        if (save)
+            Utils.saveModifiedFields(occurredModifiedReferences,
+                    Paths.get("occurredModifiedReferences.json"));
+
+        // Compute remaining references
+        Map<String, Set<String>> NotOccurredModifiedReferences = Utils
+                .onlyExistInLeft(modifiedSerializedReferences, occurredModifiedReferences);
+        if (save)
+            Utils.saveModifiedFields(NotOccurredModifiedReferences,
+                    Paths.get("unOccurredModifiedReferences.json"));
+
+        // Coverage (Percentage)
+        double coveredPercentage = occurredModifiedReferenceSize * 1.0 / allModifiedReferenceSize;
+        // print it
+        System.out.println("Total modified ref size = " + allModifiedReferenceSize);
+        System.out.println("Occurred modified ref size = " + occurredModifiedReferenceSize);
+        System.out.println("Coverage = " + coveredPercentage);
+        return coveredPercentage;
+    }
+
+    public Map<String, Set<String>> extractOccurredReferences() {
+        Map<String, Set<String>> allOccurredReferences = new HashMap<>();
+        // Map<String, Set<String>>
+        // iterate all graph patterns
+        for (Map<Integer, Map<String, GraphPattern>> objCoverageWithContext : accumDumpId2ObjCoverageWithContext
+                .values()) {
+            for (Map<String, GraphPattern> classInfo : objCoverageWithContext.values()) {
+                for (GraphPattern graphPattern : classInfo.values()) {
+                    Utils.merge(allOccurredReferences, graphPattern.extractOccurredReference());
+                }
+            }
+        }
+        return allOccurredReferences;
     }
 }

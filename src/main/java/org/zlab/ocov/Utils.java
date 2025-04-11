@@ -272,6 +272,61 @@ public class Utils {
         return tokens;
     }
 
+    public static <K, V> int count(Map<K, Set<V>> map) {
+        int count = 0;
+        for (Map.Entry<K, Set<V>> entry : map.entrySet()) {
+            count += entry.getValue().size();
+        }
+        return count;
+    }
+
+    public static void merge(Map<String, Set<String>> leftMap, Map<String, Set<String>> rightMap) {
+        // merge to left
+        for (Map.Entry<String, Set<String>> entry : rightMap.entrySet()) {
+            String key = entry.getKey();
+            Set<String> value = entry.getValue();
+            if (!leftMap.containsKey(key)) {
+                leftMap.put(key, new HashSet<>());
+            }
+            leftMap.get(key).addAll(value);
+        }
+    }
+
+    public static Map<String, Set<String>> intersect(Map<String, Set<String>> left,
+            Map<String, Set<String>> right) {
+        Map<String, Set<String>> result = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : left.entrySet()) {
+            String key = entry.getKey();
+            if (right.containsKey(key)) {
+                Set<String> intersection = new HashSet<>(entry.getValue());
+                intersection.retainAll(right.get(key));
+                if (!intersection.isEmpty()) {
+                    result.put(key, intersection);
+                }
+            }
+        }
+        return result;
+    }
+
+    public static Map<String, Set<String>> onlyExistInLeft(Map<String, Set<String>> left,
+            Map<String, Set<String>> right) {
+        Map<String, Set<String>> result = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : left.entrySet()) {
+            String key = entry.getKey();
+            if (!right.containsKey(key)) {
+                result.put(key, entry.getValue());
+            }
+            if (right.containsKey(key)) {
+                Set<String> intersection = new HashSet<>(entry.getValue());
+                intersection.removeAll(right.get(key));
+                if (!intersection.isEmpty()) {
+                    result.put(key, intersection);
+                }
+            }
+        }
+        return result;
+    }
+
     // Deprecated: based on number of modified ref path
     public static boolean isMatchableFormat(Map<String, Map<String, String>> matchableClassInfo,
             String itinerary) {

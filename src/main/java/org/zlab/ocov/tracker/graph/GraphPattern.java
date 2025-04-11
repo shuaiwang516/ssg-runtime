@@ -597,6 +597,20 @@ public class GraphPattern implements Serializable {
         return root.merge(other.root, other, this, logInfo);
     }
 
+    // For evaluation
+    public Map<String, Set<String>> extractOccurredReference() {
+        Map<String, Set<String>> visitedReferences = new HashMap<>();
+
+        for (Edge edge : graph.edgeSet()) {
+            Vertex source = graph.getEdgeSource(edge);
+            if (!visitedReferences.containsKey(source.type)) {
+                visitedReferences.put(source.type, new HashSet<>());
+            }
+            visitedReferences.get(source.type).add(edge.name);
+        }
+        return visitedReferences;
+    }
+
     public DirectedMultigraph<GraphPattern.Vertex, GraphPattern.Edge> getGraph() {
         return graph;
     }

@@ -1365,6 +1365,69 @@ public class TestObjectGraphCoverage {
     }
 
     @Test
+    public void testIsSerializeWithCovererModifiedReferenceCheck() {
+        // Modified from testCollection
+        Path baseClassPath = Paths.get("input/baseClassInfo1.json");
+        Path topObjectsPath = Paths.get("input/topObjects1.json");
+
+        ObjectGraphCoverage coverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+        ObjectGraphCoverage coverage1 = new ObjectGraphCoverage(baseClassPath, topObjectsPath);
+
+        Set<String> changedClasses = new HashSet<>();
+        // org.zlab.ocov.tracker.TargetClass$TargetClassE.fList.collection_firstItem->org.zlab.ocov.tracker.TargetClass$TargetClassF1
+        changedClasses.add("org.zlab.ocov.tracker.TargetClass$TargetClassE");
+        changedClasses.add("org.zlab.ocov.tracker.TargetClass$TargetClassF1");
+        coverage1.setChangedClasses(changedClasses);
+
+        // Testing
+        TargetClass.TargetClassE obj1 = new TargetClass.TargetClassE();
+        coverage.update(obj1);
+        FormatCoverageStatus formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isNewIsSerialize();
+        assert !formatCoverageStatus.isMatchableNewFormat();
+
+        TargetClass.TargetClassE obj2 = new TargetClass.TargetClassE();
+        obj2.fList.add(new TargetClass.TargetClassF1());
+        coverage.update(obj2);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert formatCoverageStatus.isNewIsSerialize();
+        assert !formatCoverageStatus.isMatchableNewFormat();
+
+        TargetClass.TargetClassE obj3 = new TargetClass.TargetClassE();
+        obj3.fList.add(new TargetClass.TargetClassF1());
+        coverage.update(obj3);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert !formatCoverageStatus.isNewFormat();
+        assert !formatCoverageStatus.isNewIsSerialize();
+        assert !formatCoverageStatus.isMatchableNewFormat();
+
+        TargetClass.TargetClassE obj4 = new TargetClass.TargetClassE();
+
+        TargetClass.TargetClassF1 tmpF41 = new TargetClass.TargetClassF1();
+        tmpF41.f1 = 0;
+        obj4.fList.add(tmpF41);
+        coverage.update(obj4);
+        formatCoverageStatus = coverage1.merge(coverage, 1, true, false);
+        assert formatCoverageStatus.isNewFormat();
+        assert !formatCoverageStatus.isNewIsSerialize();
+
+        Map<String, Set<String>> modifiedSerializedFields = new HashMap<>();
+        modifiedSerializedFields.put("org.zlab.ocov.tracker.TargetClass$TargetClassF1",
+                new HashSet<>());
+        modifiedSerializedFields.get("org.zlab.ocov.tracker.TargetClass$TargetClassF1").add("f1");
+
+        modifiedSerializedFields.put("org.zlab.ocov.tracker.TargetClass$TargetClassF2",
+                new HashSet<>());
+        modifiedSerializedFields.get("org.zlab.ocov.tracker.TargetClass$TargetClassF2").add("f2");
+
+        double coveredPercentage = coverage1
+                .measureCoverageOfModifiedReferences(modifiedSerializedFields, false);
+        assert coveredPercentage == 0.5;
+    }
+
+    @Test
     public void testExtractRefPath() {
         String inv = "<Int>, iti = a->b";
         String iti = InvariantCombination.extractRefPath(inv);
