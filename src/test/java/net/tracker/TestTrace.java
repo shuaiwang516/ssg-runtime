@@ -58,7 +58,8 @@ public class TestTrace {
         Message<Mutation> msg = new Message<>(new Mutation(1));
         ObjectGraphTraverser traverser = new ObjectGraphTraverser();
         traverser.traverse(msg);
-        System.out.println(traverser.payloadType);
+        assert traverser.payloadType.equals("net.tracker.TestTrace$Mutation");
+
     }
 
     @Test
@@ -66,6 +67,6 @@ public class TestTrace {
         MessageIn msg = new MessageIn(new Mutation(1));
         ObjectGraphTraverser traverser = new ObjectGraphTraverser();
         traverser.traverse(msg);
-        System.out.println(traverser.payloadType);
+        assert traverser.payloadType.equals("net.tracker.TestTrace$Mutation");
     }
 }

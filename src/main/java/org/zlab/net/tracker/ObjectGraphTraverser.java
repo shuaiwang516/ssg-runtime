@@ -79,20 +79,25 @@ public class ObjectGraphTraverser {
                 traverse(collectionElement);
             }
         } else {
-            Field[] fields = clazz.getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
-                try {
-                    Object fieldValue = field.get(obj);
-                    if (field.getName().equals("payload") && fieldValue != null) {
-                        payloadType = fieldValue.getClass().getName();
+            // Iterate all fields of the object
+            try {
+                Class<?> currentClass = obj.getClass();
+                while (currentClass != Object.class) { // Traverse up the class hierarchy
+                    Field[] fields = currentClass.getDeclaredFields();
+                    for (Field field : fields) {
+                        field.setAccessible(true);
+                        Object fieldValue = field.get(obj);
+                        if (field.getName().equals("payload") && fieldValue != null) {
+                            payloadType = fieldValue.getClass().getName();
+                        }
+                        if (fieldValue != null) {
+                            traverse(fieldValue);
+                        }
                     }
-                    if (fieldValue != null) {
-                        traverse(fieldValue);
-                    }
-                } catch (IllegalAccessException e) {
-                    System.err.println("Error accessing field: " + field.getName());
+                    currentClass = currentClass.getSuperclass(); // Move to the superclass
                 }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         }
     }
