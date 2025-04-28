@@ -34,9 +34,10 @@ public class Trace implements Serializable {
     // Debug
     public static String getFirstPayloadType(Object[] objects) {
         for (Object obj : objects) {
-            String type = getPayloadType(obj);
-            if (type != null)
-                return type;
+            ObjectGraphTraverser traverser = new ObjectGraphTraverser();
+            traverser.traverse(obj);
+            if (traverser.payloadType != null)
+                return traverser.payloadType;
         }
         return null;
     }

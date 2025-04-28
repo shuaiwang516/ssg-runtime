@@ -14,6 +14,8 @@ public class ObjectGraphTraverser {
     private static final int maxArrayLength = 20;
     private static final int arraySampleSize = 20;
 
+    public String payloadType = null;
+
     public Set<String> getVisitedTypes() {
         return visitedTypes;
     }
@@ -82,6 +84,9 @@ public class ObjectGraphTraverser {
                 field.setAccessible(true);
                 try {
                     Object fieldValue = field.get(obj);
+                    if (field.getName().equals("payload") && fieldValue != null) {
+                        payloadType = fieldValue.getClass().getName();
+                    }
                     if (fieldValue != null) {
                         traverse(fieldValue);
                     }

@@ -1,12 +1,12 @@
 package net.tracker;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.net.tracker.ObjectGraphTraverser;
 import org.zlab.net.tracker.Trace;
 
 import static java.lang.Thread.sleep;
 
 public class TestTrace {
-
     @Test
     public void TestMergeBasedOnTimestamp() throws InterruptedException {
         Trace trace0 = new Trace();
@@ -30,5 +30,42 @@ public class TestTrace {
         assert mergedTrace0.size() == 6;
         assert mergedTrace0.getTraceEntries().get(0).methodName.equals("sendRR_0");
         assert mergedTrace0.getTraceEntries().get(1).methodName.equals("sendRR_1");
+    }
+
+    public static class Message<T> {
+        public final T payload;
+
+        public Message(T payload) {
+            this.payload = payload;
+        }
+    }
+
+    public static class MessageIn extends Message<Mutation> {
+        public MessageIn(Mutation payload) {
+            super(payload);
+        }
+    }
+
+    public static class Mutation {
+        int id;
+        public Mutation(int id) {
+            this.id = id;
+        }
+    }
+
+    @Test
+    public void testTraversePayload1() {
+        Message<Mutation> msg = new Message<>(new Mutation(1));
+        ObjectGraphTraverser traverser = new ObjectGraphTraverser();
+        traverser.traverse(msg);
+        System.out.println(traverser.payloadType);
+    }
+
+    @Test
+    public void testTraversePayload2() {
+        MessageIn msg = new MessageIn(new Mutation(1));
+        ObjectGraphTraverser traverser = new ObjectGraphTraverser();
+        traverser.traverse(msg);
+        System.out.println(traverser.payloadType);
     }
 }
