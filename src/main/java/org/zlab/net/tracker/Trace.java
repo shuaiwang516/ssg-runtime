@@ -16,10 +16,17 @@ public class Trace implements Serializable {
         // TODO: record contents
         // Iterate the args, (1) identify messages with special type (2) special content
         boolean changedMessage = examineChangedMessage(contextArgs);
+
         String payloadType = null;
         if (debug)
             payloadType = getFirstPayloadType(contextArgs);
+
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), changedMessage));
+
+        if (debug && contextArgs.length > 0 && contextArgs[0] != null) {
+            Runtime.log("First entry type = " + contextArgs[0].getClass().getName());
+        }
+
         Runtime.log("Recorded trace entry: " + id + ", payloadType: " + payloadType);
     }
 
