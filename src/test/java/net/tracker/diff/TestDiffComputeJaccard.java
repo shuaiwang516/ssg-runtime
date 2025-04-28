@@ -20,7 +20,7 @@ public class TestDiffComputeJaccard {
         trace1.record("sendAll", 2);
         trace1.record("sendRR", 3);
 
-        boolean log = false;
+        boolean log = true;
         if (log) {
             trace0.print();
             System.out.println("----");

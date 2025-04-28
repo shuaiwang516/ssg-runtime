@@ -14,27 +14,27 @@ public class TraceEntry implements Serializable {
 
     public final boolean changedMessage;
 
+    public final String log;
+
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage) {
-        this.id = id;
-        this.methodName = methodName;
-        this.hashcode = hashcode;
-        this.changedMessage = changedMessage;
-        this.timestamp = System.currentTimeMillis();
+        this(id, methodName, hashcode, changedMessage, System.currentTimeMillis(), null);
     }
 
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage,
-            long timestamp) {
+            long timestamp, String log) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
         this.changedMessage = changedMessage;
         this.timestamp = timestamp;
+        this.log = log;
     }
 
     // toString method
     @Override
     public String toString() {
         return "TraceEntry{" + "id=" + id + ", methodName='" + methodName + '\'' + ", hashcode="
-                + hashcode + ", timestamp=" + timestamp + '}';
+                + hashcode + ", timestamp=" + timestamp + ", changedMessage=" + changedMessage
+                + ", log='" + log + '\'' + '}';
     }
 }

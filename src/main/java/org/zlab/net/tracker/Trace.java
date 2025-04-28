@@ -7,6 +7,7 @@ import java.util.Set;
 
 public class Trace implements Serializable {
     private static final long serialVersionUID = 20250311L;
+    public static final boolean debug = true;
 
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
@@ -15,8 +16,11 @@ public class Trace implements Serializable {
         // TODO: record contents
         // Iterate the args, (1) identify messages with special type (2) special content
         boolean changedMessage = examineChangedMessage(contextArgs);
+        String payloadType = null;
+        if (debug)
+            payloadType = getFirstPayloadType(contextArgs);
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), changedMessage));
-        Runtime.log("Recorded trace entry: " + id);
+        Runtime.log("Recorded trace entry: " + id + ", payloadType: " + payloadType);
     }
 
     public boolean examineChangedMessage(Object... contextArgs) {
@@ -25,6 +29,36 @@ public class Trace implements Serializable {
                 return true;
         }
         return false;
+    }
+
+    // Debug
+    public static String getFirstPayloadType(Object[] objects) {
+        for (Object obj : objects) {
+            String type = getPayloadType(obj);
+            if (type != null)
+                return type;
+        }
+        return null;
+    }
+
+    // Debug
+    public static String getPayloadType(Object obj) {
+        // if the object has a field name called "payload", return the type of the
+        // payload
+        if (obj == null)
+            return null;
+        try {
+            Class<?> clazz = obj.getClass();
+            // get the reference to the payload field
+            java.lang.reflect.Field field = clazz.getDeclaredField("payload");
+            field.setAccessible(true);
+            Object payload = field.get(obj);
+            if (payload == null)
+                return null;
+            return payload.getClass().getName();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean examineChangedMessage(Object message) {
