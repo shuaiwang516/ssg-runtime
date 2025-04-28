@@ -21,7 +21,8 @@ public class Trace implements Serializable {
         if (debug)
             payloadType = getFirstPayloadType(contextArgs);
 
-        traceEntries.add(new TraceEntry(id, name, name.hashCode(), changedMessage));
+        traceEntries.add(new TraceEntry(id, name, name.hashCode(), changedMessage,
+                System.currentTimeMillis(), payloadType));
 
         if (debug && contextArgs.length > 0 && contextArgs[0] != null) {
             Runtime.log("First entry type = " + contextArgs[0].getClass().getName());
