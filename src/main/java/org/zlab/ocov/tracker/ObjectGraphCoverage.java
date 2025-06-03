@@ -54,6 +54,17 @@ public class ObjectGraphCoverage implements Serializable {
     public int topNLessFrequentBrokenInvariant = 5;
     public InvariantBrokenFrequency invariantBrokenFrequency = new InvariantBrokenFrequency();
 
+    // ----------------------- Serialization Window ---------------------
+    public static final boolean useSerializationWindow = false;
+    public static long serializationWindowTsLimitMillis = 1_000; // ms
+    public static int serializationWindowCapacity = 10; // 10 objects
+    public static long serializationWindowPeriodMillis = 10_000; // ms
+    public static boolean periodicUpdate = false;
+
+    SerializationWindow serializationWindow = new SerializationWindow(
+            serializationWindowTsLimitMillis, serializationWindowCapacity,
+            serializationWindowPeriodMillis, periodicUpdate);
+
     // ----------------------- Runtime --------------------------------
     public transient Set<Integer> visitedObjects = new HashSet<>();
 
@@ -279,19 +290,38 @@ public class ObjectGraphCoverage implements Serializable {
 
         boolean changed = false;
         if (collectContextGraphPattern) {
-            for (Object contextObj : contextArgs) {
-                if (contextObj == null)
-                    continue;
-                String contextClassName = contextObj.getClass().getName();
-                if (!baseClassInfo.containsKey(contextClassName))
-                    continue;
-                updateContextObjectGraphPattern(dumpId, contextObj, contextClassName,
-                        System.identityHashCode(contextObj));
+            if (useSerializationWindow) {
+                // General
+                serializationWindow.update();
+                for (SerializationWindow.RecordedObject recObj : serializationWindow.getQueue()) {
+                    Object contextObj = recObj.object;
+                    if (contextObj == null)
+                        continue;
+                    String contextClassName = contextObj.getClass().getName();
+                    if (!baseClassInfo.containsKey(contextClassName))
+                        continue;
+                    updateContextObjectGraphPattern(dumpId, contextObj, contextClassName,
+                            System.identityHashCode(contextObj));
+                }
+            } else {
+                // Heuristic
+                for (Object contextObj : contextArgs) {
+                    if (contextObj == null)
+                        continue;
+                    String contextClassName = contextObj.getClass().getName();
+                    if (!baseClassInfo.containsKey(contextClassName))
+                        continue;
+                    updateContextObjectGraphPattern(dumpId, contextObj, contextClassName,
+                            System.identityHashCode(contextObj));
+                }
             }
         }
         String context = getCreationContextFromArgs(contextArgs);
         if (updateTopObjectGraphPattern(dumpId, context, obj, className, objId))
             changed = true;
+
+        // include it, do an update
+        serializationWindow.add(obj);
 
         // debugLog();
         return changed;
@@ -453,6 +483,8 @@ public class ObjectGraphCoverage implements Serializable {
         dumpId2UpdateCount.clear();
         dumpId2CurrentGroupId.clear();
         dumpId2Context2GroupId.clear();
+
+        serializationWindow.clear();
 
         if (equalitySet != null)
             equalitySet.clear();
@@ -792,5 +824,10 @@ public class ObjectGraphCoverage implements Serializable {
             }
         }
         return allOccurredReferences;
+    }
+
+    // clear serialization window
+    public void clearSerializationWindow() {
+        serializationWindow.clear();
     }
 }

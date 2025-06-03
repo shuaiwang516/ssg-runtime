@@ -257,10 +257,14 @@ public class TestObjectGraphCoverage {
         coverage.update(obj1);
         assert coverage1.merge(coverage).isNewFormat();
 
+        coverage.clearSerializationWindow();
+
         // 2, 3
         TargetClass.TargetClassEquality obj2 = new TargetClass.TargetClassEquality();
         coverage.update(obj2);
         assert !coverage1.merge(coverage).isNewFormat();
+
+        coverage.clearSerializationWindow();
 
         // 2, 2
         TargetClass.TargetClassEquality obj3 = new TargetClass.TargetClassEquality();
@@ -865,7 +869,9 @@ public class TestObjectGraphCoverage {
         curCoverage.update(obj3);
 
         curCoverage.inferInvariant();
-        assert !allCoverage.merge(curCoverage, 1).isNewFormat();
+        boolean newFormat = allCoverage.merge(curCoverage, 1).isNewFormat();
+        if (!ObjectGraphCoverage.useSerializationWindow)
+            assert !newFormat;
         curCoverage.clear();
     }
 
