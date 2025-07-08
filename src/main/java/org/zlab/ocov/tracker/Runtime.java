@@ -12,6 +12,8 @@ import java.util.*;
 
 public class Runtime {
     public static final boolean debug = false;
+    public static final boolean debugSpecificDumpId = false;
+    public static final int debugSpecificDumpIdValue = 1001;
     public static final boolean debugTimeUsage = false;
 
     // Only enable the runtime when the environment variable is set
@@ -101,6 +103,11 @@ public class Runtime {
             } else {
                 log("Sampling is disabled!");
             }
+
+            log("debug = " + debug);
+            log("debugSpecificDumpId = " + debugSpecificDumpId);
+            log("debugSpecificDumpIdValue = " + debugSpecificDumpIdValue);
+
             objectCoverage = new ObjectGraphCoverage(baseClassPath, topObjectsPath,
                     comparableClassesPath, modifiedFieldsPath, modifiedEnumsPath,
                     modifiedTypeHierarchyPath, branch2CollectionPath, specialDumpIdsPath);

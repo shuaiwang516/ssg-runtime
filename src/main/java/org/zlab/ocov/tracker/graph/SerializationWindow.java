@@ -1,7 +1,5 @@
 package org.zlab.ocov.tracker.graph;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
@@ -11,7 +9,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+// Disabled for now...
 public class SerializationWindow {
+
     private final long tsLimit;
     private final int capacity;
 

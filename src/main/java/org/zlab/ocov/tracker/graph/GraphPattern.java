@@ -93,11 +93,13 @@ public class GraphPattern implements Serializable {
                 Map<String, Map<String, String>> classInfoOri, LogInfo logInfo,
                 EqualitySet equalitySet, IsSerialize isSerialized, Set<String> brokenInvs,
                 int objId, boolean computeEquality) {
-            if (Runtime.debug)
+            if (Runtime.debug || (Runtime.debugSpecificDumpId
+                    && logInfo.dumpId == Runtime.debugSpecificDumpIdValue)) {
                 Runtime.log("[debug] update vertex: dumpId = " + logInfo.dumpId + ", iti = "
                         + itinerary + ", current time = " + System.currentTimeMillis()
                         + ", objId = " + objId + ", obj class = "
                         + (obj == null ? "null" : obj.getClass().getName()));
+            }
             // Update label constraints
             boolean labelConstraintsChange = false;
             for (LabelConstraint labelConstraint : labelConstraints) {
@@ -245,6 +247,14 @@ public class GraphPattern implements Serializable {
                         }
                     }
                 } else if (obj instanceof Collection) {
+                    if (Runtime.debug || (Runtime.debugSpecificDumpId
+                            && logInfo.dumpId == Runtime.debugSpecificDumpIdValue)) {
+                        Runtime.log("[debug] update collection: dumpId = " + logInfo.dumpId
+                                + ", iti = " + itinerary + ", current time = "
+                                + System.currentTimeMillis() + ", objId = " + objId
+                                + ", obj class = "
+                                + (obj == null ? "null" : obj.getClass().getName()));
+                    }
                     if (checkEqualityWithinRange && containCollectionOrArrayOrMap(itinerary)) {
                         computeEquality = false;
                     }
@@ -498,8 +508,11 @@ public class GraphPattern implements Serializable {
                     formatCoverageStatus.setNewFormat("<new edge in ref graph> iti = " + itinerary
                             + ", edge name = " + edge.name + ", dumpId = " + logInfo.dumpId
                             + ", context hash = " + logInfo.contextHashCode);
-                    // Runtime.log("<new node in ref graph> iti = " + itinerary + ", edge name = " +
-                    // edge.name);
+                    if (Runtime.debug || (Runtime.debugSpecificDumpId
+                            && logInfo.dumpId == Runtime.debugSpecificDumpIdValue)) {
+                        Runtime.log("<new node in ref graph> iti = " + itinerary + ", edge name = "
+                                + edge.name);
+                    }
                     GraphPattern.Vertex newVertex = SerializationUtils
                             .clone(otherGraphPattern.graph.getEdgeTarget(edge));
                     newVertex.reset();
