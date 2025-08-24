@@ -73,11 +73,6 @@ public class TestTrace {
 
     @Test
     public void testExecPath() throws InterruptedException {
-        /**
-         *
-         */
-
-        // Start up a new thread to invoke foo() method
         Thread thread = new Thread(() -> {
             TestTrace testTrace = new TestTrace();
             testTrace.foo();
