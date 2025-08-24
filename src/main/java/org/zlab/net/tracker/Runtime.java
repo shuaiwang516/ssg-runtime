@@ -26,7 +26,13 @@ public class Runtime {
 
     private static final int PORT = 62000; // the port to listen on
 
+    // Execute trace
     private static Trace trace;
+
+    // Per-thread ring buffer
+    private static final int K = 128; // number of recent blocks you want
+    private static final ThreadLocal<int[]> buf = ThreadLocal.withInitial(() -> new int[K]);
+    private static final ThreadLocal<Integer> idx = ThreadLocal.withInitial(() -> 0);
 
     public static void init() {
         trace = new Trace();
@@ -51,11 +57,13 @@ public class Runtime {
         log("Net Runtime initialized!");
     }
 
+    // Testing
+    public static Trace getTrace() {
+        // Return a copy of the trace to avoid concurrent modification issues
+        return trace;
+    }
+
     /* =========== Recent Branch Recording =========== */
-    // Per-thread ring buffer
-    private static final int K = 128; // number of recent blocks you want
-    private static final ThreadLocal<int[]> buf = ThreadLocal.withInitial(() -> new int[K]);
-    private static final ThreadLocal<Integer> idx = ThreadLocal.withInitial(() -> 0);
 
     // Record one hit
     public static void hit(int id) {
@@ -79,6 +87,13 @@ public class Runtime {
 
     // Reset after message send (optional)
     public static void clear() {
+        // clear trace
+        synchronized (lock) {
+            log("[Runtime] Clearing trace");
+            trace = new Trace();
+        }
+
+        // reset the ring buffer
         buf.set(new int[K]);
         idx.set(0);
     }

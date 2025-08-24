@@ -13,10 +13,10 @@ public class TraceEntry implements Serializable {
     // TODO: use more efficient representation (e.g. bitset, hashcodes, etc.)
     public int[] recentExecPath; // Recent execution path, if needed for debugging
 
+    public final boolean changedMessage;
+
     // Serialize messages across the cluster
     public final long timestamp;
-
-    public final boolean changedMessage;
 
     public final String log;
 
@@ -40,7 +40,9 @@ public class TraceEntry implements Serializable {
     @Override
     public String toString() {
         return "TraceEntry{" + "id=" + id + ", methodName='" + methodName + '\'' + ", hashcode="
-                + hashcode + ", timestamp=" + timestamp + ", changedMessage=" + changedMessage
+                + hashcode + ", changedMessage=" + changedMessage + ", timestamp=" + timestamp
+                + ", recentExecPathHash=" + recentExecPathHash + ", recentExecPath="
+                + (recentExecPath != null ? java.util.Arrays.toString(recentExecPath) : "null")
                 + ", log='" + log + '\'' + '}';
     }
 }
