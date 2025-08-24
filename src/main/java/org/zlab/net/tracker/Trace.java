@@ -12,7 +12,12 @@ public class Trace implements Serializable {
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
     // id: unique identifier for the instrumented location
-    public void record(String name, int id, Object... contextArgs) {
+    public void record(String name, int id) {
+        record(name, id, null);
+    }
+
+    // id: unique identifier for the instrumented location
+    public void record(String name, int id, int[] recentExecPath, Object... contextArgs) {
         // TODO: record contents
         // Iterate the args, (1) identify messages with special type (2) special content
         boolean changedMessage = examineChangedMessage(contextArgs);
@@ -21,8 +26,11 @@ public class Trace implements Serializable {
         if (debug)
             payloadType = getFirstPayloadType(contextArgs);
 
+        // TODO: store recentExecPath...
+        long recentExecPathHash = Utils.computeHash(recentExecPath);
+
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), changedMessage,
-                System.currentTimeMillis(), payloadType));
+                System.currentTimeMillis(), recentExecPathHash, recentExecPath, payloadType));
 
         if (debug && contextArgs.length > 0 && contextArgs[0] != null) {
             Runtime.log("First entry type = " + contextArgs[0].getClass().getName());

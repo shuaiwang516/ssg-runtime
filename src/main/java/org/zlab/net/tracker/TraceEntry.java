@@ -9,6 +9,10 @@ public class TraceEntry implements Serializable {
     public final String methodName;
     public final int hashcode;
 
+    public long recentExecPathHash; // Hash of the recent execution path, if needed for debugging
+    // TODO: use more efficient representation (e.g. bitset, hashcodes, etc.)
+    public int[] recentExecPath; // Recent execution path, if needed for debugging
+
     // Serialize messages across the cluster
     public final long timestamp;
 
@@ -17,16 +21,18 @@ public class TraceEntry implements Serializable {
     public final String log;
 
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage) {
-        this(id, methodName, hashcode, changedMessage, System.currentTimeMillis(), null);
+        this(id, methodName, hashcode, changedMessage, System.currentTimeMillis(), -1, null, null);
     }
 
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage,
-            long timestamp, String log) {
+            long timestamp, long recentExecPathHash, int[] recentExecPath, String log) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
         this.changedMessage = changedMessage;
         this.timestamp = timestamp;
+        this.recentExecPathHash = recentExecPathHash;
+        this.recentExecPath = recentExecPath;
         this.log = log;
     }
 

@@ -51,14 +51,49 @@ public class Runtime {
         log("Net Runtime initialized!");
     }
 
+    /* =========== Recent Branch Recording =========== */
+    // Per-thread ring buffer
+    private static final int K = 128; // number of recent blocks you want
+    private static final ThreadLocal<int[]> buf = ThreadLocal.withInitial(() -> new int[K]);
+    private static final ThreadLocal<Integer> idx = ThreadLocal.withInitial(() -> 0);
+
+    // Record one hit
+    public static void hit(int id) {
+        int[] b = buf.get();
+        int i = idx.get();
+        b[i & (K - 1)] = id; // write into ring
+        idx.set(i + 1);
+    }
+
+    // Snapshot for this thread (e.g., at message send)
+    public static int[] snapshot() {
+        int[] b = buf.get();
+        int i = idx.get();
+        int[] snap = new int[K];
+        // copy recent K entries, starting from most recent
+        for (int j = 0; j < K; j++) {
+            snap[j] = b[(i - K + j) & (K - 1)];
+        }
+        return snap;
+    }
+
+    // Reset after message send (optional)
+    public static void clear() {
+        buf.set(new int[K]);
+        idx.set(0);
+    }
+
+    /* =========== Message Recording =========== */
     public static void record(String name, int id, Object... contextArgs) {
         // record this information
         if (trace == null)
             return;
 
+        int[] recentExecPath = snapshot();
+
         synchronized (lock) {
             log("[Runtime] Recording trace entry: " + id);
-            trace.record(name, id, contextArgs);
+            trace.record(name, id, recentExecPath, contextArgs);
         }
     }
 

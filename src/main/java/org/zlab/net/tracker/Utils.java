@@ -1,5 +1,6 @@
 package org.zlab.net.tracker;
 
+import java.util.BitSet;
 import java.util.List;
 
 public class Utils {
@@ -33,5 +34,26 @@ public class Utils {
         }
 
         return dp[m][n];
+    }
+
+    public static long computeHash(int[] path) {
+        if (path == null || path.length == 0)
+            return -1; // Return 0 for empty paths
+        long h = 0xcbf29ce484222325L; // FNV-1a offset basis
+        for (int id : path) {
+            h ^= id;
+            h *= 0x100000001b3L; // FNV-1a prime
+        }
+        return h;
+    }
+
+    // Not in use
+    private static BitSet toBitSet(int[] path) {
+        BitSet bs = new BitSet();
+        for (int id : path) {
+            int bit = Math.floorMod(id, 1024); // choose size e.g. 1k bits
+            bs.set(bit);
+        }
+        return bs;
     }
 }
