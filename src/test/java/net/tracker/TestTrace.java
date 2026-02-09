@@ -2,8 +2,11 @@ package net.tracker;
 
 import org.junit.jupiter.api.Test;
 import org.zlab.net.tracker.ObjectGraphTraverser;
+import org.zlab.net.tracker.RecvMeta;
 import org.zlab.net.tracker.Runtime;
+import org.zlab.net.tracker.SendMeta;
 import org.zlab.net.tracker.Trace;
+import org.zlab.net.tracker.TraceEntry;
 
 import static java.lang.Thread.sleep;
 
@@ -90,7 +93,8 @@ public class TestTrace {
     }
 
     public void foo() {
-        Runtime.init();
+        Runtime.init(false);
+        Runtime.clear();
         int i = 100;
         f1(i);
         Runtime.record("sendRR", 1);
@@ -108,5 +112,57 @@ public class TestTrace {
 
     public void f2() {
         Runtime.hit(3);
+    }
+
+    @Test
+    public void testRecordSendWithMeta() {
+        Runtime.init(false);
+        Runtime.clear();
+
+        Message<Mutation> msg = new Message<>(new Mutation(1));
+        Runtime.hit(10);
+        Runtime.recordSend("sendRR", 7, msg,
+                SendMeta.builder().nodeId("node-a").peerId("node-b").fanoutType("UNICAST")
+                        .logicalMessageId("msg-1").deliveryId("msg-1-node-b")
+                        .messageType("Mutation").messageVersion("v2").build(),
+                msg);
+
+        Trace trace = Runtime.getTrace();
+        assert trace.size() == 1;
+        TraceEntry entry = trace.getTraceEntries().get(0);
+        assert entry.eventType == TraceEntry.EventType.SEND;
+        assert "node-a".equals(entry.nodeId);
+        assert "node-b".equals(entry.peerId);
+        assert "msg-1".equals(entry.logicalMessageId);
+        assert entry.beforeExecPath != null && entry.beforeExecPath.length > 0;
+    }
+
+    @Test
+    public void testReceiveBeforeAfterCapture() {
+        Runtime.init(false);
+        Runtime.clear();
+
+        Message<Mutation> msg = new Message<>(new Mutation(1));
+        Runtime.hit(100);
+
+        long token = Runtime.beginReceive("recvRR", 9, msg,
+                RecvMeta.builder().nodeId("node-b").peerId("node-a").logicalMessageId("msg-2")
+                        .deliveryId("msg-2-node-b").messageType("Mutation").messageVersion("v2")
+                        .build(),
+                msg);
+        Runtime.hit(101);
+        Runtime.hit(102);
+        Runtime.endReceive(token);
+
+        Trace trace = Runtime.getTrace();
+        assert trace.size() == 2;
+        TraceEntry begin = trace.getTraceEntries().get(0);
+        TraceEntry end = trace.getTraceEntries().get(1);
+        assert begin.eventType == TraceEntry.EventType.RECV_BEGIN;
+        assert end.eventType == TraceEntry.EventType.RECV_END;
+        assert end.beforeExecPath != null && end.beforeExecPath.length > 0;
+        assert end.afterExecPath != null && end.afterExecPath.length >= 2;
+        assert end.afterExecPath[end.afterExecPath.length - 2] == 101;
+        assert end.afterExecPath[end.afterExecPath.length - 1] == 102;
     }
 }
