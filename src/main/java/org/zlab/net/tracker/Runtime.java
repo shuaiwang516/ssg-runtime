@@ -204,6 +204,9 @@ public class Runtime {
             }
             trace.recordSend(name, id, before, message, normalized, contextArgs);
         }
+        log("NETTRACE SEND name=" + name + " id=" + id + " node=" + normalized.nodeId + " peer="
+                + normalized.peerId + " msgType=" + normalized.messageType + " beforeLen="
+                + before.length);
     }
 
     public static long beginReceive(String name, int id, Object message, RecvMeta recvMeta,
@@ -224,6 +227,9 @@ public class Runtime {
                 trace.recordReceiveBegin(name, id, before, message, normalized, contextArgs);
             }
         }
+        log("NETTRACE RECV_BEGIN name=" + name + " id=" + id + " token=" + token + " node="
+                + normalized.nodeId + " peer=" + normalized.peerId + " msgType="
+                + normalized.messageType + " beforeLen=" + before.length);
         return token;
     }
 
@@ -246,6 +252,8 @@ public class Runtime {
             trace.recordReceiveEnd(ctx.name, ctx.id, ctx.beforeExecPath, ctx.afterSnapshot(),
                     ctx.message, ctx.recvMeta, timedOut, ctx.contextArgs);
         }
+        log("NETTRACE RECV_END name=" + ctx.name + " id=" + ctx.id + " token=" + ctx.token
+                + " timedOut=" + timedOut + " afterLen=" + ctx.afterCount);
     }
 
     public static void log(String message) {

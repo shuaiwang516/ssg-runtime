@@ -92,3 +92,53 @@ and add this jar file.
 ```java
 org.zlab.net.tracker.Runtime.init(); // Add this line
 ```
+
+Sender instrumentation (legacy `record(...)` still works):
+```java
+org.zlab.net.tracker.Runtime.recordSend(
+    "sendMutation",
+    1001,
+    message,
+    org.zlab.net.tracker.SendMeta.builder()
+        .nodeId("nodeA")
+        .peerId("nodeB")
+        .fanoutType("UNICAST") // UNICAST, MULTICAST, BROADCAST
+        .logicalMessageId("msg-42")
+        .deliveryId("msg-42-nodeB")
+        .messageType("Mutation")
+        .messageVersion("v2")
+        .build(),
+    message
+);
+```
+
+Receiver instrumentation with before/after branch capture:
+```java
+long token = org.zlab.net.tracker.Runtime.beginReceive(
+    "onMutation",
+    2001,
+    message,
+    org.zlab.net.tracker.RecvMeta.builder()
+        .nodeId("nodeB")
+        .peerId("nodeA")
+        .logicalMessageId("msg-42")
+        .deliveryId("msg-42-nodeB")
+        .messageType("Mutation")
+        .messageVersion("v2")
+        .build(),
+    message
+);
+
+// process message ...
+
+org.zlab.net.tracker.Runtime.endReceive(token);
+```
+
+Optional network tracing env vars:
+```bash
+export ENABLE_NETWORK_TRACE=true
+export NET_TRACE_NODE_ID=nodeA
+export NET_TRACE_PORT=62000
+export NET_TRACE_MAX_AFTER_BRANCHES=128
+export NET_TRACE_RECEIVE_TIMEOUT_MS=1000
+```
