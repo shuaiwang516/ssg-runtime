@@ -1,13 +1,28 @@
 package org.zlab.net.tracker;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class Trace implements Serializable {
-    private static final long serialVersionUID = 20260208L;
+    private static final long serialVersionUID = 20260224L;
     public static final boolean debug = false;
+    private static final int DIFF_SUMMARY_TOKEN_LIMIT = 12;
+    private static final Pattern NUMBER_TOKEN_PATTERN = Pattern
+            .compile("^-?\\d+(?:\\.\\d+)?$");
+    private static final Pattern UUID_TOKEN_PATTERN = Pattern.compile(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    private static final Pattern HEX_TOKEN_PATTERN = Pattern
+            .compile("^[0-9a-fA-F]{8,}$");
+    private static final Set<String> VOLATILE_SUMMARY_TOKENS = new HashSet<>(
+            Arrays.asList("Message", "Header", "InetAddressAndPort", "byte[]",
+                    "AtomicReference", "CachedSerialization", "Serialization[]",
+                    "HeapByteBuffer"));
 
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
@@ -35,37 +50,49 @@ public class Trace implements Serializable {
             SendMeta sendMeta, Object... contextArgs) {
         boolean changedMessage = examineChangedMessage(message)
                 || examineChangedMessage(contextArgs);
-        String payloadType = getPayloadType(message);
+        MessageFingerprint.Fingerprint fp = MessageFingerprint.fingerprint(message, contextArgs);
+        String payloadType = fp.payloadType;
         if (payloadType == null && debug) {
             payloadType = getFirstPayloadType(contextArgs);
         }
         Set<String> types = extractTypes(message);
         long messageShapeHash = Utils.computeHash(types);
+        long messageValueHash = fp.valueHash;
 
         SendMeta normalized = sendMeta != null ? sendMeta : SendMeta.builder().build();
+        String messageKey = buildMessageKey(TraceEntry.EventType.SEND, name, id,
+                normalized.messageType, normalized.messageVersion, messageShapeHash,
+                messageValueHash);
         addEntry(name, id, TraceEntry.EventType.SEND, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
                 normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId,
-                normalized.fanoutType, normalized.targetCount, messageShapeHash, false,
-                beforeExecPath, null, payloadType);
+                normalized.fanoutType, normalized.targetCount, messageShapeHash,
+                messageValueHash, messageKey, fp.summary, false, beforeExecPath, null,
+                payloadType);
     }
 
     public synchronized void recordReceiveBegin(String name, int id, int[] beforeExecPath,
             Object message, RecvMeta recvMeta, Object... contextArgs) {
         boolean changedMessage = examineChangedMessage(message)
                 || examineChangedMessage(contextArgs);
-        String payloadType = getPayloadType(message);
+        MessageFingerprint.Fingerprint fp = MessageFingerprint.fingerprint(message, contextArgs);
+        String payloadType = fp.payloadType;
         if (payloadType == null && debug) {
             payloadType = getFirstPayloadType(contextArgs);
         }
         Set<String> types = extractTypes(message);
         long messageShapeHash = Utils.computeHash(types);
+        long messageValueHash = fp.valueHash;
 
         RecvMeta normalized = recvMeta != null ? recvMeta : RecvMeta.builder().build();
+        String messageKey = buildMessageKey(TraceEntry.EventType.RECV_BEGIN, name, id,
+                normalized.messageType, normalized.messageVersion, messageShapeHash,
+                messageValueHash);
         addEntry(name, id, TraceEntry.EventType.RECV_BEGIN, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
                 normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId, null,
-                -1, messageShapeHash, false, beforeExecPath, null, payloadType);
+                -1, messageShapeHash, messageValueHash, messageKey, fp.summary, false,
+                beforeExecPath, null, payloadType);
     }
 
     public synchronized void recordReceiveEnd(String name, int id, int[] beforeExecPath,
@@ -73,32 +100,40 @@ public class Trace implements Serializable {
             Object... contextArgs) {
         boolean changedMessage = examineChangedMessage(message)
                 || examineChangedMessage(contextArgs);
-        String payloadType = getPayloadType(message);
+        MessageFingerprint.Fingerprint fp = MessageFingerprint.fingerprint(message, contextArgs);
+        String payloadType = fp.payloadType;
         if (payloadType == null && debug) {
             payloadType = getFirstPayloadType(contextArgs);
         }
         Set<String> types = extractTypes(message);
         long messageShapeHash = Utils.computeHash(types);
+        long messageValueHash = fp.valueHash;
 
         RecvMeta normalized = recvMeta != null ? recvMeta : RecvMeta.builder().build();
+        String messageKey = buildMessageKey(TraceEntry.EventType.RECV_END, name, id,
+                normalized.messageType, normalized.messageVersion, messageShapeHash,
+                messageValueHash);
         addEntry(name, id, TraceEntry.EventType.RECV_END, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
                 normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId, null,
-                -1, messageShapeHash, timedOut, beforeExecPath, afterExecPath, payloadType);
+                -1, messageShapeHash, messageValueHash, messageKey, fp.summary, timedOut,
+                beforeExecPath, afterExecPath, payloadType);
     }
 
     private void addEntry(String name, int id, TraceEntry.EventType eventType,
             boolean changedMessage, String nodeId, String peerId, String channel, String protocol,
             String messageType, String messageVersion, String logicalMessageId, String deliveryId,
-            String fanoutType, int targetCount, long messageShapeHash, boolean timedOut,
-            int[] beforeExecPath, int[] afterExecPath, String payloadType) {
+            String fanoutType, int targetCount, long messageShapeHash, long messageValueHash,
+            String messageKey, String messageSummary, boolean timedOut, int[] beforeExecPath,
+            int[] afterExecPath, String payloadType) {
         long nowMillis = System.currentTimeMillis();
         long nowNanos = System.nanoTime();
         long beforeHash = Utils.computeHash(beforeExecPath);
         long afterHash = Utils.computeHash(afterExecPath);
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), eventType, changedMessage,
-                nowMillis, nowNanos, nodeId, peerId, channel, protocol, messageType, messageVersion,
-                logicalMessageId, deliveryId, fanoutType, targetCount, messageShapeHash, timedOut,
+                nowMillis, nowNanos, nodeId, peerId, channel, protocol, messageType,
+                messageVersion, logicalMessageId, deliveryId, fanoutType, targetCount,
+                messageShapeHash, messageValueHash, messageKey, messageSummary, timedOut,
                 beforeHash, beforeExecPath, afterHash, afterExecPath, payloadType));
     }
 
@@ -107,8 +142,9 @@ public class Trace implements Serializable {
             return false;
         }
         for (Object arg : contextArgs) {
-            if (examineChangedMessage(arg))
+            if (examineChangedMessage(arg)) {
                 return true;
+            }
         }
         return false;
     }
@@ -121,16 +157,18 @@ public class Trace implements Serializable {
         for (Object obj : objects) {
             ObjectGraphTraverser traverser = new ObjectGraphTraverser();
             traverser.traverse(obj);
-            if (traverser.payloadType != null)
+            if (traverser.payloadType != null) {
                 return traverser.payloadType;
+            }
         }
         return null;
     }
 
     // Debug
     public static String getPayloadType(Object obj) {
-        if (obj == null)
+        if (obj == null) {
             return null;
+        }
         ObjectGraphTraverser traverser = new ObjectGraphTraverser();
         traverser.traverse(obj);
         return traverser.payloadType;
@@ -142,9 +180,11 @@ public class Trace implements Serializable {
         }
 
         Set<String> types = extractTypes(message);
-        for (String changedClass : Runtime.changedClasses)
-            if (types.contains(changedClass))
+        for (String changedClass : Runtime.changedClasses) {
+            if (types.contains(changedClass)) {
                 return true;
+            }
+        }
         return false;
     }
 
@@ -156,8 +196,9 @@ public class Trace implements Serializable {
 
     // This is actually an append operation
     public synchronized void append(Trace trace) {
-        if (trace == null)
+        if (trace == null) {
             return;
+        }
         assert traceEntries.isEmpty() || trace.traceEntries.isEmpty()
                 || compareEntry(traceEntries.get(traceEntries.size() - 1),
                         trace.traceEntries.get(0)) <= 0
@@ -172,12 +213,64 @@ public class Trace implements Serializable {
     public synchronized List<String> getHashCodes() {
         List<String> hashCodes = new LinkedList<>();
         for (TraceEntry entry : traceEntries) {
-            // Combine verb name hash with execution path hash
-            // Same verb with different execution paths -> different hashcodes -> different
-            // 2-grams.
-            hashCodes.add(entry.hashcode + "_" + entry.recentExecPathHash);
+            // Preserve execution-path sensitivity while adding message-identity dimensions.
+            hashCodes.add(entry.hashcode + "_" + entry.recentExecPathHash + "_"
+                    + entry.messageShapeHash + "_" + entry.messageValueHash + "_"
+                    + normalizeMeta(entry.messageType));
         }
         return hashCodes;
+    }
+
+    public synchronized List<String> getMessageKeys() {
+        List<String> keys = new LinkedList<>();
+        for (TraceEntry entry : traceEntries) {
+            keys.add(entry.messageKey != null ? entry.messageKey : fallbackMessageKey(entry));
+        }
+        return keys;
+    }
+
+    public synchronized List<String> getMessageKeysForDiff() {
+        List<String> keys = new LinkedList<>();
+        boolean hasSend = false;
+        for (TraceEntry entry : traceEntries) {
+            if (entry.eventType == TraceEntry.EventType.SEND) {
+                hasSend = true;
+                break;
+            }
+        }
+
+        for (TraceEntry entry : traceEntries) {
+            if (hasSend && entry.eventType != TraceEntry.EventType.SEND) {
+                continue;
+            }
+            if (!hasSend && entry.eventType == TraceEntry.EventType.RECV_END) {
+                continue;
+            }
+            keys.add(buildMessageDiffKey(entry));
+        }
+        return keys;
+    }
+
+    public synchronized List<String> getMessageKeysForDiffStrict() {
+        List<String> keys = new LinkedList<>();
+        boolean hasSend = false;
+        for (TraceEntry entry : traceEntries) {
+            if (entry.eventType == TraceEntry.EventType.SEND) {
+                hasSend = true;
+                break;
+            }
+        }
+
+        for (TraceEntry entry : traceEntries) {
+            if (hasSend && entry.eventType != TraceEntry.EventType.SEND) {
+                continue;
+            }
+            if (!hasSend && entry.eventType == TraceEntry.EventType.RECV_END) {
+                continue;
+            }
+            keys.add(entry.messageKey != null ? entry.messageKey : fallbackMessageKey(entry));
+        }
+        return keys;
     }
 
     public synchronized List<TraceEntry> getTraceEntries() {
@@ -192,7 +285,8 @@ public class Trace implements Serializable {
 
     public static Trace mergeBasedOnTimestamp(Trace trace0, Trace trace1) {
         Trace mergedTrace = new Trace();
-        int i = 0, j = 0;
+        int i = 0;
+        int j = 0;
         List<TraceEntry> left = trace0.getTraceEntries();
         List<TraceEntry> right = trace1.getTraceEntries();
         while (i < left.size() && j < right.size()) {
@@ -220,8 +314,9 @@ public class Trace implements Serializable {
     public static Trace mergeBasedOnTimestamp(Trace[] traces) {
         Trace mergedTrace = new Trace();
         for (Trace trace : traces) {
-            if (trace == null || trace.size() == 0)
+            if (trace == null || trace.size() == 0) {
                 continue;
+            }
             mergedTrace.mergeBasedOnTimestamp(trace);
         }
         return mergedTrace;
@@ -244,6 +339,126 @@ public class Trace implements Serializable {
             return left.id < right.id ? -1 : 1;
         }
         return left.hashcode < right.hashcode ? -1 : left.hashcode == right.hashcode ? 0 : 1;
+    }
+
+    private static String buildMessageKey(TraceEntry.EventType eventType, String methodName, int id,
+            String messageType, String messageVersion, long messageShapeHash,
+            long messageValueHash) {
+        return eventType + "|" + methodName + "#" + id + "|type="
+                + normalizeMeta(messageType) + "|ver=" + normalizeMeta(messageVersion)
+                + "|shape=" + Long.toHexString(messageShapeHash) + "|value="
+                + Long.toHexString(messageValueHash);
+    }
+
+    private static String fallbackMessageKey(TraceEntry entry) {
+        return entry.hashcode + "_" + entry.recentExecPathHash + "_" + entry.messageShapeHash
+                + "_" + entry.messageValueHash;
+    }
+
+    private static String buildMessageDiffKey(TraceEntry entry) {
+        String eventType = entry.eventType != null ? entry.eventType.name()
+                : TraceEntry.EventType.UNKNOWN.name();
+        String payloadType = normalizeMeta(shortTypeName(entry.log));
+        String semanticHash = semanticSummaryHash(entry.messageSummary);
+        return eventType + "|" + entry.methodName + "#" + entry.id + "|type="
+                + normalizeMeta(entry.messageType) + "|ver="
+                + normalizeMeta(entry.messageVersion) + "|payload=" + payloadType + "|sem="
+                + semanticHash;
+    }
+
+    private static String semanticSummaryHash(String summary) {
+        if (summary == null || summary.isEmpty()) {
+            return "-";
+        }
+
+        String[] rawTokens = summary.split("\\|");
+        List<String> normalized = new ArrayList<>();
+        for (String rawToken : rawTokens) {
+            String token = normalizeSummaryToken(rawToken);
+            if (token == null || token.isEmpty()) {
+                continue;
+            }
+            if (!normalized.isEmpty()
+                    && token.equals(normalized.get(normalized.size() - 1))) {
+                continue;
+            }
+            normalized.add(token);
+            if (normalized.size() >= DIFF_SUMMARY_TOKEN_LIMIT) {
+                break;
+            }
+        }
+
+        if (normalized.isEmpty()) {
+            return "-";
+        }
+
+        String canonical = String.join("|", normalized);
+        return Long.toHexString(fnv1a64(canonical));
+    }
+
+    private static String normalizeSummaryToken(String rawToken) {
+        if (rawToken == null) {
+            return null;
+        }
+        String token = rawToken.trim();
+        if (token.isEmpty()) {
+            return null;
+        }
+        if (VOLATILE_SUMMARY_TOKENS.contains(token)) {
+            return null;
+        }
+        if (token.startsWith("[len=")) {
+            return "[len=*]";
+        }
+        if (token.startsWith("(size=")) {
+            return "(size=*)";
+        }
+        if (token.startsWith("{size=")) {
+            return "{size=*}";
+        }
+        if (token.startsWith("<value:")) {
+            return "<value>";
+        }
+        if (UUID_TOKEN_PATTERN.matcher(token).matches()) {
+            return "<uuid>";
+        }
+        if (NUMBER_TOKEN_PATTERN.matcher(token).matches()) {
+            return "<n>";
+        }
+        if (HEX_TOKEN_PATTERN.matcher(token).matches()) {
+            return "<hex>";
+        }
+        if (token.indexOf('.') >= 0 && token.length() > 24) {
+            return shortTypeName(token);
+        }
+        return token;
+    }
+
+    private static String shortTypeName(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        int idx = value.lastIndexOf('.');
+        if (idx < 0 || idx + 1 >= value.length()) {
+            return value;
+        }
+        return value.substring(idx + 1);
+    }
+
+    private static long fnv1a64(String value) {
+        long hash = 0xcbf29ce484222325L;
+        for (int i = 0; i < value.length(); i++) {
+            hash ^= value.charAt(i);
+            hash *= 0x100000001b3L;
+        }
+        return hash;
+    }
+
+    private static String normalizeMeta(String value) {
+        if (value == null || value.isEmpty()) {
+            return "-";
+        }
+        return value;
     }
 
     private static Object firstArg(Object[] args) {

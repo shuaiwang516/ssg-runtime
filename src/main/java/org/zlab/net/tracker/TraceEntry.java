@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 public class TraceEntry implements Serializable {
-    private static final long serialVersionUID = 20260208L;
+    private static final long serialVersionUID = 20260224L;
 
     public enum EventType {
         SEND, RECV_BEGIN, RECV_END, UNKNOWN
@@ -31,6 +31,9 @@ public class TraceEntry implements Serializable {
     public final int targetCount;
 
     public final long messageShapeHash;
+    public final long messageValueHash;
+    public final String messageKey;
+    public final String messageSummary;
     public final boolean timedOut;
 
     public final long beforeExecPathHash;
@@ -46,15 +49,17 @@ public class TraceEntry implements Serializable {
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage) {
         this(id, methodName, hashcode, EventType.UNKNOWN, changedMessage,
                 System.currentTimeMillis(), System.nanoTime(), null, null, null, null, null, null,
-                null, null, null, -1, -1, false, -1, null, -1, null, null);
+                null, null, null, -1, -1, -1, null, null, false, -1, null, -1, null, null);
     }
 
     public TraceEntry(int id, String methodName, int hashcode, EventType eventType,
             boolean changedMessage, long timestamp, long timestampNanos, String nodeId,
             String peerId, String channel, String protocol, String messageType,
             String messageVersion, String logicalMessageId, String deliveryId, String fanoutType,
-            int targetCount, long messageShapeHash, boolean timedOut, long beforeExecPathHash,
-            int[] beforeExecPath, long afterExecPathHash, int[] afterExecPath, String payloadType) {
+            int targetCount, long messageShapeHash, long messageValueHash, String messageKey,
+            String messageSummary, boolean timedOut, long beforeExecPathHash,
+            int[] beforeExecPath, long afterExecPathHash, int[] afterExecPath,
+            String payloadType) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
@@ -73,6 +78,9 @@ public class TraceEntry implements Serializable {
         this.fanoutType = fanoutType;
         this.targetCount = targetCount;
         this.messageShapeHash = messageShapeHash;
+        this.messageValueHash = messageValueHash;
+        this.messageKey = messageKey;
+        this.messageSummary = messageSummary;
         this.timedOut = timedOut;
         this.beforeExecPathHash = beforeExecPathHash;
         this.beforeExecPath = copy(beforeExecPath);
@@ -87,8 +95,9 @@ public class TraceEntry implements Serializable {
     public TraceEntry copy() {
         return new TraceEntry(id, methodName, hashcode, eventType, changedMessage, timestamp,
                 timestampNanos, nodeId, peerId, channel, protocol, messageType, messageVersion,
-                logicalMessageId, deliveryId, fanoutType, targetCount, messageShapeHash, timedOut,
-                beforeExecPathHash, beforeExecPath, afterExecPathHash, afterExecPath, log);
+                logicalMessageId, deliveryId, fanoutType, targetCount, messageShapeHash,
+                messageValueHash, messageKey, messageSummary, timedOut, beforeExecPathHash,
+                beforeExecPath, afterExecPathHash, afterExecPath, log);
     }
 
     private static int[] copy(int[] values) {
@@ -105,7 +114,9 @@ public class TraceEntry implements Serializable {
                 + ", timestamp=" + timestamp + ", nodeId='" + nodeId + '\'' + ", peerId='" + peerId
                 + '\'' + ", messageType='" + messageType + '\'' + ", messageVersion='"
                 + messageVersion + '\'' + ", logicalMessageId='" + logicalMessageId + '\''
-                + ", deliveryId='" + deliveryId + '\'' + ", timedOut=" + timedOut
+                + ", deliveryId='" + deliveryId + '\'' + ", messageShapeHash=" + messageShapeHash
+                + ", messageValueHash=" + messageValueHash + ", messageKey='" + messageKey + '\''
+                + ", messageSummary='" + messageSummary + '\'' + ", timedOut=" + timedOut
                 + ", beforeExecPathHash=" + beforeExecPathHash + ", beforeExecPath="
                 + (beforeExecPath != null ? Arrays.toString(beforeExecPath) : "null")
                 + ", afterExecPathHash=" + afterExecPathHash + ", afterExecPath="
