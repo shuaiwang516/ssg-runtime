@@ -215,25 +215,8 @@ public class Trace implements Serializable {
         return traceEntries.size();
     }
 
-    public synchronized List<String> getHashCodes() {
-        List<String> hashCodes = new LinkedList<>();
-        for (TraceEntry entry : traceEntries) {
-            // Preserve execution-path sensitivity while adding message-identity dimensions.
-            hashCodes.add(entry.hashcode + "_" + entry.recentExecPathHash + "_"
-                    + entry.messageShapeHash + "_" + entry.messageValueHash + "_"
-                    + normalizeMeta(entry.messageType));
-        }
-        return hashCodes;
-    }
-
-    public synchronized List<String> getMessageKeys() {
-        List<String> keys = new LinkedList<>();
-        for (TraceEntry entry : traceEntries) {
-            keys.add(entry.messageKey != null ? entry.messageKey : fallbackMessageKey(entry));
-        }
-        return keys;
-    }
-
+    /** @deprecated Use {@link #getCanonicalKeysForDiff()} instead. */
+    @Deprecated
     public synchronized List<String> getMessageKeysForDiff() {
         List<String> keys = new LinkedList<>();
         boolean hasSend = false;
@@ -256,6 +239,8 @@ public class Trace implements Serializable {
         return keys;
     }
 
+    /** @deprecated Use {@link #getCanonicalKeysForDiff()} instead. */
+    @Deprecated
     public synchronized List<String> getMessageKeysForDiffStrict() {
         List<String> keys = new LinkedList<>();
         boolean hasSend = false;
@@ -391,6 +376,15 @@ public class Trace implements Serializable {
         return left.hashcode < right.hashcode ? -1 : left.hashcode == right.hashcode ? 0 : 1;
     }
 
+    /**
+     * @deprecated Legacy per-entry key. Still used internally by
+     *             record()/recordSend()/beginReceive() to populate
+     *             TraceEntry.messageKey. Prefer
+     *             {@link TraceEntry#canonicalMessageKey()} for cross-version
+     *             comparison.
+     */
+    @Deprecated
+    @SuppressWarnings("deprecation")
     private static String buildMessageKey(TraceEntry.EventType eventType, String methodName, int id,
             String messageType, String messageVersion, long messageShapeHash,
             long messageValueHash) {
@@ -400,11 +394,15 @@ public class Trace implements Serializable {
                 + Long.toHexString(messageValueHash);
     }
 
+    /** @deprecated Only supports deprecated getMessageKeysForDiffStrict(). */
+    @Deprecated
     private static String fallbackMessageKey(TraceEntry entry) {
         return entry.hashcode + "_" + entry.recentExecPathHash + "_" + entry.messageShapeHash + "_"
                 + entry.messageValueHash;
     }
 
+    /** @deprecated Only supports deprecated getMessageKeysForDiff(). */
+    @Deprecated
     private static String buildMessageDiffKey(TraceEntry entry) {
         String eventType = entry.eventType != null
                 ? entry.eventType.name()
