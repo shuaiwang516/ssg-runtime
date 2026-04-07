@@ -28,6 +28,7 @@ public class Runtime {
     private static final String portEnvName = "NET_TRACE_PORT";
     private static final String logPathEnvName = "NET_TRACE_LOG_PATH";
     private static final String nodeIdEnvName = "NET_TRACE_NODE_ID";
+    private static final String nodeRoleEnvName = "NET_TRACE_NODE_ROLE";
     private static final String enableServerEnvName = "NET_TRACE_ENABLE_SERVER";
     private static final String maxAfterBranchesEnvName = "NET_TRACE_MAX_AFTER_BRANCHES";
     private static final String receiveTimeoutEnvName = "NET_TRACE_RECEIVE_TIMEOUT_MS";
@@ -36,6 +37,7 @@ public class Runtime {
     public static Path filePath = Paths.get("/tmp/coverage.log");
     public static Set<String> changedClasses;
     public static String nodeId = "unknown";
+    public static String nodeRole = null;
 
     private static final Path modifiedFieldsPath = Paths.get("/tmp/modifiedFields.json");
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
@@ -196,8 +198,8 @@ public class Runtime {
         }
         int[] before = snapshot();
         SendMeta normalized = sendMeta == null
-                ? SendMeta.builder().nodeId(nodeId).build()
-                : sendMeta.withDefaults(nodeId);
+                ? SendMeta.builder().nodeId(nodeId).nodeRole(nodeRole).build()
+                : sendMeta.withDefaults(nodeId, nodeRole);
         synchronized (lock) {
             if (trace == null) {
                 return;
@@ -217,8 +219,8 @@ public class Runtime {
         int[] before = snapshot();
         long token = receiveTokenGenerator.getAndIncrement();
         RecvMeta normalized = recvMeta == null
-                ? RecvMeta.builder().nodeId(nodeId).build()
-                : recvMeta.withDefaults(nodeId);
+                ? RecvMeta.builder().nodeId(nodeId).nodeRole(nodeRole).build()
+                : recvMeta.withDefaults(nodeId, nodeRole);
         ReceiveContext ctx = new ReceiveContext(token, name, id, message, normalized, before,
                 contextArgs, maxAfterBranches, System.currentTimeMillis());
         activeReceives.get().put(token, ctx);
@@ -307,6 +309,14 @@ public class Runtime {
             enableServer = Boolean.parseBoolean(serverEnv);
         }
         nodeId = readStringEnv(nodeIdEnvName, nodeId);
+        // System property takes priority over env var for nodeRole
+        // (allows per-JVM override when multiple JVMs share a container)
+        String sysPropRole = System.getProperty(nodeRoleEnvName);
+        if (sysPropRole != null && !sysPropRole.trim().isEmpty()) {
+            nodeRole = sysPropRole.trim();
+        } else {
+            nodeRole = readStringEnv(nodeRoleEnvName, nodeRole);
+        }
         filePath = Paths.get(readStringEnv(logPathEnvName, filePath.toString()));
         port = readIntEnv(portEnvName, defaultPort);
         maxAfterBranches = Math.max(1,

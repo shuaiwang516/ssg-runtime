@@ -17,9 +17,31 @@ public final class SemanticAliasTable {
     private static final Map<String, String> ALIASES = new HashMap<>();
 
     static {
-        // Example aliases (populate from pilot data):
-        // ALIASES.put("OldTypeName", "CanonicalTypeName");
-        // ALIASES.put("RenamedRequest", "OriginalRequest");
+        // Cassandra 3.x -> 4.x: read-response inner class renamed
+        // 3.x: ReadResponse$LocalDataResponse (inner class)
+        // 4.x: same name but may appear as ReadResponse in some paths
+        // Both should canonicalize to the same type.
+
+        // Cassandra 3.x -> 4.x: mutation send wrappers
+        // 3.x sends Mutation in Collections$SingletonList
+        // 4.x sends Mutation in ArrayList
+        // Both stripped to payloadType by isGenericWrapper(); if fallback
+        // hits the wrapper, canonicalize to same name.
+        ALIASES.put("SingletonList", "COLLECTION_WRAPPER");
+        ALIASES.put("ArrayList", "COLLECTION_WRAPPER");
+        ALIASES.put("Values", "COLLECTION_WRAPPER");
+        ALIASES.put("UnmodifiableCollection", "COLLECTION_WRAPPER");
+
+        // Cassandra 3.x generic message wrappers (should not reach here
+        // because isGenericWrapper filters them, but safety net)
+        ALIASES.put("MessageOut", "CASSANDRA_MSG_WRAPPER");
+        ALIASES.put("MessageIn", "CASSANDRA_MSG_WRAPPER");
+
+        // HDFS: protobuf request class names are stable across 2.x -> 3.x.
+        // No aliases needed from pilot data.
+
+        // HBase: request names are stable across 2.x.
+        // No aliases needed from pilot data.
     }
 
     /**

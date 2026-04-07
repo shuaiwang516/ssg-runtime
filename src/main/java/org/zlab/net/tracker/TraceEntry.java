@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 public class TraceEntry implements Serializable {
-    private static final long serialVersionUID = 20260224L;
+    private static final long serialVersionUID = 20260407L;
 
     public enum EventType {
         SEND, RECV_BEGIN, RECV_END, UNKNOWN
@@ -21,6 +21,8 @@ public class TraceEntry implements Serializable {
 
     public final String nodeId;
     public final String peerId;
+    public final String nodeRole;
+    public final String peerRole;
     public final String channel;
     public final String protocol;
     public final String messageType;
@@ -49,16 +51,17 @@ public class TraceEntry implements Serializable {
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage) {
         this(id, methodName, hashcode, EventType.UNKNOWN, changedMessage,
                 System.currentTimeMillis(), System.nanoTime(), null, null, null, null, null, null,
-                null, null, null, -1, -1, -1, null, null, false, -1, null, -1, null, null);
+                null, null, null, null, null, -1, -1, -1, null, null, false, -1, null, -1, null,
+                null);
     }
 
     public TraceEntry(int id, String methodName, int hashcode, EventType eventType,
             boolean changedMessage, long timestamp, long timestampNanos, String nodeId,
-            String peerId, String channel, String protocol, String messageType,
-            String messageVersion, String logicalMessageId, String deliveryId, String fanoutType,
-            int targetCount, long messageShapeHash, long messageValueHash, String messageKey,
-            String messageSummary, boolean timedOut, long beforeExecPathHash, int[] beforeExecPath,
-            long afterExecPathHash, int[] afterExecPath, String payloadType) {
+            String peerId, String nodeRole, String peerRole, String channel, String protocol,
+            String messageType, String messageVersion, String logicalMessageId, String deliveryId,
+            String fanoutType, int targetCount, long messageShapeHash, long messageValueHash,
+            String messageKey, String messageSummary, boolean timedOut, long beforeExecPathHash,
+            int[] beforeExecPath, long afterExecPathHash, int[] afterExecPath, String payloadType) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
@@ -68,6 +71,8 @@ public class TraceEntry implements Serializable {
         this.timestampNanos = timestampNanos;
         this.nodeId = nodeId;
         this.peerId = peerId;
+        this.nodeRole = nodeRole;
+        this.peerRole = peerRole;
         this.channel = channel;
         this.protocol = protocol;
         this.messageType = messageType;
@@ -93,10 +98,10 @@ public class TraceEntry implements Serializable {
 
     public TraceEntry copy() {
         return new TraceEntry(id, methodName, hashcode, eventType, changedMessage, timestamp,
-                timestampNanos, nodeId, peerId, channel, protocol, messageType, messageVersion,
-                logicalMessageId, deliveryId, fanoutType, targetCount, messageShapeHash,
-                messageValueHash, messageKey, messageSummary, timedOut, beforeExecPathHash,
-                beforeExecPath, afterExecPathHash, afterExecPath, log);
+                timestampNanos, nodeId, peerId, nodeRole, peerRole, channel, protocol, messageType,
+                messageVersion, logicalMessageId, deliveryId, fanoutType, targetCount,
+                messageShapeHash, messageValueHash, messageKey, messageSummary, timedOut,
+                beforeExecPathHash, beforeExecPath, afterExecPathHash, afterExecPath, log);
     }
 
     private static int[] copy(int[] values) {
@@ -111,9 +116,10 @@ public class TraceEntry implements Serializable {
         return "TraceEntry{" + "id=" + id + ", methodName='" + methodName + '\'' + ", eventType="
                 + eventType + ", hashcode=" + hashcode + ", changedMessage=" + changedMessage
                 + ", timestamp=" + timestamp + ", nodeId='" + nodeId + '\'' + ", peerId='" + peerId
-                + '\'' + ", messageType='" + messageType + '\'' + ", messageVersion='"
-                + messageVersion + '\'' + ", logicalMessageId='" + logicalMessageId + '\''
-                + ", deliveryId='" + deliveryId + '\'' + ", messageShapeHash=" + messageShapeHash
+                + '\'' + ", nodeRole='" + nodeRole + '\'' + ", peerRole='" + peerRole + '\''
+                + ", messageType='" + messageType + '\'' + ", messageVersion='" + messageVersion
+                + '\'' + ", logicalMessageId='" + logicalMessageId + '\'' + ", deliveryId='"
+                + deliveryId + '\'' + ", messageShapeHash=" + messageShapeHash
                 + ", messageValueHash=" + messageValueHash + ", messageKey='" + messageKey + '\''
                 + ", messageSummary='" + messageSummary + '\'' + ", timedOut=" + timedOut
                 + ", beforeExecPathHash=" + beforeExecPathHash + ", beforeExecPath="
@@ -163,14 +169,21 @@ public class TraceEntry implements Serializable {
     public String canonicalEndpointKey() {
         String src, dst;
         if (this.eventType == EventType.SEND) {
-            src = normalizeRole(this.nodeId);
-            dst = normalizeRole(this.peerId);
+            src = bestRole(this.nodeRole, this.nodeId);
+            dst = bestRole(this.peerRole, this.peerId);
         } else {
             // RECV_BEGIN: peer sent TO us, so peer is src, we are dst
-            src = normalizeRole(this.peerId);
-            dst = normalizeRole(this.nodeId);
+            src = bestRole(this.peerRole, this.peerId);
+            dst = bestRole(this.nodeRole, this.nodeId);
         }
         return src + "->" + dst;
+    }
+
+    private static String bestRole(String role, String rawId) {
+        if (role != null && !role.isEmpty() && !"null".equals(role)) {
+            return role;
+        }
+        return normalizeRole(rawId);
     }
 
     /**
@@ -205,7 +218,9 @@ public class TraceEntry implements Serializable {
 
     private static boolean isGenericWrapper(String type) {
         return type.contains("RpcProtobufRequest") || type.contains("RpcResponseWrapper")
-                || type.contains("RpcRequestWrapper") || type.contains("WritableRpcEngine");
+                || type.contains("RpcRequestWrapper") || type.contains("WritableRpcEngine")
+                // Cassandra 3.x generic send/recv wrappers
+                || "MessageOut".equals(type) || "MessageIn".equals(type);
     }
 
     private static String normalizeRole(String rawId) {

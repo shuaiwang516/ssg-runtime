@@ -15,6 +15,8 @@ public class SendMeta implements Serializable {
     public final String deliveryId;
     public final String fanoutType;
     public final int targetCount;
+    public final String nodeRole;
+    public final String peerRole;
 
     private SendMeta(Builder builder) {
         this.nodeId = builder.nodeId;
@@ -27,20 +29,30 @@ public class SendMeta implements Serializable {
         this.deliveryId = builder.deliveryId;
         this.fanoutType = builder.fanoutType;
         this.targetCount = builder.targetCount;
+        this.nodeRole = builder.nodeRole;
+        this.peerRole = builder.peerRole;
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public SendMeta withDefaults(String defaultNodeId) {
-        if (nodeId != null && !nodeId.isEmpty()) {
+    public SendMeta withDefaults(String defaultNodeId, String defaultNodeRole) {
+        boolean needsNodeId = nodeId == null || nodeId.isEmpty();
+        boolean needsNodeRole = nodeRole == null || nodeRole.isEmpty();
+        if (!needsNodeId && !needsNodeRole) {
             return this;
         }
-        return builder().nodeId(defaultNodeId).peerId(peerId).channel(channel).protocol(protocol)
-                .messageType(messageType).messageVersion(messageVersion)
-                .logicalMessageId(logicalMessageId).deliveryId(deliveryId).fanoutType(fanoutType)
-                .targetCount(targetCount).build();
+        return builder().nodeId(needsNodeId ? defaultNodeId : nodeId).peerId(peerId)
+                .channel(channel).protocol(protocol).messageType(messageType)
+                .messageVersion(messageVersion).logicalMessageId(logicalMessageId)
+                .deliveryId(deliveryId).fanoutType(fanoutType).targetCount(targetCount)
+                .nodeRole(needsNodeRole ? defaultNodeRole : nodeRole).peerRole(peerRole).build();
+    }
+
+    /** Backward-compatible overload. */
+    public SendMeta withDefaults(String defaultNodeId) {
+        return withDefaults(defaultNodeId, null);
     }
 
     public static class Builder {
@@ -54,6 +66,8 @@ public class SendMeta implements Serializable {
         private String deliveryId;
         private String fanoutType = "UNKNOWN";
         private int targetCount = -1;
+        private String nodeRole;
+        private String peerRole;
 
         public Builder nodeId(String nodeId) {
             this.nodeId = nodeId;
@@ -102,6 +116,16 @@ public class SendMeta implements Serializable {
 
         public Builder targetCount(int targetCount) {
             this.targetCount = targetCount;
+            return this;
+        }
+
+        public Builder nodeRole(String nodeRole) {
+            this.nodeRole = nodeRole;
+            return this;
+        }
+
+        public Builder peerRole(String peerRole) {
+            this.peerRole = peerRole;
             return this;
         }
 

@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Trace implements Serializable {
-    private static final long serialVersionUID = 20260224L;
+    private static final long serialVersionUID = 20260407L;
     public static final boolean debug = false;
     private static final int DIFF_SUMMARY_TOKEN_LIMIT = 12;
     private static final Pattern NUMBER_TOKEN_PATTERN = Pattern.compile("^-?\\d+(?:\\.\\d+)?$");
@@ -63,10 +63,11 @@ public class Trace implements Serializable {
                 normalized.messageType, normalized.messageVersion, messageShapeHash,
                 messageValueHash);
         addEntry(name, id, TraceEntry.EventType.SEND, changedMessage, normalized.nodeId,
-                normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
-                normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId,
-                normalized.fanoutType, normalized.targetCount, messageShapeHash, messageValueHash,
-                messageKey, fp.summary, false, beforeExecPath, null, payloadType);
+                normalized.peerId, normalized.nodeRole, normalized.peerRole, normalized.channel,
+                normalized.protocol, normalized.messageType, normalized.messageVersion,
+                normalized.logicalMessageId, normalized.deliveryId, normalized.fanoutType,
+                normalized.targetCount, messageShapeHash, messageValueHash, messageKey, fp.summary,
+                false, beforeExecPath, null, payloadType);
     }
 
     public synchronized void recordReceiveBegin(String name, int id, int[] beforeExecPath,
@@ -87,10 +88,10 @@ public class Trace implements Serializable {
                 normalized.messageType, normalized.messageVersion, messageShapeHash,
                 messageValueHash);
         addEntry(name, id, TraceEntry.EventType.RECV_BEGIN, changedMessage, normalized.nodeId,
-                normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
-                normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId, null,
-                -1, messageShapeHash, messageValueHash, messageKey, fp.summary, false,
-                beforeExecPath, null, payloadType);
+                normalized.peerId, normalized.nodeRole, normalized.peerRole, normalized.channel,
+                normalized.protocol, normalized.messageType, normalized.messageVersion,
+                normalized.logicalMessageId, normalized.deliveryId, null, -1, messageShapeHash,
+                messageValueHash, messageKey, fp.summary, false, beforeExecPath, null, payloadType);
     }
 
     public synchronized void recordReceiveEnd(String name, int id, int[] beforeExecPath,
@@ -112,27 +113,28 @@ public class Trace implements Serializable {
                 normalized.messageType, normalized.messageVersion, messageShapeHash,
                 messageValueHash);
         addEntry(name, id, TraceEntry.EventType.RECV_END, changedMessage, normalized.nodeId,
-                normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
-                normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId, null,
-                -1, messageShapeHash, messageValueHash, messageKey, fp.summary, timedOut,
-                beforeExecPath, afterExecPath, payloadType);
+                normalized.peerId, normalized.nodeRole, normalized.peerRole, normalized.channel,
+                normalized.protocol, normalized.messageType, normalized.messageVersion,
+                normalized.logicalMessageId, normalized.deliveryId, null, -1, messageShapeHash,
+                messageValueHash, messageKey, fp.summary, timedOut, beforeExecPath, afterExecPath,
+                payloadType);
     }
 
     private void addEntry(String name, int id, TraceEntry.EventType eventType,
-            boolean changedMessage, String nodeId, String peerId, String channel, String protocol,
-            String messageType, String messageVersion, String logicalMessageId, String deliveryId,
-            String fanoutType, int targetCount, long messageShapeHash, long messageValueHash,
-            String messageKey, String messageSummary, boolean timedOut, int[] beforeExecPath,
-            int[] afterExecPath, String payloadType) {
+            boolean changedMessage, String nodeId, String peerId, String nodeRole, String peerRole,
+            String channel, String protocol, String messageType, String messageVersion,
+            String logicalMessageId, String deliveryId, String fanoutType, int targetCount,
+            long messageShapeHash, long messageValueHash, String messageKey, String messageSummary,
+            boolean timedOut, int[] beforeExecPath, int[] afterExecPath, String payloadType) {
         long nowMillis = System.currentTimeMillis();
         long nowNanos = System.nanoTime();
         long beforeHash = Utils.computeHash(beforeExecPath);
         long afterHash = Utils.computeHash(afterExecPath);
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), eventType, changedMessage,
-                nowMillis, nowNanos, nodeId, peerId, channel, protocol, messageType, messageVersion,
-                logicalMessageId, deliveryId, fanoutType, targetCount, messageShapeHash,
-                messageValueHash, messageKey, messageSummary, timedOut, beforeHash, beforeExecPath,
-                afterHash, afterExecPath, payloadType));
+                nowMillis, nowNanos, nodeId, peerId, nodeRole, peerRole, channel, protocol,
+                messageType, messageVersion, logicalMessageId, deliveryId, fanoutType, targetCount,
+                messageShapeHash, messageValueHash, messageKey, messageSummary, timedOut,
+                beforeHash, beforeExecPath, afterHash, afterExecPath, payloadType));
     }
 
     public boolean examineChangedMessage(Object... contextArgs) {
@@ -190,6 +192,11 @@ public class Trace implements Serializable {
         ObjectGraphTraverser traverser = new ObjectGraphTraverser();
         traverser.traverse(message);
         return traverser.getVisitedTypes();
+    }
+
+    /** Add a pre-constructed TraceEntry directly. */
+    public synchronized void addEntry(TraceEntry entry) {
+        traceEntries.add(entry);
     }
 
     // This is actually an append operation
