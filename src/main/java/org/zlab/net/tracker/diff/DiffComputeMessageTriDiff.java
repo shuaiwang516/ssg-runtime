@@ -60,9 +60,9 @@ public final class DiffComputeMessageTriDiff {
         List<String> lcs02 = lcs(seq0, seq2);
         List<String> lcs012 = lcs(lcs01, seq2);
 
-        return new MessageTriDiffResult(seq0, seq1, seq2, inAllThree, only0, only1, only2,
-                in01Only, in12Only, in02Only, lcs01.size(), lcs12.size(), lcs02.size(),
-                lcs012.size(), lcs012);
+        return new MessageTriDiffResult(seq0, seq1, seq2, inAllThree, only0, only1, only2, in01Only,
+                in12Only, in02Only, lcs01.size(), lcs12.size(), lcs02.size(), lcs012.size(),
+                lcs012);
     }
 
     public static final class MessageTriDiffResult {
@@ -85,12 +85,11 @@ public final class DiffComputeMessageTriDiff {
         public final List<String> lcs012Sequence;
 
         private MessageTriDiffResult(List<String> sequence0, List<String> sequence1,
-                List<String> sequence2, Map<String, Integer> inAllThree,
-                Map<String, Integer> only0, Map<String, Integer> only1,
-                Map<String, Integer> only2, Map<String, Integer> in01Only,
-                Map<String, Integer> in12Only, Map<String, Integer> in02Only,
-                int lcs01Length, int lcs12Length, int lcs02Length, int lcs012Length,
-                List<String> lcs012Sequence) {
+                List<String> sequence2, Map<String, Integer> inAllThree, Map<String, Integer> only0,
+                Map<String, Integer> only1, Map<String, Integer> only2,
+                Map<String, Integer> in01Only, Map<String, Integer> in12Only,
+                Map<String, Integer> in02Only, int lcs01Length, int lcs12Length, int lcs02Length,
+                int lcs012Length, List<String> lcs012Sequence) {
             this.sequence0 = sequence0;
             this.sequence1 = sequence1;
             this.sequence2 = sequence2;
@@ -113,8 +112,8 @@ public final class DiffComputeMessageTriDiff {
         }
 
         public int totalExclusiveCount() {
-            return totalCount(only0) + totalCount(only1) + totalCount(only2)
-                    + totalCount(in01Only) + totalCount(in12Only) + totalCount(in02Only);
+            return totalCount(only0) + totalCount(only1) + totalCount(only2) + totalCount(in01Only)
+                    + totalCount(in12Only) + totalCount(in02Only);
         }
 
         public double orderedCommonRatio() {
@@ -133,19 +132,12 @@ public final class DiffComputeMessageTriDiff {
         }
 
         public String toSummaryString() {
-            return "MessageTriDiff{"
-                    + "len0=" + sequence0.size()
-                    + ", len1=" + sequence1.size()
-                    + ", len2=" + sequence2.size()
-                    + ", all3=" + totalAllThreeCount()
-                    + ", only0=" + totalCount(only0)
-                    + ", only1=" + totalCount(only1)
-                    + ", only2=" + totalCount(only2)
-                    + ", in01Only=" + totalCount(in01Only)
-                    + ", in12Only=" + totalCount(in12Only)
-                    + ", in02Only=" + totalCount(in02Only)
-                    + ", lcs012=" + lcs012Length
-                    + ", orderRatio=" + String.format("%.4f", orderedCommonRatio())
+            return "MessageTriDiff{" + "len0=" + sequence0.size() + ", len1=" + sequence1.size()
+                    + ", len2=" + sequence2.size() + ", all3=" + totalAllThreeCount() + ", only0="
+                    + totalCount(only0) + ", only1=" + totalCount(only1) + ", only2="
+                    + totalCount(only2) + ", in01Only=" + totalCount(in01Only) + ", in12Only="
+                    + totalCount(in12Only) + ", in02Only=" + totalCount(in02Only) + ", lcs012="
+                    + lcs012Length + ", orderRatio=" + String.format("%.4f", orderedCommonRatio())
                     + "}";
         }
 
@@ -159,7 +151,8 @@ public final class DiffComputeMessageTriDiff {
             appendCategory(sb, "in01Only", in01Only, limitPerCategory);
             appendCategory(sb, "in12Only", in12Only, limitPerCategory);
             appendCategory(sb, "in02Only", in02Only, limitPerCategory);
-            sb.append("lcs012Sequence(sample)=").append(sampleSequence(lcs012Sequence, limitPerCategory));
+            sb.append("lcs012Sequence(sample)=")
+                    .append(sampleSequence(lcs012Sequence, limitPerCategory));
             return sb.toString();
         }
     }
@@ -236,8 +229,8 @@ public final class DiffComputeMessageTriDiff {
         return lcs;
     }
 
-    private static void appendCategory(StringBuilder sb, String name,
-            Map<String, Integer> counts, int limit) {
+    private static void appendCategory(StringBuilder sb, String name, Map<String, Integer> counts,
+            int limit) {
         sb.append(name).append("={");
         int emitted = 0;
         for (Map.Entry<String, Integer> entry : counts.entrySet()) {
@@ -273,4 +266,3 @@ public final class DiffComputeMessageTriDiff {
         return sb.toString();
     }
 }
-

@@ -147,8 +147,7 @@ public final class MessageFingerprint {
             Collections.sort(entries, new Comparator<Map.Entry<?, ?>>() {
                 @Override
                 public int compare(Map.Entry<?, ?> left, Map.Entry<?, ?> right) {
-                    return safeSortKey(left.getKey())
-                            .compareTo(safeSortKey(right.getKey()));
+                    return safeSortKey(left.getKey()).compareTo(safeSortKey(right.getKey()));
                 }
             });
 
@@ -215,11 +214,8 @@ public final class MessageFingerprint {
     }
 
     private static boolean isScalar(Class<?> clazz) {
-        return clazz.isPrimitive()
-                || clazz.isEnum()
-                || Number.class.isAssignableFrom(clazz)
-                || Boolean.class == clazz
-                || Character.class == clazz
+        return clazz.isPrimitive() || clazz.isEnum() || Number.class.isAssignableFrom(clazz)
+                || Boolean.class == clazz || Character.class == clazz
                 || CharSequence.class.isAssignableFrom(clazz);
     }
 
@@ -241,8 +237,7 @@ public final class MessageFingerprint {
             Field[] declared = cur.getDeclaredFields();
             for (Field field : declared) {
                 int modifiers = field.getModifiers();
-                if (Modifier.isStatic(modifiers)
-                        || Modifier.isTransient(modifiers)
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)
                         || field.isSynthetic()) {
                     continue;
                 }
@@ -268,7 +263,8 @@ public final class MessageFingerprint {
         if (isScalar(value.getClass())) {
             return value.getClass().getName() + ":" + normalizeScalar(value);
         }
-        return value.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(value));
+        return value.getClass().getName() + "@"
+                + Integer.toHexString(System.identityHashCode(value));
     }
 
     private static Object firstNonNull(Object[] args) {
@@ -307,4 +303,3 @@ public final class MessageFingerprint {
         }
     }
 }
-

@@ -13,16 +13,13 @@ public class Trace implements Serializable {
     private static final long serialVersionUID = 20260224L;
     public static final boolean debug = false;
     private static final int DIFF_SUMMARY_TOKEN_LIMIT = 12;
-    private static final Pattern NUMBER_TOKEN_PATTERN = Pattern
-            .compile("^-?\\d+(?:\\.\\d+)?$");
+    private static final Pattern NUMBER_TOKEN_PATTERN = Pattern.compile("^-?\\d+(?:\\.\\d+)?$");
     private static final Pattern UUID_TOKEN_PATTERN = Pattern.compile(
             "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-    private static final Pattern HEX_TOKEN_PATTERN = Pattern
-            .compile("^[0-9a-fA-F]{8,}$");
+    private static final Pattern HEX_TOKEN_PATTERN = Pattern.compile("^[0-9a-fA-F]{8,}$");
     private static final Set<String> VOLATILE_SUMMARY_TOKENS = new HashSet<>(
-            Arrays.asList("Message", "Header", "InetAddressAndPort", "byte[]",
-                    "AtomicReference", "CachedSerialization", "Serialization[]",
-                    "HeapByteBuffer"));
+            Arrays.asList("Message", "Header", "InetAddressAndPort", "byte[]", "AtomicReference",
+                    "CachedSerialization", "Serialization[]", "HeapByteBuffer"));
 
     private final List<TraceEntry> traceEntries = new LinkedList<>();
 
@@ -66,9 +63,8 @@ public class Trace implements Serializable {
         addEntry(name, id, TraceEntry.EventType.SEND, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.channel, normalized.protocol, normalized.messageType,
                 normalized.messageVersion, normalized.logicalMessageId, normalized.deliveryId,
-                normalized.fanoutType, normalized.targetCount, messageShapeHash,
-                messageValueHash, messageKey, fp.summary, false, beforeExecPath, null,
-                payloadType);
+                normalized.fanoutType, normalized.targetCount, messageShapeHash, messageValueHash,
+                messageKey, fp.summary, false, beforeExecPath, null, payloadType);
     }
 
     public synchronized void recordReceiveBegin(String name, int id, int[] beforeExecPath,
@@ -131,10 +127,10 @@ public class Trace implements Serializable {
         long beforeHash = Utils.computeHash(beforeExecPath);
         long afterHash = Utils.computeHash(afterExecPath);
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), eventType, changedMessage,
-                nowMillis, nowNanos, nodeId, peerId, channel, protocol, messageType,
-                messageVersion, logicalMessageId, deliveryId, fanoutType, targetCount,
-                messageShapeHash, messageValueHash, messageKey, messageSummary, timedOut,
-                beforeHash, beforeExecPath, afterHash, afterExecPath, payloadType));
+                nowMillis, nowNanos, nodeId, peerId, channel, protocol, messageType, messageVersion,
+                logicalMessageId, deliveryId, fanoutType, targetCount, messageShapeHash,
+                messageValueHash, messageKey, messageSummary, timedOut, beforeHash, beforeExecPath,
+                afterHash, afterExecPath, payloadType));
     }
 
     public boolean examineChangedMessage(Object... contextArgs) {
@@ -344,26 +340,26 @@ public class Trace implements Serializable {
     private static String buildMessageKey(TraceEntry.EventType eventType, String methodName, int id,
             String messageType, String messageVersion, long messageShapeHash,
             long messageValueHash) {
-        return eventType + "|" + methodName + "#" + id + "|type="
-                + normalizeMeta(messageType) + "|ver=" + normalizeMeta(messageVersion)
-                + "|shape=" + Long.toHexString(messageShapeHash) + "|value="
+        return eventType + "|" + methodName + "#" + id + "|type=" + normalizeMeta(messageType)
+                + "|ver=" + normalizeMeta(messageVersion) + "|shape="
+                + Long.toHexString(messageShapeHash) + "|value="
                 + Long.toHexString(messageValueHash);
     }
 
     private static String fallbackMessageKey(TraceEntry entry) {
-        return entry.hashcode + "_" + entry.recentExecPathHash + "_" + entry.messageShapeHash
-                + "_" + entry.messageValueHash;
+        return entry.hashcode + "_" + entry.recentExecPathHash + "_" + entry.messageShapeHash + "_"
+                + entry.messageValueHash;
     }
 
     private static String buildMessageDiffKey(TraceEntry entry) {
-        String eventType = entry.eventType != null ? entry.eventType.name()
+        String eventType = entry.eventType != null
+                ? entry.eventType.name()
                 : TraceEntry.EventType.UNKNOWN.name();
         String payloadType = normalizeMeta(shortTypeName(entry.log));
         String semanticHash = semanticSummaryHash(entry.messageSummary);
         return eventType + "|" + entry.methodName + "#" + entry.id + "|type="
-                + normalizeMeta(entry.messageType) + "|ver="
-                + normalizeMeta(entry.messageVersion) + "|payload=" + payloadType + "|sem="
-                + semanticHash;
+                + normalizeMeta(entry.messageType) + "|ver=" + normalizeMeta(entry.messageVersion)
+                + "|payload=" + payloadType + "|sem=" + semanticHash;
     }
 
     private static String semanticSummaryHash(String summary) {
@@ -378,8 +374,7 @@ public class Trace implements Serializable {
             if (token == null || token.isEmpty()) {
                 continue;
             }
-            if (!normalized.isEmpty()
-                    && token.equals(normalized.get(normalized.size() - 1))) {
+            if (!normalized.isEmpty() && token.equals(normalized.get(normalized.size() - 1))) {
                 continue;
             }
             normalized.add(token);

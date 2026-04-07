@@ -57,9 +57,8 @@ public class TraceEntry implements Serializable {
             String peerId, String channel, String protocol, String messageType,
             String messageVersion, String logicalMessageId, String deliveryId, String fanoutType,
             int targetCount, long messageShapeHash, long messageValueHash, String messageKey,
-            String messageSummary, boolean timedOut, long beforeExecPathHash,
-            int[] beforeExecPath, long afterExecPathHash, int[] afterExecPath,
-            String payloadType) {
+            String messageSummary, boolean timedOut, long beforeExecPathHash, int[] beforeExecPath,
+            long afterExecPathHash, int[] afterExecPath, String payloadType) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
