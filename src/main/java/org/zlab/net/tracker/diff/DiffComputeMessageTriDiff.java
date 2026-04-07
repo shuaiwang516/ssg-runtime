@@ -19,7 +19,21 @@ public final class DiffComputeMessageTriDiff {
         List<String> seq0 = trace0 != null ? trace0.getMessageKeysForDiff() : new ArrayList<>();
         List<String> seq1 = trace1 != null ? trace1.getMessageKeysForDiff() : new ArrayList<>();
         List<String> seq2 = trace2 != null ? trace2.getMessageKeysForDiff() : new ArrayList<>();
+        return computeFromSequences(seq0, seq1, seq2);
+    }
 
+    /**
+     * Three-way diff using canonical keys (version-agnostic).
+     */
+    public static MessageTriDiffResult computeSemantic(Trace trace0, Trace trace1, Trace trace2) {
+        List<String> seq0 = trace0 != null ? trace0.getCanonicalKeysForDiff() : new ArrayList<>();
+        List<String> seq1 = trace1 != null ? trace1.getCanonicalKeysForDiff() : new ArrayList<>();
+        List<String> seq2 = trace2 != null ? trace2.getCanonicalKeysForDiff() : new ArrayList<>();
+        return computeFromSequences(seq0, seq1, seq2);
+    }
+
+    private static MessageTriDiffResult computeFromSequences(List<String> seq0, List<String> seq1,
+            List<String> seq2) {
         LinkedHashMap<String, Integer> cnt0 = count(seq0);
         LinkedHashMap<String, Integer> cnt1 = count(seq1);
         LinkedHashMap<String, Integer> cnt2 = count(seq2);

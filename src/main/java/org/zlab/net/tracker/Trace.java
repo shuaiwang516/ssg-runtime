@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -271,6 +273,51 @@ public class Trace implements Serializable {
 
     public synchronized List<TraceEntry> getTraceEntries() {
         return new LinkedList<>(traceEntries);
+    }
+
+    // --- Canonical key accessors (Phase 2) ---
+
+    /**
+     * Returns multiset of canonical message keys (order-insensitive). Excludes
+     * RECV_END to avoid double-counting.
+     */
+    public synchronized Map<String, Integer> getCanonicalMultiset() {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (TraceEntry entry : traceEntries) {
+            if (entry.eventType == TraceEntry.EventType.RECV_END)
+                continue;
+            String key = entry.canonicalMessageKey();
+            counts.merge(key, 1, Integer::sum);
+        }
+        return counts;
+    }
+
+    /**
+     * Returns ordered list of canonical message keys for tri-diff. Excludes
+     * RECV_END to avoid double-counting.
+     */
+    public synchronized List<String> getCanonicalKeysForDiff() {
+        List<String> keys = new ArrayList<>();
+        for (TraceEntry entry : traceEntries) {
+            if (entry.eventType == TraceEntry.EventType.RECV_END)
+                continue;
+            keys.add(entry.canonicalMessageKey());
+        }
+        return keys;
+    }
+
+    /**
+     * Returns multiset of raw semantic types only (no direction, no endpoint).
+     * Useful for coarse similarity when roles are unavailable.
+     */
+    public synchronized Map<String, Integer> getSemanticTypeMultiset() {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (TraceEntry entry : traceEntries) {
+            if (entry.eventType == TraceEntry.EventType.RECV_END)
+                continue;
+            counts.merge(entry.semanticType(), 1, Integer::sum);
+        }
+        return counts;
     }
 
     public synchronized void mergeBasedOnTimestamp(Trace otherTrace) {

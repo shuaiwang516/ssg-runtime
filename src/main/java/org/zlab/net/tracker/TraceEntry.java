@@ -122,4 +122,105 @@ public class TraceEntry implements Serializable {
                 + (afterExecPath != null ? Arrays.toString(afterExecPath) : "null") + ", log='"
                 + log + '\'' + '}';
     }
+
+    // --- Canonical key support (Phase 2) ---
+
+    /**
+     * Returns the most specific raw semantic type available for this entry. Does
+     * NOT apply cross-version alias mapping (see semanticType() for that).
+     *
+     * Resolution order: 1. payloadType (this.log) if present and not a generic
+     * wrapper 2. messageType if present and not a generic wrapper 3. "UNKNOWN_TYPE"
+     *
+     * Does NOT fall back to methodName — that is version-specific.
+     */
+    public String rawSemanticType() {
+        String payload = this.log; // payloadType alias
+        if (isUsableType(payload) && !isGenericWrapper(payload)) {
+            return shortClassName(payload);
+        }
+        if (isUsableType(this.messageType) && !isGenericWrapper(this.messageType)) {
+            return this.messageType;
+        }
+        return "UNKNOWN_TYPE";
+    }
+
+    /**
+     * Returns the canonical semantic type after applying cross-version alias
+     * mapping.
+     */
+    public String semanticType() {
+        String raw = rawSemanticType();
+        return SemanticAliasTable.canonicalize(raw);
+    }
+
+    /**
+     * Returns a flow-stable canonical endpoint string. For SEND: src=nodeId,
+     * dst=peerId (or UNKNOWN). For RECV_BEGIN: src=peerId, dst=nodeId (reversed so
+     * same logical flow normalizes to same src->dst regardless of which side
+     * recorded it).
+     */
+    public String canonicalEndpointKey() {
+        String src, dst;
+        if (this.eventType == EventType.SEND) {
+            src = normalizeRole(this.nodeId);
+            dst = normalizeRole(this.peerId);
+        } else {
+            // RECV_BEGIN: peer sent TO us, so peer is src, we are dst
+            src = normalizeRole(this.peerId);
+            dst = normalizeRole(this.nodeId);
+        }
+        return src + "->" + dst;
+    }
+
+    /**
+     * Returns the full canonical message key for cross-version comparison. Format:
+     * {eventDirection}|{src->dst}|{semanticType}
+     */
+    public String canonicalMessageKey() {
+        String dir = (this.eventType != null) ? this.eventType.name() : "UNKNOWN";
+        String endpoint = canonicalEndpointKey();
+        String semType = semanticType();
+
+        // If both roles unknown, omit endpoint to reduce noise
+        if (endpoint.equals("UNKNOWN->UNKNOWN")) {
+            return dir + "|" + semType;
+        }
+        return dir + "|" + endpoint + "|" + semType;
+    }
+
+    private static boolean isUsableType(String type) {
+        return type != null && !type.isEmpty() && !"null".equals(type);
+    }
+
+    private static String shortClassName(String fqcn) {
+        int dollar = fqcn.lastIndexOf('$');
+        if (dollar >= 0)
+            return fqcn.substring(dollar + 1);
+        int dot = fqcn.lastIndexOf('.');
+        if (dot >= 0)
+            return fqcn.substring(dot + 1);
+        return fqcn;
+    }
+
+    private static boolean isGenericWrapper(String type) {
+        return type.contains("RpcProtobufRequest") || type.contains("RpcResponseWrapper")
+                || type.contains("RpcRequestWrapper") || type.contains("WritableRpcEngine");
+    }
+
+    private static String normalizeRole(String rawId) {
+        // Phase 3 will add proper role normalization.
+        // For now, extract the node-index suffix if present (e.g., "SrnNTLLS-N0" ->
+        // "N0")
+        if (rawId == null || rawId.isEmpty() || "null".equals(rawId)) {
+            return "UNKNOWN";
+        }
+        int dashN = rawId.lastIndexOf("-N");
+        if (dashN >= 0 && dashN + 2 < rawId.length()) {
+            String suffix = rawId.substring(dashN + 1);
+            if (suffix.matches("N\\d+"))
+                return suffix;
+        }
+        return rawId;
+    }
 }
