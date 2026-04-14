@@ -187,19 +187,70 @@ public class TraceEntry implements Serializable {
     }
 
     /**
-     * Returns the full canonical message key for cross-version comparison. Format:
+     * Returns the canonical message key at the coarsest
+     * {@link CanonicalKeyMode#SEMANTIC} tier for cross-version comparison. Format:
      * {eventDirection}|{src->dst}|{semanticType}
+     *
+     * <p>
+     * Kept as the default for backward compatibility with older callers and tests.
+     * Production fuzzing threads an explicit mode through
+     * {@link #canonicalMessageKey(CanonicalKeyMode)} from Config.
      */
     public String canonicalMessageKey() {
+        return canonicalMessageKey(CanonicalKeyMode.SEMANTIC);
+    }
+
+    /**
+     * Returns the canonical message key at the requested tier. Higher tiers append
+     * extra fragments on top of the {@link CanonicalKeyMode#SEMANTIC} base so that
+     * within-semantic drift can still surface as a distinct key:
+     *
+     * <ul>
+     * <li>{@link CanonicalKeyMode#SEMANTIC}:
+     * {@code {dir}|{endpoint}|{semType}}</li>
+     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE}: appends
+     * {@code |shape={hex}}</li>
+     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY}: appends
+     * {@code |shape={hex}|sum={bucketHash}}</li>
+     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE_VALUE}: appends
+     * {@code |shape={hex}|val={hex}} (strict; not a production default)</li>
+     * </ul>
+     *
+     * <p>
+     * A {@code null} mode falls back to {@link CanonicalKeyMode#SEMANTIC}.
+     */
+    public String canonicalMessageKey(CanonicalKeyMode mode) {
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
         String dir = (this.eventType != null) ? this.eventType.name() : "UNKNOWN";
         String endpoint = canonicalEndpointKey();
         String semType = semanticType();
 
         // If both roles unknown, omit endpoint to reduce noise
-        if (endpoint.equals("UNKNOWN->UNKNOWN")) {
-            return dir + "|" + semType;
+        StringBuilder key = new StringBuilder();
+        key.append(dir).append('|');
+        if (!endpoint.equals("UNKNOWN->UNKNOWN")) {
+            key.append(endpoint).append('|');
         }
-        return dir + "|" + endpoint + "|" + semType;
+        key.append(semType);
+
+        switch (resolved) {
+            case SEMANTIC :
+                break;
+            case SEMANTIC_SHAPE :
+                key.append("|shape=").append(Long.toHexString(this.messageShapeHash));
+                break;
+            case SEMANTIC_SHAPE_SUMMARY :
+                key.append("|shape=").append(Long.toHexString(this.messageShapeHash));
+                key.append("|sum=").append(SummaryBucket.bucketHash(this.messageSummary));
+                break;
+            case SEMANTIC_SHAPE_VALUE :
+                key.append("|shape=").append(Long.toHexString(this.messageShapeHash));
+                key.append("|val=").append(Long.toHexString(this.messageValueHash));
+                break;
+            default :
+                break;
+        }
+        return key.toString();
     }
 
     private static boolean isUsableType(String type) {

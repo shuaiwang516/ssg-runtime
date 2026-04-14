@@ -1,5 +1,6 @@
 package org.zlab.net.tracker.diff;
 
+import org.zlab.net.tracker.CanonicalKeyMode;
 import org.zlab.net.tracker.Trace;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public final class DiffComputeMessageTriDiff {
     private DiffComputeMessageTriDiff() {
     }
 
+    @SuppressWarnings("deprecation")
     public static MessageTriDiffResult compute(Trace trace0, Trace trace1, Trace trace2) {
         List<String> seq0 = trace0 != null ? trace0.getMessageKeysForDiff() : new ArrayList<>();
         List<String> seq1 = trace1 != null ? trace1.getMessageKeysForDiff() : new ArrayList<>();
@@ -23,12 +25,31 @@ public final class DiffComputeMessageTriDiff {
     }
 
     /**
-     * Three-way diff using canonical keys (version-agnostic).
+     * Legacy three-way diff using canonical keys at the coarsest
+     * {@link CanonicalKeyMode#SEMANTIC} tier. Kept for tests and legacy callers;
+     * production paths should use
+     * {@link #computeSemantic(Trace, Trace, Trace, CanonicalKeyMode)}.
      */
     public static MessageTriDiffResult computeSemantic(Trace trace0, Trace trace1, Trace trace2) {
-        List<String> seq0 = trace0 != null ? trace0.getCanonicalKeysForDiff() : new ArrayList<>();
-        List<String> seq1 = trace1 != null ? trace1.getCanonicalKeysForDiff() : new ArrayList<>();
-        List<String> seq2 = trace2 != null ? trace2.getCanonicalKeysForDiff() : new ArrayList<>();
+        return computeSemantic(trace0, trace1, trace2, CanonicalKeyMode.SEMANTIC);
+    }
+
+    /**
+     * Three-way diff using canonical keys at the requested {@link CanonicalKeyMode}
+     * tier.
+     */
+    public static MessageTriDiffResult computeSemantic(Trace trace0, Trace trace1, Trace trace2,
+            CanonicalKeyMode mode) {
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        List<String> seq0 = trace0 != null
+                ? trace0.getCanonicalKeysForDiff(resolved)
+                : new ArrayList<>();
+        List<String> seq1 = trace1 != null
+                ? trace1.getCanonicalKeysForDiff(resolved)
+                : new ArrayList<>();
+        List<String> seq2 = trace2 != null
+                ? trace2.getCanonicalKeysForDiff(resolved)
+                : new ArrayList<>();
         return computeFromSequences(seq0, seq1, seq2);
     }
 

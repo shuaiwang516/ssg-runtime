@@ -1,5 +1,6 @@
 package org.zlab.net.tracker.diff;
 
+import org.zlab.net.tracker.CanonicalKeyMode;
 import org.zlab.net.tracker.Trace;
 
 import java.util.Collections;
@@ -16,13 +17,25 @@ public final class DiffComputeSemanticSimilarity {
     }
 
     /**
-     * Three-way comparison: returns {sim(t0,t1), sim(t1,t2), sim(t0,t2)}. Third
-     * element is baseline drift reference.
+     * Legacy two-arg entry point using the coarsest
+     * {@link CanonicalKeyMode#SEMANTIC} tier. Production callers should pass an
+     * explicit mode via {@link #compute(Trace, Trace, Trace, CanonicalKeyMode)}.
      */
     public static double[] compute(Trace trace0, Trace trace1, Trace trace2) {
-        Map<String, Integer> ms0 = safeMultiset(trace0);
-        Map<String, Integer> ms1 = safeMultiset(trace1);
-        Map<String, Integer> ms2 = safeMultiset(trace2);
+        return compute(trace0, trace1, trace2, CanonicalKeyMode.SEMANTIC);
+    }
+
+    /**
+     * Three-way comparison at the requested {@link CanonicalKeyMode} tier. Returns
+     * {sim(t0,t1), sim(t1,t2), sim(t0,t2)}. Third element is baseline drift
+     * reference.
+     */
+    public static double[] compute(Trace trace0, Trace trace1, Trace trace2,
+            CanonicalKeyMode mode) {
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        Map<String, Integer> ms0 = safeMultiset(trace0, resolved);
+        Map<String, Integer> ms1 = safeMultiset(trace1, resolved);
+        Map<String, Integer> ms2 = safeMultiset(trace2, resolved);
         return new double[]{multisetJaccard(ms0, ms1), multisetJaccard(ms1, ms2),
                 multisetJaccard(ms0, ms2) // baseline drift
         };
@@ -45,7 +58,7 @@ public final class DiffComputeSemanticSimilarity {
         return unionSum == 0 ? 1.0 : (double) intersectionSum / unionSum;
     }
 
-    private static Map<String, Integer> safeMultiset(Trace trace) {
-        return trace != null ? trace.getCanonicalMultiset() : Collections.emptyMap();
+    private static Map<String, Integer> safeMultiset(Trace trace, CanonicalKeyMode mode) {
+        return trace != null ? trace.getCanonicalMultiset(mode) : Collections.emptyMap();
     }
 }

@@ -267,33 +267,63 @@ public class Trace implements Serializable {
         return new LinkedList<>(traceEntries);
     }
 
-    // --- Canonical key accessors (Phase 2) ---
+    // --- Canonical key accessors (Phase 2 + Phase 3) ---
 
     /**
-     * Returns multiset of canonical message keys (order-insensitive). Excludes
-     * RECV_END to avoid double-counting.
+     * Returns multiset of canonical message keys at the coarsest
+     * {@link CanonicalKeyMode#SEMANTIC} tier (order-insensitive). Excludes RECV_END
+     * to avoid double-counting.
+     *
+     * <p>
+     * Kept for backward compatibility. Prefer
+     * {@link #getCanonicalMultiset(CanonicalKeyMode)} from hot paths so the tier is
+     * explicit.
      */
     public synchronized Map<String, Integer> getCanonicalMultiset() {
+        return getCanonicalMultiset(CanonicalKeyMode.SEMANTIC);
+    }
+
+    /**
+     * Returns multiset of canonical message keys at the requested
+     * {@link CanonicalKeyMode} tier. Excludes RECV_END to avoid double-counting.
+     */
+    public synchronized Map<String, Integer> getCanonicalMultiset(CanonicalKeyMode mode) {
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (TraceEntry entry : traceEntries) {
             if (entry.eventType == TraceEntry.EventType.RECV_END)
                 continue;
-            String key = entry.canonicalMessageKey();
+            String key = entry.canonicalMessageKey(resolved);
             counts.merge(key, 1, Integer::sum);
         }
         return counts;
     }
 
     /**
-     * Returns ordered list of canonical message keys for tri-diff. Excludes
-     * RECV_END to avoid double-counting.
+     * Returns ordered list of canonical message keys for tri-diff at the coarsest
+     * {@link CanonicalKeyMode#SEMANTIC} tier. Excludes RECV_END to avoid
+     * double-counting.
+     *
+     * <p>
+     * Kept for backward compatibility. Prefer
+     * {@link #getCanonicalKeysForDiff(CanonicalKeyMode)} from hot paths so the tier
+     * is explicit.
      */
     public synchronized List<String> getCanonicalKeysForDiff() {
+        return getCanonicalKeysForDiff(CanonicalKeyMode.SEMANTIC);
+    }
+
+    /**
+     * Returns ordered list of canonical message keys for tri-diff at the requested
+     * {@link CanonicalKeyMode} tier. Excludes RECV_END to avoid double-counting.
+     */
+    public synchronized List<String> getCanonicalKeysForDiff(CanonicalKeyMode mode) {
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
         List<String> keys = new ArrayList<>();
         for (TraceEntry entry : traceEntries) {
             if (entry.eventType == TraceEntry.EventType.RECV_END)
                 continue;
-            keys.add(entry.canonicalMessageKey());
+            keys.add(entry.canonicalMessageKey(resolved));
         }
         return keys;
     }
