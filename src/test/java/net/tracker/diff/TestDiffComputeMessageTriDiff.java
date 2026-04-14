@@ -7,6 +7,7 @@ import org.zlab.net.tracker.diff.DiffComputeMessageTriDiff;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TestDiffComputeMessageTriDiff {
     @Test
@@ -39,6 +40,127 @@ public class TestDiffComputeMessageTriDiff {
         assertEquals(3, result.totalAllThreeCount());
         assertTrue(result.orderedCommonRatio() < 1.0);
         assertTrue(result.isInteresting(1, 0.95));
+    }
+
+    // Phase 1 regression tests for tri-diff fraction correctness. These prove
+    // that missing-message churn no longer produces fractions above 1.0 and
+    // that missing-only windows are distinguishable from rolling-exclusive
+    // windows via the new accessors.
+
+    @Test
+    public void rollingExclusiveFractionRemainsBounded() {
+        Trace oldOld = traceOf("m1", "m2", "m3");
+        Trace rolling = traceOf("m1", "m2", "m3", "m4", "m5");
+        Trace newNew = traceOf("m1", "m2", "m3");
+
+        DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
+                .compute(oldOld, rolling, newNew);
+
+        assertEquals(2, result.rollingExclusiveCount());
+        assertEquals(5, result.rollingLaneSize());
+        assertEquals(0.4, result.rollingExclusiveFraction(), 1e-9);
+        assertTrue(result.rollingExclusiveFraction() >= 0.0);
+        assertTrue(result.rollingExclusiveFraction() <= 1.0);
+    }
+
+    @Test
+    public void rollingMissingFractionBoundedWhenRollingShort() {
+        // Baselines share nine messages but rolling dropped every one of them
+        // (short rolling lane). Under the pre-Phase-1 normalization
+        // (missing / rollingLaneSize) this would produce 9/1 = 9.0. The new
+        // baseline-shared denominator must keep the value in [0, 1].
+        Trace oldOld = traceOf("m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9");
+        Trace rolling = traceOf("keepAlive");
+        Trace newNew = traceOf("m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9");
+
+        DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
+                .compute(oldOld, rolling, newNew);
+
+        assertEquals(9, result.rollingMissingCount());
+        assertEquals(0, result.totalAllThreeCount());
+        assertEquals(9, result.baselineSharedCount());
+        assertEquals(1.0, result.rollingMissingFraction(), 1e-9);
+        assertTrue(result.rollingMissingFraction() <= 1.0,
+                "missing fraction must stay in [0,1], got " + result.rollingMissingFraction());
+    }
+
+    @Test
+    public void rollingMissingFractionDefaultsToZeroWhenBaselinesShareNothing() {
+        Trace oldOld = traceOf("a1", "a2");
+        Trace rolling = traceOf("b1", "b2");
+        Trace newNew = traceOf("c1", "c2");
+
+        DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
+                .compute(oldOld, rolling, newNew);
+
+        assertEquals(0, result.rollingMissingCount());
+        assertEquals(0, result.baselineSharedCount());
+        assertEquals(0.0, result.rollingMissingFraction(), 1e-9);
+    }
+
+    @Test
+    public void pureMissingWindowProducesNoRollingExclusive() {
+        // Both baselines share m1..m5 but rolling dropped m3 and m5. No messages
+        // are exclusive to rolling. This mirrors the "benign rolling drop"
+        // pattern that dominated Apr 12 missing-only admissions.
+        Trace oldOld = traceOf("m1", "m2", "m3", "m4", "m5");
+        Trace rolling = traceOf("m1", "m2", "m4");
+        Trace newNew = traceOf("m1", "m2", "m3", "m4", "m5");
+
+        DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
+                .compute(oldOld, rolling, newNew);
+
+        assertEquals(0, result.rollingExclusiveCount());
+        assertEquals(2, result.rollingMissingCount());
+        assertEquals(3, result.totalAllThreeCount());
+        assertEquals(5, result.baselineSharedCount());
+        assertEquals(0.4, result.rollingMissingFraction(), 1e-9);
+        assertEquals(0.0, result.rollingExclusiveFraction(), 1e-9);
+    }
+
+    @Test
+    public void realRollingExclusiveCaseIsDetected() {
+        Trace oldOld = traceOf("m1", "m2", "m3");
+        Trace rolling = traceOf("m1", "m2", "m3", "rolling_only_1", "rolling_only_2",
+                "rolling_only_3");
+        Trace newNew = traceOf("m1", "m2", "m3");
+
+        DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
+                .compute(oldOld, rolling, newNew);
+
+        assertEquals(3, result.rollingExclusiveCount());
+        assertEquals(0, result.rollingMissingCount());
+        assertTrue(result.rollingExclusiveFraction() > 0.0);
+        assertTrue(result.rollingExclusiveFraction() <= 1.0);
+    }
+
+    @Test
+    public void fractionInvariantsHoldOnLargeAsymmetricSequences() {
+        // Smoke test: construct 100 shared messages and a sparse rolling lane.
+        // Guards against off-by-one mistakes in the counting formula.
+        String[] shared = new String[100];
+        for (int i = 0; i < shared.length; i++) {
+            shared[i] = "shared-" + i;
+        }
+        Trace oldOld = traceOf(shared);
+        Trace newNew = traceOf(shared);
+        Trace rolling = traceOf("shared-0", "shared-1", "shared-2", "rolling-only");
+
+        DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
+                .compute(oldOld, rolling, newNew);
+
+        // 3 survived in all three lanes; 97 shared-* are missing from rolling.
+        assertEquals(3, result.totalAllThreeCount());
+        assertEquals(97, result.rollingMissingCount());
+        assertEquals(100, result.baselineSharedCount());
+        assertTrue(result.rollingMissingFraction() >= 0.0);
+        assertTrue(result.rollingMissingFraction() <= 1.0);
+        assertEquals(1, result.rollingExclusiveCount());
+        assertEquals(4, result.rollingLaneSize());
+        assertTrue(result.rollingExclusiveFraction() >= 0.0);
+        assertTrue(result.rollingExclusiveFraction() <= 1.0);
+        assertFalse(result.rollingMissingFraction() > 1.0,
+                "regression: rollingMissingFraction exceeded 1.0");
     }
 
     @Test

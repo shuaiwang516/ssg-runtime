@@ -130,6 +130,74 @@ public final class DiffComputeMessageTriDiff {
                     + totalCount(in12Only) + totalCount(in02Only);
         }
 
+        /** Number of messages in the rolling lane (lane 1). */
+        public int rollingLaneSize() {
+            return sequence1.size();
+        }
+
+        /**
+         * Messages present only in the rolling lane. Sum of {@code only1}. Always in
+         * {@code [0, rollingLaneSize()]} because {@code only1} is a strict subset of
+         * {@code sequence1}.
+         */
+        public int rollingExclusiveCount() {
+            return totalCount(only1);
+        }
+
+        /**
+         * Messages both baselines (lanes 0 and 2) have but the rolling lane is missing.
+         * Sum of {@code in02Only}.
+         */
+        public int rollingMissingCount() {
+            return totalCount(in02Only);
+        }
+
+        /**
+         * Messages both baselines have in common, i.e. the sum over keys of
+         * {@code min(c0, c2)}. Equals
+         * {@code totalAllThreeCount() + rollingMissingCount()} because every message
+         * both baselines share is either present in all three lanes or missing from
+         * rolling.
+         *
+         * <p>
+         * Used as the denominator of {@link #rollingMissingFraction()} so the fraction
+         * stays bounded in [0, 1] regardless of lane-size skew.
+         */
+        public int baselineSharedCount() {
+            return totalAllThreeCount() + rollingMissingCount();
+        }
+
+        /**
+         * Fraction of the rolling lane that is exclusive to the rolling lane. Returns
+         * {@code 0.0} when the rolling lane is empty. Always in {@code [0, 1]} because
+         * {@code only1} is a strict subset of {@code sequence1}.
+         */
+        public double rollingExclusiveFraction() {
+            int denom = rollingLaneSize();
+            if (denom <= 0) {
+                return 0.0;
+            }
+            return ((double) rollingExclusiveCount()) / denom;
+        }
+
+        /**
+         * Fraction of baseline-shared messages that are missing from the rolling lane.
+         * Returns {@code 0.0} when the baselines have no messages in common. Always in
+         * {@code [0, 1]} because {@code in02Only <= min(c0, c2)} per key.
+         *
+         * <p>
+         * Phase 1 fix: the earlier implementation normalized by rolling-lane size,
+         * which could exceed 1.0 when the rolling lane was much shorter than the
+         * baselines.
+         */
+        public double rollingMissingFraction() {
+            int denom = baselineSharedCount();
+            if (denom <= 0) {
+                return 0.0;
+            }
+            return ((double) rollingMissingCount()) / denom;
+        }
+
         public double orderedCommonRatio() {
             int minLen = Math.min(sequence0.size(), Math.min(sequence1.size(), sequence2.size()));
             if (minLen == 0) {
