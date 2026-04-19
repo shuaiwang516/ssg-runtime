@@ -9,392 +9,373 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.net.tracker.classifier.ProtocolFamily;
+import org.zlab.net.tracker.classifier.ProtocolFamilyClass;
 
 /**
- * Tests for Phase 2/3 canonical key infrastructure on TraceEntry.
+ * Canonical-key tests covering the Phase 1 online identity split.
+ *
+ * <p>Two tiers survive after Phase 1: {@link CanonicalKeyMode#GUIDANCE} (the
+ * new production default, backed by the
+ * {@link org.zlab.net.tracker.classifier.ProtocolFamilyClassifier}) and
+ * {@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY} (retained for offline
+ * diagnosis and signature-dedup fixtures).
  */
 public class TraceEntryCanonicalKeyTest {
 
-    private static TraceEntry entry(TraceEntry.EventType eventType, String nodeId, String peerId,
-            String nodeRole, String peerRole, String messageType, String payloadType) {
-        return entry(eventType, nodeId, peerId, nodeRole, peerRole, messageType, payloadType, 0L,
-                0L, null);
-    }
+    // Factory helpers ---------------------------------------------------------
 
-    private static TraceEntry entry(TraceEntry.EventType eventType, String nodeId, String peerId,
-            String nodeRole, String peerRole, String messageType, String payloadType,
-            long shapeHash, long valueHash, String messageSummary) {
+    private static TraceEntry guidanceEntry(TraceEntry.EventType eventType, String nodeRole,
+            String peerRole, String protocol, String messageType, String rpcService,
+            String rpcMethod, String messageKind, String payloadType) {
         return new TraceEntry(1, "test", 1, eventType, false, System.currentTimeMillis(),
-                System.nanoTime(), nodeId, peerId, nodeRole, peerRole, null, null, messageType,
-                null, null, null, null, -1, shapeHash, valueHash, null, messageSummary, false, 0L,
-                null, 0L, null, payloadType);
+                System.nanoTime(), /*nodeId*/ null, /*peerId*/ null, nodeRole, peerRole,
+                /*channel*/ null, protocol, messageType, /*messageVersion*/ null, rpcService,
+                rpcMethod, messageKind, /*logicalMessageId*/ null, /*deliveryId*/ null,
+                /*fanoutType*/ null, -1, 0L, 0L, /*messageKey*/ null, /*messageSummary*/ null,
+                false, 0L, null, 0L, null, payloadType);
     }
 
-    // --- rawSemanticType / semanticType ---
+    private static TraceEntry summaryEntry(TraceEntry.EventType eventType, String nodeRole,
+            String peerRole, String messageType, String payloadType, long shapeHash,
+            String messageSummary) {
+        return new TraceEntry(1, "test", 1, eventType, false, System.currentTimeMillis(),
+                System.nanoTime(), /*nodeId*/ null, /*peerId*/ null, nodeRole, peerRole,
+                /*channel*/ null, /*protocol*/ null, messageType, /*messageVersion*/ null,
+                /*rpcService*/ null, /*rpcMethod*/ null, /*messageKind*/ null,
+                /*logicalMessageId*/ null, /*deliveryId*/ null, /*fanoutType*/ null, -1, shapeHash,
+                0L, /*messageKey*/ null, messageSummary, false, 0L, null, 0L, null, payloadType);
+    }
+
+    // --- rawSemanticType / semanticType (offline diagnostic tier) -----------
 
     @Test
     public void rawSemanticType_prefersPayloadOverMessageType() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "N0", null, null, null, "MessageOut",
-                "org.apache.cassandra.gms.GossipDigestSyn");
+        TraceEntry e = new TraceEntry(1, "test", 1, TraceEntry.EventType.SEND, false,
+                System.currentTimeMillis(), System.nanoTime(), "N0", null, null, null, null, null,
+                "MessageOut", null, null, null, null, null, null, null, -1, 0L, 0L, null, null,
+                false, 0L, null, 0L, null, "org.apache.cassandra.gms.GossipDigestSyn");
         assertEquals("GossipDigestSyn", e.rawSemanticType());
     }
 
     @Test
     public void rawSemanticType_fallsToMessageType_whenPayloadNull() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "N0", null, null, null, "GOSSIP_DIGEST_SYN",
-                null);
+        TraceEntry e = new TraceEntry(1, "test", 1, TraceEntry.EventType.SEND, false,
+                System.currentTimeMillis(), System.nanoTime(), "N0", null, null, null, null, null,
+                "GOSSIP_DIGEST_SYN", null, null, null, null, null, null, null, -1, 0L, 0L, null,
+                null, false, 0L, null, 0L, null, null);
         assertEquals("GOSSIP_DIGEST_SYN", e.rawSemanticType());
-    }
-
-    @Test
-    public void rawSemanticType_skipsGenericWrapper_messageType() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "N0", null, null, null, "MessageOut", null);
-        assertEquals("UNKNOWN_TYPE", e.rawSemanticType());
     }
 
     @Test
     public void semanticType_appliesAlias_collectionWrapper() {
         // messageType="ArrayList" should NOT be filtered by isGenericWrapper
-        // and should be aliased to COLLECTION_WRAPPER by SemanticAliasTable
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "N0", null, null, null, "ArrayList", null);
+        // and should be aliased to COLLECTION_WRAPPER by SemanticAliasTable.
+        TraceEntry e = new TraceEntry(1, "test", 1, TraceEntry.EventType.SEND, false,
+                System.currentTimeMillis(), System.nanoTime(), "N0", null, null, null, null, null,
+                "ArrayList", null, null, null, null, null, null, null, -1, 0L, 0L, null, null,
+                false, 0L, null, 0L, null, null);
         assertEquals("ArrayList", e.rawSemanticType());
         assertEquals("COLLECTION_WRAPPER", e.semanticType());
     }
 
-    @Test
-    public void semanticType_appliesAlias_singletonList() {
-        // payloadType as full class name: shortClassName strips to SingletonList
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "N0", null, null, null, null,
-                "java.util.Collections$SingletonList");
-        assertEquals("SingletonList", e.rawSemanticType());
-        assertEquals("COLLECTION_WRAPPER", e.semanticType());
-    }
-
-    @Test
-    public void semanticType_noAlias_passesThrough() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "N0", null, null, null, null,
-                "org.apache.cassandra.gms.GossipDigestSyn");
-        assertEquals("GossipDigestSyn", e.semanticType());
-    }
-
-    // --- canonicalEndpointKey ---
+    // --- canonicalEndpointKey ------------------------------------------------
 
     @Test
     public void canonicalEndpointKey_send_usesRoles() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", null, null);
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "GOSSIP_DIGEST_SYN", null, null, null, null);
         assertEquals("node0->node1", e.canonicalEndpointKey());
     }
 
     @Test
     public void canonicalEndpointKey_recvBegin_reversesDirection() {
-        TraceEntry e = entry(TraceEntry.EventType.RECV_BEGIN, "execID-N1", "192.168.1.2", "node1",
-                "node0", null, null);
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.RECV_BEGIN, "node1", "node0", "cassandra",
+                "GOSSIP_DIGEST_SYN", null, null, null, null);
         // RECV_BEGIN: peer is src, self is dst
         assertEquals("node0->node1", e.canonicalEndpointKey());
     }
 
+    // --- GUIDANCE canonical key ---------------------------------------------
+
     @Test
-    public void canonicalEndpointKey_send_fallsBackToNormalizeRole() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", null, "client", null, null,
-                null);
-        assertEquals("client->UNKNOWN", e.canonicalEndpointKey());
+    public void guidanceKey_cassandraGossipVerbMapsToBackground() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "GOSSIP_DIGEST_SYN", null, null, null, null);
+        assertEquals("SEND|node0->node1|BACKGROUND",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalEndpointKey_nullRoles_usesRawIdFallback() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", null, null,
-                null, null);
-        // normalizeRole("execID-N0") -> "N0", normalizeRole("192.168.1.5") ->
-        // "192.168.1.5"
-        assertEquals("N0->192.168.1.5", e.canonicalEndpointKey());
-    }
-
-    // --- canonicalMessageKey: SEMANTIC (default / no-arg) ---
-
-    @Test
-    public void canonicalMessageKey_fullExample() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "client",
-                "namenode", null, "org.apache.hadoop.hdfs.protocol.proto"
-                        + ".ClientNamenodeProtocolProtos$GetFileInfoRequestProto");
-        assertEquals("SEND|client->namenode|GetFileInfoRequestProto", e.canonicalMessageKey());
+    public void guidanceKey_cassandraSchemaVerb() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null);
+        assertEquals("SEND|node0->node1|CASSANDRA_SCHEMA_SYNC",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_omitsEndpoint_whenBothUnknown() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, null, null, null, null, null,
-                "org.apache.cassandra.gms.GossipDigestSyn");
-        assertEquals("SEND|GossipDigestSyn", e.canonicalMessageKey());
+    public void guidanceKey_hdfsNamespaceMutation() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "client", "namenode", "hdfs-rpc",
+                null, "ClientNamenodeProtocol", "mkdirs", null, null);
+        assertEquals("SEND|client->namenode|HDFS_CLIENT_NAMESPACE_MUTATION",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_cassandraGossip() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", "GOSSIP_DIGEST_SYN", "org.apache.cassandra.gms.GossipDigestSyn");
-        assertEquals("SEND|node0->node1|GossipDigestSyn", e.canonicalMessageKey());
-    }
-
-    // --- Phase 3: CanonicalKeyMode ---
-
-    @Test
-    public void canonicalMessageKey_noArgMatchesSemanticOverload() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", null, "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0x12345678L,
-                "GossipDigestSyn|(size=3)|42");
-        assertEquals(e.canonicalMessageKey(), e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC));
+    public void guidanceKey_hbaseMasterDdlMethodMapsToMasterSchemaDdl() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "client", "master", "hbase", null,
+                "MasterService", "CreateTable", null, null);
+        assertEquals("SEND|client->master|HBASE_MASTER_SCHEMA_DDL",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_nullModeDefaultsToSemantic() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", null, "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0x12345678L,
-                "GossipDigestSyn|42");
-        assertEquals(e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC), e.canonicalMessageKey(null));
+    public void guidanceKey_hbaseMutateMethodMapsToClientMutation() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "client", "region", "hbase", null,
+                "ClientService", "Mutate", "PUT", null);
+        assertEquals("SEND|client->region|HBASE_CLIENT_MUTATION_OR_MULTI",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_semanticShape_appendsShapeFragment() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", null, "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0L, null);
-        assertEquals("SEND|node0->node1|GossipDigestSyn|shape=abcdef01",
-                e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE));
+    public void guidanceKey_omitsEndpointWhenBothRolesUnknown() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, null, null, "cassandra",
+                "GOSSIP_DIGEST_SYN", null, null, null, null);
+        assertEquals("SEND|BACKGROUND", e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_semanticShape_omitsEndpointWhenBothUnknown() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, null, null, null, null, null,
-                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0L, null);
-        assertEquals("SEND|GossipDigestSyn|shape=abcdef01",
-                e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE));
+    public void guidanceKey_unclassifiedFallsBackToUnknownWithRawTail() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SOME_BRAND_NEW_VERB_IN_6_X", null, null, null, null);
+        assertEquals("SEND|node0->node1|UNKNOWN:SOME_BRAND_NEW_VERB_IN_6_X",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_semanticShape_separatesDifferentShapes() {
-        // Same semantic type, different payload field sets -> different shape hash
-        TraceEntry small = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0x1111L, 0L, null);
-        TraceEntry large = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0x2222L, 0L, null);
-
-        // SEMANTIC collapses them
-        assertEquals(small.canonicalMessageKey(CanonicalKeyMode.SEMANTIC),
-                large.canonicalMessageKey(CanonicalKeyMode.SEMANTIC));
-        // SEMANTIC_SHAPE separates them
-        assertNotEquals(small.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE),
-                large.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE));
+    public void guidanceKey_unknownBucketSeparatesDistinctTypes() {
+        TraceEntry a = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "UNCHARTED_VERB_A", null, null, null, null);
+        TraceEntry b = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "UNCHARTED_VERB_B", null, null, null, null);
+        assertNotEquals(a.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
+                b.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void canonicalMessageKey_semanticShapeSummary_appendsSummaryBucket() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", null, "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0L,
+    public void guidanceKey_unknownTailPrefersRpcMethodForUnclassifiedHdfs() {
+        // HDFS unclassified methods on the same protocol have null payload
+        // and null messageType because the protobuf wrapper is a generic
+        // RpcRequestWrapper. Without an rpcMethod tail they would both
+        // collapse to UNKNOWN:UNKNOWN_TYPE — the GUIDANCE tail must use
+        // the RPC method to keep them separable.
+        TraceEntry a = guidanceEntry(TraceEntry.EventType.SEND, "client", "namenode", "hdfs-rpc",
+                null, "ClientNamenodeProtocol", "someUnchartedMethodA", null, null);
+        TraceEntry b = guidanceEntry(TraceEntry.EventType.SEND, "client", "namenode", "hdfs-rpc",
+                null, "ClientNamenodeProtocol", "someUnchartedMethodB", null, null);
+        String keyA = a.canonicalMessageKey(CanonicalKeyMode.GUIDANCE);
+        String keyB = b.canonicalMessageKey(CanonicalKeyMode.GUIDANCE);
+        assertNotEquals(keyA, keyB);
+        assertTrue(keyA.endsWith("|UNKNOWN:ClientNamenodeProtocol#someUnchartedMethodA"),
+                "key should carry the rpcService#rpcMethod tail, got: " + keyA);
+        assertTrue(keyB.endsWith("|UNKNOWN:ClientNamenodeProtocol#someUnchartedMethodB"),
+                "key should carry the rpcService#rpcMethod tail, got: " + keyB);
+    }
+
+    @Test
+    public void guidanceKey_unknownTailUsesRpcMethodAloneWhenServiceMissing() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "client", "master", "hbase",
+                null, null, "unchartedRpc", null, null);
+        String key = e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE);
+        assertTrue(key.endsWith("|UNKNOWN:unchartedRpc"),
+                "key should carry the rpcMethod tail, got: " + key);
+    }
+
+    @Test
+    public void guidanceKey_unknownTailFallsBackToRawSemanticTypeWhenRpcMissing() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SOME_BRAND_NEW_VERB", null, null, null, null);
+        assertEquals("SEND|node0->node1|UNKNOWN:SOME_BRAND_NEW_VERB",
+                e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
+    }
+
+    @Test
+    public void guidanceKey_noArgDefaultMatchesGuidanceOverload() {
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null);
+        assertEquals(e.canonicalMessageKey(), e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
+        assertEquals(e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
+                e.canonicalMessageKey(null));
+    }
+
+    // --- GUIDANCE stability across versions ---------------------------------
+
+    @Test
+    public void guidanceKey_stableAcrossCassandraMutationWrapperDrift() {
+        // Cassandra 3.x sends Mutation wrapped in SingletonList; 4.x in ArrayList.
+        // With GUIDANCE identity, the classifier ignores the wrapper type and
+        // looks at the verb (MUTATION_REQ or MUTATION); when both lanes carry
+        // the same verb, the key is stable across the wrapper rename even
+        // though the underlying message types differ.
+        TraceEntry cass3 = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "HINT_REQ", null, null, null, null);
+        TraceEntry cass4 = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "HINT_REQ", null, null, null, null);
+        assertEquals(cass3.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
+                cass4.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
+    }
+
+    @Test
+    public void guidanceKey_stableAcrossCassandraVerbRename() {
+        // 3.x used MIGRATION_REQUEST; 4.x uses SCHEMA_PULL_REQ. Classifier maps
+        // both to CASSANDRA_SCHEMA_SYNC so the guidance key is stable across
+        // the version-pair that would otherwise fragment messages by verb.
+        TraceEntry cass3 = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "MIGRATION_REQUEST", null, null, null, null);
+        TraceEntry cass4 = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null);
+        assertEquals(cass3.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
+                cass4.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
+    }
+
+    @Test
+    public void guidanceKey_distinguishesUpgradeCriticalFromBackground() {
+        TraceEntry schema = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null);
+        TraceEntry gossip = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "GOSSIP_DIGEST_SYN", null, null, null, null);
+        assertNotEquals(schema.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
+                gossip.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
+        assertEquals(ProtocolFamilyClass.UPGRADE_CRITICAL, schema.protocolFamilyClass());
+        assertEquals(ProtocolFamilyClass.BACKGROUND, gossip.protocolFamilyClass());
+    }
+
+    @Test
+    public void guidanceKey_rolesAffectOnlineKey() {
+        TraceEntry a = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null);
+        TraceEntry b = guidanceEntry(TraceEntry.EventType.SEND, "node1", "node2", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null);
+        assertNotEquals(a.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
+                b.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
+    }
+
+    @Test
+    public void protocolFamily_exposesClassifierResult() {
+        TraceEntry paxos = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "PAXOS_PREPARE_REQ", null, null, null, null);
+        assertEquals(ProtocolFamily.CASSANDRA_PAXOS, paxos.protocolFamily());
+    }
+
+    // --- SEMANTIC_SHAPE_SUMMARY (retained diagnostic tier) ------------------
+
+    @Test
+    public void summaryKey_appendsShapeAndSummaryBucket() {
+        TraceEntry e = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L,
                 "GossipDigestSyn|node0|42");
         String key = e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
         assertTrue(key.startsWith("SEND|node0->node1|GossipDigestSyn|shape=abcdef01|sum="),
-                "key should start with SEND|node0->node1|GossipDigestSyn|shape=abcdef01|sum=");
+                "key should start with the diagnostic prefix, got: " + key);
         assertFalse(key.endsWith("|sum=-"),
                 "summary bucket should not be the sentinel '-' for a non-empty summary");
     }
 
     @Test
-    public void canonicalMessageKey_semanticShapeSummary_nullSummaryHitsSentinel() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0L, null);
+    public void summaryKey_nullSummaryHitsSentinel() {
+        TraceEntry e = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, null);
         assertEquals("SEND|node0->node1|GossipDigestSyn|shape=abcdef01|sum=-",
                 e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
     }
 
     @Test
-    public void canonicalMessageKey_semanticShapeSummary_bucketsNumericNoise() {
-        // Two messages differ only in numeric field values; the bucketed summary
-        // hash should collapse them to the same SEMANTIC_SHAPE_SUMMARY key.
-        TraceEntry a = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0L,
-                "GossipDigestSyn|node0|42");
-        TraceEntry b = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0L,
+    public void summaryKey_bucketsNumericNoise() {
+        TraceEntry a = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, "GossipDigestSyn|node0|42");
+        TraceEntry b = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L,
                 "GossipDigestSyn|node0|9999");
         assertEquals(a.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
                 b.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
     }
 
     @Test
-    public void canonicalMessageKey_semanticShapeSummary_bucketsContainerSizeNoise() {
-        // Different container sizes (size=N) should bucket to (size=*)
-        TraceEntry a = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0L, "Mutation|(size=3)|keyspace1");
-        TraceEntry b = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0L, "Mutation|(size=57)|keyspace1");
-        assertEquals(a.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
-                b.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
-    }
-
-    @Test
-    public void canonicalMessageKey_semanticShapeSummary_separatesStructurallyDifferent() {
-        // Same semType + shape but structurally different non-numeric tokens in
-        // summary -> the bucket must differ.
-        TraceEntry a = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0L, "Mutation|keyspace1|table_a");
-        TraceEntry b = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0L, "Mutation|keyspace2|table_b");
+    public void summaryKey_separatesStructurallyDifferent() {
+        TraceEntry a = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.db.Mutation", 0xABCDL, "Mutation|keyspace1|table_a");
+        TraceEntry b = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.db.Mutation", 0xABCDL, "Mutation|keyspace2|table_b");
         assertNotEquals(a.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
                 b.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
     }
 
+    // --- CanonicalKeyMode enum & default ------------------------------------
+
     @Test
-    public void canonicalMessageKey_semanticShapeValue_appendsRawValueHash() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, "execID-N0", "192.168.1.5", "node0",
-                "node1", null, "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, 0xCAFEBABEL,
-                null);
-        assertEquals("SEND|node0->node1|GossipDigestSyn|shape=abcdef01|val=cafebabe",
-                e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_VALUE));
+    public void defaultCanonicalKeyMode_isGuidance() {
+        assertEquals(CanonicalKeyMode.GUIDANCE, CanonicalKeyMode.DEFAULT);
     }
 
-    @Test
-    public void canonicalMessageKey_semanticShapeValue_separatesDifferentValueHashes() {
-        TraceEntry a = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0x1111L, null);
-        TraceEntry b = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0x2222L, null);
-        assertNotEquals(a.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_VALUE),
-                b.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_VALUE));
-    }
-
-    // --- Phase 3: cross-version stability invariants ---
+    // --- Trace accessors -----------------------------------------------------
 
     @Test
-    public void canonicalKey_crossVersionAlias_matchesAtAllTiersWhenTraitsMatch() {
-        // Cassandra 3.x sends Mutation wrapped in SingletonList; 4.x in ArrayList.
-        // SemanticAliasTable canonicalizes both to COLLECTION_WRAPPER. As long as
-        // shape+summary match, every tier should collapse them.
-        TraceEntry cass3 = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1",
-                "SingletonList", null, 0xDEADBEEFL, 0L, "SingletonList|Mutation|keyspace1");
-        TraceEntry cass4 = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1",
-                "ArrayList", null, 0xDEADBEEFL, 0L, "ArrayList|Mutation|keyspace1");
-
-        // The aliased semanticType collapses them at every non-VALUE tier.
-        assertEquals(cass3.canonicalMessageKey(CanonicalKeyMode.SEMANTIC),
-                cass4.canonicalMessageKey(CanonicalKeyMode.SEMANTIC));
-        assertEquals(cass3.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE),
-                cass4.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE));
-        // Even with distinct wrapper tokens in summary, the same bucketed content
-        // (Mutation|keyspace1) produces the same bucket hash.
-        assertEquals(cass3.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
-                cass4.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
-    }
-
-    @Test
-    public void canonicalKey_crossVersionSummaryWithNumericDrift_stableAtSummaryTier() {
-        // Same semantic type across versions; only numeric tokens (node index,
-        // timestamps, counters) drift. SEMANTIC_SHAPE_SUMMARY must remain stable.
-        TraceEntry older = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos"
-                        + "$GetFileInfoRequestProto",
-                0xFEEDL, 0L, "GetFileInfoRequestProto|/tmp/x|1710000000");
-        TraceEntry newer = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos"
-                        + "$GetFileInfoRequestProto",
-                0xFEEDL, 0L, "GetFileInfoRequestProto|/tmp/x|1710555555");
-        assertEquals(older.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
-                newer.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
-    }
-
-    @Test
-    public void canonicalKey_crossVersionSummaryWithHexDrift_stableAtSummaryTier() {
-        // Message id (8+ hex chars) differs between runs; summary must bucket it
-        // to <hex> so identical requests collapse.
-        TraceEntry a = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.hbase.RegionInfo", 0xBABEL, 0L,
-                "RegionInfo|defaulttest|deadbeefcafebabe");
-        TraceEntry b = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.hbase.RegionInfo", 0xBABEL, 0L,
-                "RegionInfo|defaulttest|fedcba9876543210");
-        assertEquals(a.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
-                b.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
-    }
-
-    @Test
-    public void canonicalKey_crossVersionSummaryWithUuidDrift_stableAtSummaryTier() {
-        TraceEntry a = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.hbase.ScanRequest", 0xCAFEL, 0L,
-                "ScanRequest|my_table|550e8400-e29b-41d4-a716-446655440000");
-        TraceEntry b = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.hbase.ScanRequest", 0xCAFEL, 0L,
-                "ScanRequest|my_table|6ba7b810-9dad-11d1-80b4-00c04fd430c8");
-        assertEquals(a.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY),
-                b.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY));
-    }
-
-    // --- Phase 3: tier ordering sanity ---
-
-    @Test
-    public void canonicalKey_tiers_strictlyExtendFromCoarseToFine() {
-        TraceEntry e = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0x1234L, 0xABCDL,
-                "Mutation|(size=3)|keyspace1");
-        String semantic = e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC);
-        String shape = e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE);
-        String shapeSummary = e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
-        String shapeValue = e.canonicalMessageKey(CanonicalKeyMode.SEMANTIC_SHAPE_VALUE);
-
-        assertTrue(shape.startsWith(semantic + "|shape="));
-        assertTrue(shapeSummary.startsWith(shape + "|sum="));
-        assertTrue(shapeValue.startsWith(shape + "|val="));
-    }
-
-    @Test
-    public void defaultCanonicalKeyMode_isSemanticShapeSummary() {
-        assertEquals(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY, CanonicalKeyMode.DEFAULT);
-    }
-
-    // --- Phase 3: Trace accessor overloads ---
-
-    @Test
-    public void traceAccessors_noArgMatchesSemanticOverload() {
+    public void traceAccessors_noArgMatchesGuidanceOverload() {
         Trace t = new Trace();
-        t.addEntry(entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0L, "Mutation|keyspace1"));
-        t.addEntry(entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.gms.GossipDigestSyn", 0xBEEFL, 0L, "GossipDigestSyn|node0"));
+        t.addEntry(guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "SCHEMA_PULL_REQ", null, null, null, null));
+        t.addEntry(guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "GOSSIP_DIGEST_SYN", null, null, null, null));
 
-        assertEquals(t.getCanonicalMultiset(), t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC));
+        assertEquals(t.getCanonicalMultiset(), t.getCanonicalMultiset(CanonicalKeyMode.GUIDANCE));
         assertEquals(t.getCanonicalKeysForDiff(),
-                t.getCanonicalKeysForDiff(CanonicalKeyMode.SEMANTIC));
+                t.getCanonicalKeysForDiff(CanonicalKeyMode.GUIDANCE));
     }
 
     @Test
-    public void traceAccessors_shapeSummaryTierUsesTierSpecificKeys() {
+    public void traceAccessors_guidanceTierCollapsesWithinSemanticDrift() {
+        // Same classifier family, different shape. GUIDANCE must collapse both
+        // entries into a single bucket because shape is not part of the key.
+        // Tag the messageType with a known Cassandra verb so both entries
+        // classify to the same family and the shape drift does not split the
+        // guidance key.
         Trace t = new Trace();
-        TraceEntry e = entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0xABCDL, 0L, "Mutation|keyspace1");
-        t.addEntry(e);
+        t.addEntry(guidanceEntryWithShape(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "HINT_REQ", 0x1111L));
+        t.addEntry(guidanceEntryWithShape(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
+                "HINT_REQ", 0x2222L));
 
-        Map<String, Integer> semantic = t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC);
-        Map<String, Integer> shapeSummary = t
-                .getCanonicalMultiset(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
+        // Both entries classify to CASSANDRA_READ_REPAIR_OR_HINT at the
+        // guidance tier. The offline-diagnostic summary tier still separates
+        // them because the shape hashes differ.
+        assertEquals(1, t.getCanonicalMultiset(CanonicalKeyMode.GUIDANCE).size());
+        assertEquals(2, t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY).size());
+    }
 
-        // Same entry, same multiset cardinality, but distinct key strings
-        // at the two tiers.
-        assertEquals(1, semantic.size());
-        assertEquals(1, shapeSummary.size());
-        assertNotEquals(semantic.keySet(), shapeSummary.keySet());
+    private static TraceEntry guidanceEntryWithShape(TraceEntry.EventType eventType,
+            String nodeRole, String peerRole, String protocol, String messageType, long shapeHash) {
+        return new TraceEntry(1, "test", 1, eventType, false, System.currentTimeMillis(),
+                System.nanoTime(), null, null, nodeRole, peerRole, null, protocol, messageType,
+                null, null, null, null, null, null, null, -1, shapeHash, 0L, null, null, false, 0L,
+                null, 0L, null, null);
+    }
+
+    @Test
+    public void traceAccessors_summaryTierProducesTierSpecificKeys() {
+        Trace t = new Trace();
+        t.addEntry(summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
+                "org.apache.cassandra.db.Mutation", 0xABCDL, "Mutation|keyspace1"));
+
+        Map<String, Integer> guidance = t.getCanonicalMultiset(CanonicalKeyMode.GUIDANCE);
+        Map<String, Integer> summary = t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
+
+        assertEquals(1, guidance.size());
+        assertEquals(1, summary.size());
+        assertNotEquals(guidance.keySet(), summary.keySet());
 
         List<String> diffKeys = t.getCanonicalKeysForDiff(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
         assertEquals(1, diffKeys.size());
-        assertEquals(shapeSummary.keySet().iterator().next(), diffKeys.get(0));
-    }
-
-    @Test
-    public void traceAccessors_separatesWithinSemanticDriftAtShapeTier() {
-        // One semantic type, two distinct shapes -> SEMANTIC collapses to size 1,
-        // SEMANTIC_SHAPE separates to size 2.
-        Trace t = new Trace();
-        t.addEntry(entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0x1111L, 0L, null));
-        t.addEntry(entry(TraceEntry.EventType.SEND, null, null, "node0", "node1", null,
-                "org.apache.cassandra.db.Mutation", 0x2222L, 0L, null));
-
-        assertEquals(1, t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC).size());
-        assertEquals(2, t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC_SHAPE).size());
+        assertEquals(summary.keySet().iterator().next(), diffKeys.get(0));
     }
 }

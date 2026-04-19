@@ -3,8 +3,12 @@ package org.zlab.net.tracker;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import org.zlab.net.tracker.classifier.ProtocolFamily;
+import org.zlab.net.tracker.classifier.ProtocolFamilyClass;
+import org.zlab.net.tracker.classifier.ProtocolFamilyClassifier;
+
 public class TraceEntry implements Serializable {
-    private static final long serialVersionUID = 20260407L;
+    private static final long serialVersionUID = 20260419L;
 
     public enum EventType {
         SEND, RECV_BEGIN, RECV_END, UNKNOWN
@@ -27,6 +31,12 @@ public class TraceEntry implements Serializable {
     public final String protocol;
     public final String messageType;
     public final String messageVersion;
+    /** Phase 1 classifier input — see {@link SendMeta#rpcService}. */
+    public final String rpcService;
+    /** Phase 1 classifier input — see {@link SendMeta#rpcMethod}. */
+    public final String rpcMethod;
+    /** Phase 1 classifier input — see {@link SendMeta#messageKind}. */
+    public final String messageKind;
     public final String logicalMessageId;
     public final String deliveryId;
     public final String fanoutType;
@@ -50,18 +60,30 @@ public class TraceEntry implements Serializable {
 
     public TraceEntry(int id, String methodName, int hashcode, boolean changedMessage) {
         this(id, methodName, hashcode, EventType.UNKNOWN, changedMessage,
-                System.currentTimeMillis(), System.nanoTime(), null, null, null, null, null, null,
-                null, null, null, null, null, -1, -1, -1, null, null, false, -1, null, -1, null,
+                System.currentTimeMillis(), System.nanoTime(),
+                // nodeId, peerId, nodeRole, peerRole, channel, protocol
+                null, null, null, null, null, null,
+                // messageType, messageVersion, rpcService, rpcMethod, messageKind,
+                // logicalMessageId, deliveryId, fanoutType
+                null, null, null, null, null, null, null, null,
+                // targetCount, messageShapeHash, messageValueHash
+                -1, -1L, -1L,
+                // messageKey, messageSummary, timedOut
+                null, null, false,
+                // beforeExecPathHash, beforeExecPath, afterExecPathHash, afterExecPath
+                -1L, null, -1L, null,
+                // payloadType
                 null);
     }
 
     public TraceEntry(int id, String methodName, int hashcode, EventType eventType,
             boolean changedMessage, long timestamp, long timestampNanos, String nodeId,
             String peerId, String nodeRole, String peerRole, String channel, String protocol,
-            String messageType, String messageVersion, String logicalMessageId, String deliveryId,
-            String fanoutType, int targetCount, long messageShapeHash, long messageValueHash,
-            String messageKey, String messageSummary, boolean timedOut, long beforeExecPathHash,
-            int[] beforeExecPath, long afterExecPathHash, int[] afterExecPath, String payloadType) {
+            String messageType, String messageVersion, String rpcService, String rpcMethod,
+            String messageKind, String logicalMessageId, String deliveryId, String fanoutType,
+            int targetCount, long messageShapeHash, long messageValueHash, String messageKey,
+            String messageSummary, boolean timedOut, long beforeExecPathHash, int[] beforeExecPath,
+            long afterExecPathHash, int[] afterExecPath, String payloadType) {
         this.id = id;
         this.methodName = methodName;
         this.hashcode = hashcode;
@@ -77,6 +99,9 @@ public class TraceEntry implements Serializable {
         this.protocol = protocol;
         this.messageType = messageType;
         this.messageVersion = messageVersion;
+        this.rpcService = rpcService;
+        this.rpcMethod = rpcMethod;
+        this.messageKind = messageKind;
         this.logicalMessageId = logicalMessageId;
         this.deliveryId = deliveryId;
         this.fanoutType = fanoutType;
@@ -99,9 +124,10 @@ public class TraceEntry implements Serializable {
     public TraceEntry copy() {
         return new TraceEntry(id, methodName, hashcode, eventType, changedMessage, timestamp,
                 timestampNanos, nodeId, peerId, nodeRole, peerRole, channel, protocol, messageType,
-                messageVersion, logicalMessageId, deliveryId, fanoutType, targetCount,
-                messageShapeHash, messageValueHash, messageKey, messageSummary, timedOut,
-                beforeExecPathHash, beforeExecPath, afterExecPathHash, afterExecPath, log);
+                messageVersion, rpcService, rpcMethod, messageKind, logicalMessageId, deliveryId,
+                fanoutType, targetCount, messageShapeHash, messageValueHash, messageKey,
+                messageSummary, timedOut, beforeExecPathHash, beforeExecPath, afterExecPathHash,
+                afterExecPath, log);
     }
 
     private static int[] copy(int[] values) {
@@ -118,18 +144,20 @@ public class TraceEntry implements Serializable {
                 + ", timestamp=" + timestamp + ", nodeId='" + nodeId + '\'' + ", peerId='" + peerId
                 + '\'' + ", nodeRole='" + nodeRole + '\'' + ", peerRole='" + peerRole + '\''
                 + ", messageType='" + messageType + '\'' + ", messageVersion='" + messageVersion
-                + '\'' + ", logicalMessageId='" + logicalMessageId + '\'' + ", deliveryId='"
-                + deliveryId + '\'' + ", messageShapeHash=" + messageShapeHash
-                + ", messageValueHash=" + messageValueHash + ", messageKey='" + messageKey + '\''
-                + ", messageSummary='" + messageSummary + '\'' + ", timedOut=" + timedOut
-                + ", beforeExecPathHash=" + beforeExecPathHash + ", beforeExecPath="
+                + '\'' + ", rpcService='" + rpcService + '\'' + ", rpcMethod='" + rpcMethod + '\''
+                + ", messageKind='" + messageKind + '\'' + ", logicalMessageId='"
+                + logicalMessageId + '\'' + ", deliveryId='" + deliveryId + '\''
+                + ", messageShapeHash=" + messageShapeHash + ", messageValueHash="
+                + messageValueHash + ", messageKey='" + messageKey + '\'' + ", messageSummary='"
+                + messageSummary + '\'' + ", timedOut=" + timedOut + ", beforeExecPathHash="
+                + beforeExecPathHash + ", beforeExecPath="
                 + (beforeExecPath != null ? Arrays.toString(beforeExecPath) : "null")
                 + ", afterExecPathHash=" + afterExecPathHash + ", afterExecPath="
                 + (afterExecPath != null ? Arrays.toString(afterExecPath) : "null") + ", log='"
                 + log + '\'' + '}';
     }
 
-    // --- Canonical key support (Phase 2) ---
+    // --- Canonical key support ---
 
     /**
      * Returns the most specific raw semantic type available for this entry. Does
@@ -152,12 +180,71 @@ public class TraceEntry implements Serializable {
     }
 
     /**
+     * Returns the most specific available token for the
+     * {@link CanonicalKeyMode#GUIDANCE} {@code UNKNOWN:{tail}} fallback.
+     * Prefers the Phase 1 classifier inputs ({@link #rpcService} and
+     * {@link #rpcMethod}) over the raw semantic type so distinct
+     * unclassified HDFS / HBase RPC methods remain distinguishable even
+     * when neither {@code messageType} nor {@code payloadType} is usable
+     * (the common case for protobuf-wrapped calls). Falls back to the
+     * raw semantic type when no RPC method is available.
+     */
+    String guidanceUnknownTail() {
+        String method = normalizeOrNull(this.rpcMethod);
+        if (method != null) {
+            String service = normalizeOrNull(this.rpcService);
+            if (service != null) {
+                return shortClassName(service) + "#" + method;
+            }
+            return method;
+        }
+        String service = normalizeOrNull(this.rpcService);
+        if (service != null) {
+            return shortClassName(service);
+        }
+        return rawSemanticType();
+    }
+
+    private static String normalizeOrNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || "null".equals(trimmed)) {
+            return null;
+        }
+        return trimmed;
+    }
+
+    /**
      * Returns the canonical semantic type after applying cross-version alias
-     * mapping.
+     * mapping. Still used by the {@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY}
+     * diagnostic tier.
      */
     public String semanticType() {
         String raw = rawSemanticType();
         return SemanticAliasTable.canonicalize(raw);
+    }
+
+    /**
+     * Phase 1 online guidance classification. The classifier consumes the
+     * richer attributes ({@code protocol}, {@code messageType},
+     * {@code rpcService}, {@code rpcMethod}, {@code messageKind}, and the
+     * payload class name) and returns a stable {@link ProtocolFamily}. A
+     * {@code null} or unrecognised message falls back to
+     * {@link ProtocolFamily#UNKNOWN}.
+     */
+    public ProtocolFamily protocolFamily() {
+        return ProtocolFamilyClassifier.classify(this.protocol, this.messageType, this.rpcService,
+                this.rpcMethod, this.messageKind, this.log);
+    }
+
+    /**
+     * Convenience accessor returning the coarse {@link ProtocolFamilyClass}
+     * attached to {@link #protocolFamily()}.
+     */
+    public ProtocolFamilyClass protocolFamilyClass() {
+        return protocolFamily().familyClass();
     }
 
     /**
@@ -187,67 +274,68 @@ public class TraceEntry implements Serializable {
     }
 
     /**
-     * Returns the canonical message key at the coarsest
-     * {@link CanonicalKeyMode#SEMANTIC} tier for cross-version comparison. Format:
-     * {eventDirection}|{src->dst}|{semanticType}
-     *
-     * <p>
-     * Kept as the default for backward compatibility with older callers and tests.
-     * Production fuzzing threads an explicit mode through
-     * {@link #canonicalMessageKey(CanonicalKeyMode)} from Config.
+     * Returns the canonical message key at the default
+     * {@link CanonicalKeyMode#GUIDANCE} tier. This is the Phase 1 online
+     * identity used by the live scorer.
      */
     public String canonicalMessageKey() {
-        return canonicalMessageKey(CanonicalKeyMode.SEMANTIC);
+        return canonicalMessageKey(CanonicalKeyMode.GUIDANCE);
     }
 
     /**
-     * Returns the canonical message key at the requested tier. Higher tiers append
-     * extra fragments on top of the {@link CanonicalKeyMode#SEMANTIC} base so that
-     * within-semantic drift can still surface as a distinct key:
+     * Returns the canonical message key at the requested tier. A {@code null}
+     * tier defaults to {@link CanonicalKeyMode#GUIDANCE}.
      *
      * <ul>
-     * <li>{@link CanonicalKeyMode#SEMANTIC}:
-     * {@code {dir}|{endpoint}|{semType}}</li>
-     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE}: appends
-     * {@code |shape={hex}}</li>
-     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY}: appends
-     * {@code |shape={hex}|sum={bucketHash}}</li>
-     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE_VALUE}: appends
-     * {@code |shape={hex}|val={hex}} (strict; not a production default)</li>
+     * <li>{@link CanonicalKeyMode#GUIDANCE}:
+     * {@code {dir}|{endpoint}|{protocolFamily}}, with
+     * {@code UNKNOWN:{rawSemanticType}} appended when the classifier falls
+     * back to {@link ProtocolFamily#UNKNOWN}. The tail keeps long-tail
+     * traffic distinguishable while Phase 5 profiles grow the classifier
+     * coverage.</li>
+     * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY}:
+     * {@code {dir}|{endpoint}|{semType}|shape={hex}|sum={bucketHash}}</li>
      * </ul>
      *
-     * <p>
-     * A {@code null} mode falls back to {@link CanonicalKeyMode#SEMANTIC}.
+     * The endpoint fragment is omitted when both roles resolve to
+     * {@code UNKNOWN} so lane comparisons remain stable in role-starved
+     * traces.
      */
     public String canonicalMessageKey(CanonicalKeyMode mode) {
-        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.GUIDANCE;
         String dir = (this.eventType != null) ? this.eventType.name() : "UNKNOWN";
         String endpoint = canonicalEndpointKey();
-        String semType = semanticType();
 
-        // If both roles unknown, omit endpoint to reduce noise
         StringBuilder key = new StringBuilder();
         key.append(dir).append('|');
         if (!endpoint.equals("UNKNOWN->UNKNOWN")) {
             key.append(endpoint).append('|');
         }
-        key.append(semType);
-
         switch (resolved) {
-            case SEMANTIC :
+            case GUIDANCE : {
+                ProtocolFamily family = protocolFamily();
+                key.append(family.token());
+                if (family == ProtocolFamily.UNKNOWN) {
+                    // Preserve distinguishability within the UNKNOWN bucket so
+                    // long-tail traffic still splits across keys until Phase 5
+                    // profiles grow the classifier coverage. The tail prefers
+                    // the Phase 1 classifier inputs ({@link #rpcService} and
+                    // {@link #rpcMethod}) so distinct unclassified HDFS /
+                    // HBase RPCs remain separable even when the payload
+                    // / message types are generic protobuf wrappers; only
+                    // as a last resort does it fall through to the raw
+                    // semantic type.
+                    key.append(':').append(guidanceUnknownTail());
+                }
                 break;
-            case SEMANTIC_SHAPE :
-                key.append("|shape=").append(Long.toHexString(this.messageShapeHash));
-                break;
+            }
             case SEMANTIC_SHAPE_SUMMARY :
+                key.append(semanticType());
                 key.append("|shape=").append(Long.toHexString(this.messageShapeHash));
                 key.append("|sum=").append(SummaryBucket.bucketHash(this.messageSummary));
                 break;
-            case SEMANTIC_SHAPE_VALUE :
-                key.append("|shape=").append(Long.toHexString(this.messageShapeHash));
-                key.append("|val=").append(Long.toHexString(this.messageValueHash));
-                break;
             default :
+                key.append(protocolFamily().token());
                 break;
         }
         return key.toString();
@@ -275,9 +363,9 @@ public class TraceEntry implements Serializable {
     }
 
     private static String normalizeRole(String rawId) {
-        // Phase 3 will add proper role normalization.
-        // For now, extract the node-index suffix if present (e.g., "SrnNTLLS-N0" ->
-        // "N0")
+        // Extract the node-index suffix if present (e.g., "SrnNTLLS-N0" ->
+        // "N0"); otherwise return the raw id so the endpoint remains stable
+        // across runs.
         if (rawId == null || rawId.isEmpty() || "null".equals(rawId)) {
             return "UNKNOWN";
         }

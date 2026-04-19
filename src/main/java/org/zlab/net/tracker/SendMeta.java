@@ -3,7 +3,7 @@ package org.zlab.net.tracker;
 import java.io.Serializable;
 
 public class SendMeta implements Serializable {
-    private static final long serialVersionUID = 20260208L;
+    private static final long serialVersionUID = 20260419L;
 
     public final String nodeId;
     public final String peerId;
@@ -11,6 +11,26 @@ public class SendMeta implements Serializable {
     public final String protocol;
     public final String messageType;
     public final String messageVersion;
+    /**
+     * Phase 1 classifier input: logical RPC service name when the wire protocol
+     * exposes it (HDFS {@code ClientProtocol} / {@code DatanodeProtocol} /
+     * {@code QJournalProtocol}, HBase protobuf service). {@code null} when the
+     * concept is not meaningful for the system (Cassandra internode verbs).
+     */
+    public final String rpcService;
+    /**
+     * Phase 1 classifier input: the method name within {@link #rpcService}.
+     * {@code null} when not applicable. For Cassandra this is typically the
+     * verb name already carried by {@link #messageType} and stays {@code null}.
+     */
+    public final String rpcMethod;
+    /**
+     * Phase 1 classifier input: an optional coarse subtype qualifier used when
+     * {@link #rpcService} / {@link #rpcMethod} is not precise enough (for
+     * example HBase {@code ClientService.Mutate} subtype {@code PUT} /
+     * {@code DELETE} / {@code INCREMENT}). {@code null} when not applicable.
+     */
+    public final String messageKind;
     public final String logicalMessageId;
     public final String deliveryId;
     public final String fanoutType;
@@ -25,6 +45,9 @@ public class SendMeta implements Serializable {
         this.protocol = builder.protocol;
         this.messageType = builder.messageType;
         this.messageVersion = builder.messageVersion;
+        this.rpcService = builder.rpcService;
+        this.rpcMethod = builder.rpcMethod;
+        this.messageKind = builder.messageKind;
         this.logicalMessageId = builder.logicalMessageId;
         this.deliveryId = builder.deliveryId;
         this.fanoutType = builder.fanoutType;
@@ -45,8 +68,9 @@ public class SendMeta implements Serializable {
         }
         return builder().nodeId(needsNodeId ? defaultNodeId : nodeId).peerId(peerId)
                 .channel(channel).protocol(protocol).messageType(messageType)
-                .messageVersion(messageVersion).logicalMessageId(logicalMessageId)
-                .deliveryId(deliveryId).fanoutType(fanoutType).targetCount(targetCount)
+                .messageVersion(messageVersion).rpcService(rpcService).rpcMethod(rpcMethod)
+                .messageKind(messageKind).logicalMessageId(logicalMessageId).deliveryId(deliveryId)
+                .fanoutType(fanoutType).targetCount(targetCount)
                 .nodeRole(needsNodeRole ? defaultNodeRole : nodeRole).peerRole(peerRole).build();
     }
 
@@ -62,6 +86,9 @@ public class SendMeta implements Serializable {
         private String protocol;
         private String messageType;
         private String messageVersion;
+        private String rpcService;
+        private String rpcMethod;
+        private String messageKind;
         private String logicalMessageId;
         private String deliveryId;
         private String fanoutType = "UNKNOWN";
@@ -96,6 +123,21 @@ public class SendMeta implements Serializable {
 
         public Builder messageVersion(String messageVersion) {
             this.messageVersion = messageVersion;
+            return this;
+        }
+
+        public Builder rpcService(String rpcService) {
+            this.rpcService = rpcService;
+            return this;
+        }
+
+        public Builder rpcMethod(String rpcMethod) {
+            this.rpcMethod = rpcMethod;
+            return this;
+        }
+
+        public Builder messageKind(String messageKind) {
+            this.messageKind = messageKind;
             return this;
         }
 

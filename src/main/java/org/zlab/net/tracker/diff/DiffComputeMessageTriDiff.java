@@ -16,22 +16,22 @@ public final class DiffComputeMessageTriDiff {
     private DiffComputeMessageTriDiff() {
     }
 
-    @SuppressWarnings("deprecation")
+    /**
+     * Convenience entry point using the production default
+     * {@link CanonicalKeyMode#GUIDANCE} identity. Prefer
+     * {@link #computeSemantic(Trace, Trace, Trace, CanonicalKeyMode)} when
+     * the caller needs to select the tier explicitly.
+     */
     public static MessageTriDiffResult compute(Trace trace0, Trace trace1, Trace trace2) {
-        List<String> seq0 = trace0 != null ? trace0.getMessageKeysForDiff() : new ArrayList<>();
-        List<String> seq1 = trace1 != null ? trace1.getMessageKeysForDiff() : new ArrayList<>();
-        List<String> seq2 = trace2 != null ? trace2.getMessageKeysForDiff() : new ArrayList<>();
-        return computeFromSequences(seq0, seq1, seq2);
+        return computeSemantic(trace0, trace1, trace2, CanonicalKeyMode.GUIDANCE);
     }
 
     /**
-     * Legacy three-way diff using canonical keys at the coarsest
-     * {@link CanonicalKeyMode#SEMANTIC} tier. Kept for tests and legacy callers;
-     * production paths should use
-     * {@link #computeSemantic(Trace, Trace, Trace, CanonicalKeyMode)}.
+     * Three-way diff using canonical keys at the default
+     * {@link CanonicalKeyMode#GUIDANCE} tier.
      */
     public static MessageTriDiffResult computeSemantic(Trace trace0, Trace trace1, Trace trace2) {
-        return computeSemantic(trace0, trace1, trace2, CanonicalKeyMode.SEMANTIC);
+        return computeSemantic(trace0, trace1, trace2, CanonicalKeyMode.GUIDANCE);
     }
 
     /**
@@ -40,7 +40,7 @@ public final class DiffComputeMessageTriDiff {
      */
     public static MessageTriDiffResult computeSemantic(Trace trace0, Trace trace1, Trace trace2,
             CanonicalKeyMode mode) {
-        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.GUIDANCE;
         List<String> seq0 = trace0 != null
                 ? trace0.getCanonicalKeysForDiff(resolved)
                 : new ArrayList<>();
@@ -205,11 +205,6 @@ public final class DiffComputeMessageTriDiff {
          * Fraction of baseline-shared messages that are missing from the rolling lane.
          * Returns {@code 0.0} when the baselines have no messages in common. Always in
          * {@code [0, 1]} because {@code in02Only <= min(c0, c2)} per key.
-         *
-         * <p>
-         * Phase 1 fix: the earlier implementation normalized by rolling-lane size,
-         * which could exceed 1.0 when the rolling lane was much shorter than the
-         * baselines.
          */
         public double rollingMissingFraction() {
             int denom = baselineSharedCount();

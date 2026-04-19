@@ -1,45 +1,46 @@
 package org.zlab.net.tracker;
 
 /**
- * Selects how strictly {@link TraceEntry#canonicalMessageKey(CanonicalKeyMode)}
- * distinguishes two messages.
+ * Selects how
+ * {@link TraceEntry#canonicalMessageKey(CanonicalKeyMode)} turns a trace
+ * entry into a canonical identity string.
  *
  * <p>
- * Tiers are ordered from coarsest (best cross-version matching) to strictest
- * (most precise but most fragile across versions):
+ * Phase 1 collapses the canonical-key space down to the two tiers that
+ * still serve a concrete purpose after the guidance redesign:
  *
  * <ol>
- * <li>{@link #SEMANTIC} — {direction|endpoint|semanticType}. The original Phase
- * 2 key. Guaranteed to survive message-type renames handled by
- * {@link SemanticAliasTable}.</li>
- * <li>{@link #SEMANTIC_SHAPE} — adds {@code messageShapeHash}. Separates
- * messages whose payload field set differs even when the raw semantic type
- * matches. Shape hashes are stable as long as payload classes are unchanged
- * across versions.</li>
- * <li>{@link #SEMANTIC_SHAPE_SUMMARY} — adds a bucketed summary hash derived
- * from {@link TraceEntry#messageSummary}. Summary tokens are normalized
- * (numbers, UUIDs, hex, volatile wrapper types, variable-size containers)
- * before hashing, so the bucket is stable against value noise while still
- * separating structurally different messages.</li>
- * <li>{@link #SEMANTIC_SHAPE_VALUE} — adds {@code messageValueHash} directly.
- * Offered for offline analysis and strict experiments. Not recommended as a
- * default because cross-version refactors (field reorderings, new fields,
- * different representations) easily break matching.</li>
+ * <li>{@link #GUIDANCE} — the new online guidance identity. Format is
+ * {@code direction|srcRole->dstRole|protocolFamily}, where
+ * {@code protocolFamily} is produced by
+ * {@link org.zlab.net.tracker.classifier.ProtocolFamilyClassifier}. This is
+ * the live-fuzzing default. It is stable against wrapper, summary, and
+ * payload-class drift as long as the verb or RPC method name is
+ * recognised by the first-cut classifier.</li>
+ * <li>{@link #SEMANTIC_SHAPE_SUMMARY} — richer offline-diagnostic identity
+ * that keeps {@code direction|srcRole->dstRole|semanticType|shape|summary}.
+ * Used by {@link TraceEntry} consumers that explicitly want
+ * within-semantic / within-shape drift to surface, notably
+ * signature-dedup fixtures and the {@code printTrace} debug log. Not used
+ * by the production scorer.</li>
  * </ol>
  *
  * <p>
- * The Apr 12 improvement plan picks {@link #SEMANTIC_SHAPE_SUMMARY} as the
- * rerun-candidate default for mode 5 because it is strictly more discriminating
- * than the previous {@link #SEMANTIC} key while still bucketing benign value
- * drift.
+ * The pre-Phase-1 {@code SEMANTIC}, {@code SEMANTIC_SHAPE}, and
+ * {@code SEMANTIC_SHAPE_VALUE} tiers were removed in Phase 1 because the
+ * redesigned scorer no longer has a use for them — see
+ * {@code cloudlab-fix-plans/apr16/phases/2026-04-17-phase-1-online-identity
+ * -split-and-family-canonicalization.md}. Reintroducing one of them in a
+ * later phase is fine; rolling it forward only for backwards-compatibility
+ * is not.
  */
 public enum CanonicalKeyMode {
-    SEMANTIC, SEMANTIC_SHAPE, SEMANTIC_SHAPE_SUMMARY, SEMANTIC_SHAPE_VALUE;
+    GUIDANCE, SEMANTIC_SHAPE_SUMMARY;
 
     /**
-     * Recommended default for production fuzzing runs. Chosen by the Apr 12 mode-5
-     * efficiency plan — tighter than {@link #SEMANTIC} but does not over-fragment
-     * across versions the way raw {@link #SEMANTIC_SHAPE_VALUE} does.
+     * Recommended default for production fuzzing runs. Phase 1 retargets
+     * this at the new {@link #GUIDANCE} identity so live scoring no longer
+     * depends on payload-shape or summary drift.
      */
-    public static final CanonicalKeyMode DEFAULT = SEMANTIC_SHAPE_SUMMARY;
+    public static final CanonicalKeyMode DEFAULT = GUIDANCE;
 }

@@ -1,6 +1,7 @@
 package net.tracker.diff;
 
 import org.junit.jupiter.api.Test;
+import org.zlab.net.tracker.CanonicalKeyMode;
 import org.zlab.net.tracker.SendMeta;
 import org.zlab.net.tracker.Trace;
 import org.zlab.net.tracker.diff.DiffComputeMessageTriDiff;
@@ -175,8 +176,11 @@ public class TestDiffComputeMessageTriDiff {
                 "Message|Header|33135262944949|33145262944949|0|InetAddressAndPort|byte[]|[len=4]|-64|-88|55|2|230|EnumMap|{size=0}|PING_REQ|PingRequest|SMALL_MESSAGES|-1|-1|0|0",
                 "Message|Header|33135262944949|33145262944949|0|InetAddressAndPort|byte[]|[len=4]|-64|-88|55|2|231|EnumMap|{size=0}|PING_REQ|PingRequest|LARGE_MESSAGES|-1|-1|0|0");
 
+        // SEMANTIC_SHAPE_SUMMARY is retained after Phase 1 for offline
+        // diagnosis; it is the tier where summary-level volatile-token
+        // normalization still governs identity collapse.
         DiffComputeMessageTriDiff.MessageTriDiffResult result = DiffComputeMessageTriDiff
-                .compute(oldOld, oldNew, newNew);
+                .computeSemantic(oldOld, oldNew, newNew, CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
 
         assertEquals(2, result.totalAllThreeCount());
         assertEquals(0, result.totalExclusiveCount());
@@ -186,8 +190,12 @@ public class TestDiffComputeMessageTriDiff {
         Trace trace = new Trace();
         int idx = 0;
         for (String message : messages) {
+            // Carry each synthetic message id through {@code messageType} so
+            // the Phase 1 GUIDANCE key — which collapses unclassified traffic
+            // into a single {@code UNKNOWN:<rawSemanticType>} bucket per type
+            // — keeps the messages distinguishable for tri-diff mechanics.
             trace.recordSend("MessagingService.doSend", 4110001, new int[]{idx}, message,
-                    SendMeta.builder().messageType("UnitMessage").build(), message);
+                    SendMeta.builder().messageType(message).build(), message);
             idx++;
         }
         return trace;

@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Trace implements Serializable {
-    private static final long serialVersionUID = 20260407L;
+    private static final long serialVersionUID = 20260419L;
     public static final boolean debug = false;
     private static final int DIFF_SUMMARY_TOKEN_LIMIT = 12;
     private static final Pattern NUMBER_TOKEN_PATTERN = Pattern.compile("^-?\\d+(?:\\.\\d+)?$");
@@ -65,6 +65,7 @@ public class Trace implements Serializable {
         addEntry(name, id, TraceEntry.EventType.SEND, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.nodeRole, normalized.peerRole, normalized.channel,
                 normalized.protocol, normalized.messageType, normalized.messageVersion,
+                normalized.rpcService, normalized.rpcMethod, normalized.messageKind,
                 normalized.logicalMessageId, normalized.deliveryId, normalized.fanoutType,
                 normalized.targetCount, messageShapeHash, messageValueHash, messageKey, fp.summary,
                 false, beforeExecPath, null, payloadType);
@@ -90,6 +91,7 @@ public class Trace implements Serializable {
         addEntry(name, id, TraceEntry.EventType.RECV_BEGIN, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.nodeRole, normalized.peerRole, normalized.channel,
                 normalized.protocol, normalized.messageType, normalized.messageVersion,
+                normalized.rpcService, normalized.rpcMethod, normalized.messageKind,
                 normalized.logicalMessageId, normalized.deliveryId, null, -1, messageShapeHash,
                 messageValueHash, messageKey, fp.summary, false, beforeExecPath, null, payloadType);
     }
@@ -115,6 +117,7 @@ public class Trace implements Serializable {
         addEntry(name, id, TraceEntry.EventType.RECV_END, changedMessage, normalized.nodeId,
                 normalized.peerId, normalized.nodeRole, normalized.peerRole, normalized.channel,
                 normalized.protocol, normalized.messageType, normalized.messageVersion,
+                normalized.rpcService, normalized.rpcMethod, normalized.messageKind,
                 normalized.logicalMessageId, normalized.deliveryId, null, -1, messageShapeHash,
                 messageValueHash, messageKey, fp.summary, timedOut, beforeExecPath, afterExecPath,
                 payloadType);
@@ -123,18 +126,20 @@ public class Trace implements Serializable {
     private void addEntry(String name, int id, TraceEntry.EventType eventType,
             boolean changedMessage, String nodeId, String peerId, String nodeRole, String peerRole,
             String channel, String protocol, String messageType, String messageVersion,
-            String logicalMessageId, String deliveryId, String fanoutType, int targetCount,
-            long messageShapeHash, long messageValueHash, String messageKey, String messageSummary,
-            boolean timedOut, int[] beforeExecPath, int[] afterExecPath, String payloadType) {
+            String rpcService, String rpcMethod, String messageKind, String logicalMessageId,
+            String deliveryId, String fanoutType, int targetCount, long messageShapeHash,
+            long messageValueHash, String messageKey, String messageSummary, boolean timedOut,
+            int[] beforeExecPath, int[] afterExecPath, String payloadType) {
         long nowMillis = System.currentTimeMillis();
         long nowNanos = System.nanoTime();
         long beforeHash = Utils.computeHash(beforeExecPath);
         long afterHash = Utils.computeHash(afterExecPath);
         traceEntries.add(new TraceEntry(id, name, name.hashCode(), eventType, changedMessage,
                 nowMillis, nowNanos, nodeId, peerId, nodeRole, peerRole, channel, protocol,
-                messageType, messageVersion, logicalMessageId, deliveryId, fanoutType, targetCount,
-                messageShapeHash, messageValueHash, messageKey, messageSummary, timedOut,
-                beforeHash, beforeExecPath, afterHash, afterExecPath, payloadType));
+                messageType, messageVersion, rpcService, rpcMethod, messageKind, logicalMessageId,
+                deliveryId, fanoutType, targetCount, messageShapeHash, messageValueHash, messageKey,
+                messageSummary, timedOut, beforeHash, beforeExecPath, afterHash, afterExecPath,
+                payloadType));
     }
 
     public boolean examineChangedMessage(Object... contextArgs) {
@@ -215,72 +220,22 @@ public class Trace implements Serializable {
         return traceEntries.size();
     }
 
-    /** @deprecated Use {@link #getCanonicalKeysForDiff()} instead. */
-    @Deprecated
-    public synchronized List<String> getMessageKeysForDiff() {
-        List<String> keys = new LinkedList<>();
-        boolean hasSend = false;
-        for (TraceEntry entry : traceEntries) {
-            if (entry.eventType == TraceEntry.EventType.SEND) {
-                hasSend = true;
-                break;
-            }
-        }
-
-        for (TraceEntry entry : traceEntries) {
-            if (hasSend && entry.eventType != TraceEntry.EventType.SEND) {
-                continue;
-            }
-            if (!hasSend && entry.eventType == TraceEntry.EventType.RECV_END) {
-                continue;
-            }
-            keys.add(buildMessageDiffKey(entry));
-        }
-        return keys;
-    }
-
-    /** @deprecated Use {@link #getCanonicalKeysForDiff()} instead. */
-    @Deprecated
-    public synchronized List<String> getMessageKeysForDiffStrict() {
-        List<String> keys = new LinkedList<>();
-        boolean hasSend = false;
-        for (TraceEntry entry : traceEntries) {
-            if (entry.eventType == TraceEntry.EventType.SEND) {
-                hasSend = true;
-                break;
-            }
-        }
-
-        for (TraceEntry entry : traceEntries) {
-            if (hasSend && entry.eventType != TraceEntry.EventType.SEND) {
-                continue;
-            }
-            if (!hasSend && entry.eventType == TraceEntry.EventType.RECV_END) {
-                continue;
-            }
-            keys.add(entry.messageKey != null ? entry.messageKey : fallbackMessageKey(entry));
-        }
-        return keys;
-    }
-
     public synchronized List<TraceEntry> getTraceEntries() {
         return new LinkedList<>(traceEntries);
     }
 
-    // --- Canonical key accessors (Phase 2 + Phase 3) ---
+    // --- Canonical key accessors ---
 
     /**
-     * Returns multiset of canonical message keys at the coarsest
-     * {@link CanonicalKeyMode#SEMANTIC} tier (order-insensitive). Excludes RECV_END
-     * to avoid double-counting.
+     * Returns multiset of canonical message keys at the default
+     * {@link CanonicalKeyMode#GUIDANCE} tier (order-insensitive). Excludes
+     * RECV_END to avoid double-counting.
      *
-     * <p>
-     * Kept for backward compatibility. Prefer
-     * {@link #getCanonicalMultiset(CanonicalKeyMode)} from hot paths so the tier is
-     * explicit.
+     * <p>Prefer {@link #getCanonicalMultiset(CanonicalKeyMode)} in places
+     * where the tier is selected from configuration.
      */
     public synchronized Map<String, Integer> getCanonicalMultiset() {
-        return getCanonicalMultiset(CanonicalKeyMode.SEMANTIC);
+        return getCanonicalMultiset(CanonicalKeyMode.GUIDANCE);
     }
 
     /**
@@ -288,7 +243,7 @@ public class Trace implements Serializable {
      * {@link CanonicalKeyMode} tier. Excludes RECV_END to avoid double-counting.
      */
     public synchronized Map<String, Integer> getCanonicalMultiset(CanonicalKeyMode mode) {
-        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.GUIDANCE;
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (TraceEntry entry : traceEntries) {
             if (entry.eventType == TraceEntry.EventType.RECV_END)
@@ -300,17 +255,15 @@ public class Trace implements Serializable {
     }
 
     /**
-     * Returns ordered list of canonical message keys for tri-diff at the coarsest
-     * {@link CanonicalKeyMode#SEMANTIC} tier. Excludes RECV_END to avoid
-     * double-counting.
+     * Returns ordered list of canonical message keys for tri-diff at the
+     * default {@link CanonicalKeyMode#GUIDANCE} tier. Excludes RECV_END to
+     * avoid double-counting.
      *
-     * <p>
-     * Kept for backward compatibility. Prefer
-     * {@link #getCanonicalKeysForDiff(CanonicalKeyMode)} from hot paths so the tier
-     * is explicit.
+     * <p>Prefer {@link #getCanonicalKeysForDiff(CanonicalKeyMode)} in places
+     * where the tier is selected from configuration.
      */
     public synchronized List<String> getCanonicalKeysForDiff() {
-        return getCanonicalKeysForDiff(CanonicalKeyMode.SEMANTIC);
+        return getCanonicalKeysForDiff(CanonicalKeyMode.GUIDANCE);
     }
 
     /**
@@ -318,7 +271,7 @@ public class Trace implements Serializable {
      * {@link CanonicalKeyMode} tier. Excludes RECV_END to avoid double-counting.
      */
     public synchronized List<String> getCanonicalKeysForDiff(CanonicalKeyMode mode) {
-        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.GUIDANCE;
         List<String> keys = new ArrayList<>();
         for (TraceEntry entry : traceEntries) {
             if (entry.eventType == TraceEntry.EventType.RECV_END)
@@ -330,7 +283,8 @@ public class Trace implements Serializable {
 
     /**
      * Returns multiset of raw semantic types only (no direction, no endpoint).
-     * Useful for coarse similarity when roles are unavailable.
+     * Retained as a diagnostic helper for offline analysis and tests — the
+     * production scorer uses {@link #getCanonicalMultiset(CanonicalKeyMode)}.
      */
     public synchronized Map<String, Integer> getSemanticTypeMultiset() {
         Map<String, Integer> counts = new LinkedHashMap<>();
@@ -407,14 +361,10 @@ public class Trace implements Serializable {
     }
 
     /**
-     * @deprecated Legacy per-entry key. Still used internally by
-     *             record()/recordSend()/beginReceive() to populate
-     *             TraceEntry.messageKey. Prefer
-     *             {@link TraceEntry#canonicalMessageKey()} for cross-version
-     *             comparison.
+     * Legacy per-entry key populated onto every recorded
+     * {@link TraceEntry#messageKey}. Retained so serialized traces from older
+     * runs still deserialize cleanly; production scoring never reads it.
      */
-    @Deprecated
-    @SuppressWarnings("deprecation")
     private static String buildMessageKey(TraceEntry.EventType eventType, String methodName, int id,
             String messageType, String messageVersion, long messageShapeHash,
             long messageValueHash) {
@@ -422,113 +372,6 @@ public class Trace implements Serializable {
                 + "|ver=" + normalizeMeta(messageVersion) + "|shape="
                 + Long.toHexString(messageShapeHash) + "|value="
                 + Long.toHexString(messageValueHash);
-    }
-
-    /** @deprecated Only supports deprecated getMessageKeysForDiffStrict(). */
-    @Deprecated
-    private static String fallbackMessageKey(TraceEntry entry) {
-        return entry.hashcode + "_" + entry.recentExecPathHash + "_" + entry.messageShapeHash + "_"
-                + entry.messageValueHash;
-    }
-
-    /** @deprecated Only supports deprecated getMessageKeysForDiff(). */
-    @Deprecated
-    private static String buildMessageDiffKey(TraceEntry entry) {
-        String eventType = entry.eventType != null
-                ? entry.eventType.name()
-                : TraceEntry.EventType.UNKNOWN.name();
-        String payloadType = normalizeMeta(shortTypeName(entry.log));
-        String semanticHash = semanticSummaryHash(entry.messageSummary);
-        return eventType + "|" + entry.methodName + "#" + entry.id + "|type="
-                + normalizeMeta(entry.messageType) + "|ver=" + normalizeMeta(entry.messageVersion)
-                + "|payload=" + payloadType + "|sem=" + semanticHash;
-    }
-
-    private static String semanticSummaryHash(String summary) {
-        if (summary == null || summary.isEmpty()) {
-            return "-";
-        }
-
-        String[] rawTokens = summary.split("\\|");
-        List<String> normalized = new ArrayList<>();
-        for (String rawToken : rawTokens) {
-            String token = normalizeSummaryToken(rawToken);
-            if (token == null || token.isEmpty()) {
-                continue;
-            }
-            if (!normalized.isEmpty() && token.equals(normalized.get(normalized.size() - 1))) {
-                continue;
-            }
-            normalized.add(token);
-            if (normalized.size() >= DIFF_SUMMARY_TOKEN_LIMIT) {
-                break;
-            }
-        }
-
-        if (normalized.isEmpty()) {
-            return "-";
-        }
-
-        String canonical = String.join("|", normalized);
-        return Long.toHexString(fnv1a64(canonical));
-    }
-
-    private static String normalizeSummaryToken(String rawToken) {
-        if (rawToken == null) {
-            return null;
-        }
-        String token = rawToken.trim();
-        if (token.isEmpty()) {
-            return null;
-        }
-        if (VOLATILE_SUMMARY_TOKENS.contains(token)) {
-            return null;
-        }
-        if (token.startsWith("[len=")) {
-            return "[len=*]";
-        }
-        if (token.startsWith("(size=")) {
-            return "(size=*)";
-        }
-        if (token.startsWith("{size=")) {
-            return "{size=*}";
-        }
-        if (token.startsWith("<value:")) {
-            return "<value>";
-        }
-        if (UUID_TOKEN_PATTERN.matcher(token).matches()) {
-            return "<uuid>";
-        }
-        if (NUMBER_TOKEN_PATTERN.matcher(token).matches()) {
-            return "<n>";
-        }
-        if (HEX_TOKEN_PATTERN.matcher(token).matches()) {
-            return "<hex>";
-        }
-        if (token.indexOf('.') >= 0 && token.length() > 24) {
-            return shortTypeName(token);
-        }
-        return token;
-    }
-
-    private static String shortTypeName(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        int idx = value.lastIndexOf('.');
-        if (idx < 0 || idx + 1 >= value.length()) {
-            return value;
-        }
-        return value.substring(idx + 1);
-    }
-
-    private static long fnv1a64(String value) {
-        long hash = 0xcbf29ce484222325L;
-        for (int i = 0; i < value.length(); i++) {
-            hash ^= value.charAt(i);
-            hash *= 0x100000001b3L;
-        }
-        return hash;
     }
 
     private static String normalizeMeta(String value) {

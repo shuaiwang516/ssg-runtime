@@ -17,12 +17,13 @@ public final class DiffComputeSemanticSimilarity {
     }
 
     /**
-     * Legacy two-arg entry point using the coarsest
-     * {@link CanonicalKeyMode#SEMANTIC} tier. Production callers should pass an
-     * explicit mode via {@link #compute(Trace, Trace, Trace, CanonicalKeyMode)}.
+     * Convenience entry point using the production default
+     * {@link CanonicalKeyMode#GUIDANCE} identity. Prefer
+     * {@link #compute(Trace, Trace, Trace, CanonicalKeyMode)} when the caller
+     * needs to select the tier explicitly.
      */
     public static double[] compute(Trace trace0, Trace trace1, Trace trace2) {
-        return compute(trace0, trace1, trace2, CanonicalKeyMode.SEMANTIC);
+        return compute(trace0, trace1, trace2, CanonicalKeyMode.GUIDANCE);
     }
 
     /**
@@ -32,7 +33,7 @@ public final class DiffComputeSemanticSimilarity {
      */
     public static double[] compute(Trace trace0, Trace trace1, Trace trace2,
             CanonicalKeyMode mode) {
-        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.SEMANTIC;
+        CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.GUIDANCE;
         Map<String, Integer> ms0 = safeMultiset(trace0, resolved);
         Map<String, Integer> ms1 = safeMultiset(trace1, resolved);
         Map<String, Integer> ms2 = safeMultiset(trace2, resolved);
