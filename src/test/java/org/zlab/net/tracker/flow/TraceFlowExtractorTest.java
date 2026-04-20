@@ -337,10 +337,19 @@ public class TraceFlowExtractorTest {
         assertEquals(Integer.valueOf(2), families.get(ProtocolFamily.CASSANDRA_SCHEMA_SYNC));
         assertEquals(Integer.valueOf(1), families.get(ProtocolFamily.BACKGROUND));
 
-        List<ProtocolFamily> order = result.compressedFamilyOrder();
-        assertEquals(2, order.size());
-        assertEquals(ProtocolFamily.CASSANDRA_SCHEMA_SYNC, order.get(0));
-        assertEquals(ProtocolFamily.BACKGROUND, order.get(1));
+        // Phase 3: compressed family order is per-role-pair so the
+        // scorer can compare local contexts instead of one global
+        // interleaving. The schema exchange shows up on "node0->node1"
+        // (the SEND) and on "node0->node1" again via the recv entry's
+        // normalized src/dst (peerRole->nodeRole). The gossip SEND lands
+        // on the same pair. Consecutive duplicates are collapsed.
+        Map<String, List<ProtocolFamily>> perPair = result.perRolePairCompressedFamilyOrder();
+        List<ProtocolFamily> forwardPair = perPair.get("node0->node1");
+        assertNotNull(forwardPair, "SEND role pair must appear");
+        assertEquals(2, forwardPair.size(),
+                "schema then gossip collapses to two entries on the forward pair");
+        assertEquals(ProtocolFamily.CASSANDRA_SCHEMA_SYNC, forwardPair.get(0));
+        assertEquals(ProtocolFamily.BACKGROUND, forwardPair.get(1));
     }
 
     @Test

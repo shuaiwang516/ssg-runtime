@@ -101,6 +101,7 @@ public final class TraceFlowExtractor {
 
         Map<TraceFlowKey, FlowAccumulator> accumulators = new LinkedHashMap<>();
         Map<String, Integer> fallbackTupleCounts = new LinkedHashMap<>();
+        Map<String, List<ProtocolFamily>> perRolePairCompressed = new LinkedHashMap<>();
         int explicitCount = 0;
         int fallbackCount = 0;
         int failedCount = 0;
@@ -148,13 +149,37 @@ public final class TraceFlowExtractor {
             if (detailLabel != null) {
                 acc.detailLabels.merge(detailLabel, 1, Integer::sum);
             }
+
+            // Phase 3 order signal: track the per-(srcRole->dstRole)
+            // family sequence in event order so the scorer can compare
+            // within a matched local context instead of folding every
+            // role pair into one global sequence. Consecutive duplicates
+            // are collapsed at record time — the Phase 3 plan classifies
+            // repeated-family runs inside one role pair as a single
+            // ordered step.
+            String rolePair = rolePairKey(srcRole, dstRole);
+            List<ProtocolFamily> pairSeq = perRolePairCompressed.get(rolePair);
+            if (pairSeq == null) {
+                pairSeq = new ArrayList<>();
+                perRolePairCompressed.put(rolePair, pairSeq);
+            }
+            if (pairSeq.isEmpty() || pairSeq.get(pairSeq.size() - 1) != family) {
+                pairSeq.add(family);
+            }
         }
 
         List<TraceFlowSummary> flows = new ArrayList<>(accumulators.size());
         for (FlowAccumulator acc : accumulators.values()) {
             flows.add(acc.build());
         }
-        return new FlowExtractionResult(flows, explicitCount, fallbackCount, failedCount);
+        return new FlowExtractionResult(flows, explicitCount, fallbackCount, failedCount,
+                perRolePairCompressed);
+    }
+
+    static String rolePairKey(String srcRole, String dstRole) {
+        String src = srcRole == null ? "UNKNOWN" : srcRole;
+        String dst = dstRole == null ? "UNKNOWN" : dstRole;
+        return src + "->" + dst;
     }
 
     // --- correlation resolution ----------------------------------------------
