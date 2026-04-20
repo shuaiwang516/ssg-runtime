@@ -12,18 +12,15 @@ public class RecvMeta implements Serializable {
     public final String messageType;
     public final String messageVersion;
     /**
-     * Phase 1 classifier input — see
-     * {@link SendMeta#rpcService} for the contract.
+     * Phase 1 classifier input — see {@link SendMeta#rpcService} for the contract.
      */
     public final String rpcService;
     /**
-     * Phase 1 classifier input — see
-     * {@link SendMeta#rpcMethod} for the contract.
+     * Phase 1 classifier input — see {@link SendMeta#rpcMethod} for the contract.
      */
     public final String rpcMethod;
     /**
-     * Phase 1 classifier input — see
-     * {@link SendMeta#messageKind} for the contract.
+     * Phase 1 classifier input — see {@link SendMeta#messageKind} for the contract.
      */
     public final String messageKind;
     public final String logicalMessageId;

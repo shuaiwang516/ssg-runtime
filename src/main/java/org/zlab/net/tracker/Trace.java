@@ -228,11 +228,12 @@ public class Trace implements Serializable {
 
     /**
      * Returns multiset of canonical message keys at the default
-     * {@link CanonicalKeyMode#GUIDANCE} tier (order-insensitive). Excludes
-     * RECV_END to avoid double-counting.
+     * {@link CanonicalKeyMode#GUIDANCE} tier (order-insensitive). Excludes RECV_END
+     * to avoid double-counting.
      *
-     * <p>Prefer {@link #getCanonicalMultiset(CanonicalKeyMode)} in places
-     * where the tier is selected from configuration.
+     * <p>
+     * Prefer {@link #getCanonicalMultiset(CanonicalKeyMode)} in places where the
+     * tier is selected from configuration.
      */
     public synchronized Map<String, Integer> getCanonicalMultiset() {
         return getCanonicalMultiset(CanonicalKeyMode.GUIDANCE);
@@ -255,12 +256,13 @@ public class Trace implements Serializable {
     }
 
     /**
-     * Returns ordered list of canonical message keys for tri-diff at the
-     * default {@link CanonicalKeyMode#GUIDANCE} tier. Excludes RECV_END to
-     * avoid double-counting.
+     * Returns ordered list of canonical message keys for tri-diff at the default
+     * {@link CanonicalKeyMode#GUIDANCE} tier. Excludes RECV_END to avoid
+     * double-counting.
      *
-     * <p>Prefer {@link #getCanonicalKeysForDiff(CanonicalKeyMode)} in places
-     * where the tier is selected from configuration.
+     * <p>
+     * Prefer {@link #getCanonicalKeysForDiff(CanonicalKeyMode)} in places where the
+     * tier is selected from configuration.
      */
     public synchronized List<String> getCanonicalKeysForDiff() {
         return getCanonicalKeysForDiff(CanonicalKeyMode.GUIDANCE);
@@ -362,8 +364,8 @@ public class Trace implements Serializable {
 
     /**
      * Legacy per-entry key populated onto every recorded
-     * {@link TraceEntry#messageKey}. Retained so serialized traces from older
-     * runs still deserialize cleanly; production scoring never reads it.
+     * {@link TraceEntry#messageKey}. Retained so serialized traces from older runs
+     * still deserialize cleanly; production scoring never reads it.
      */
     private static String buildMessageKey(TraceEntry.EventType eventType, String methodName, int id,
             String messageType, String messageVersion, long messageShapeHash,

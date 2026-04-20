@@ -19,8 +19,8 @@ public final class DiffComputeSemanticSimilarity {
     /**
      * Convenience entry point using the production default
      * {@link CanonicalKeyMode#GUIDANCE} identity. Prefer
-     * {@link #compute(Trace, Trace, Trace, CanonicalKeyMode)} when the caller
-     * needs to select the tier explicitly.
+     * {@link #compute(Trace, Trace, Trace, CanonicalKeyMode)} when the caller needs
+     * to select the tier explicitly.
      */
     public static double[] compute(Trace trace0, Trace trace1, Trace trace2) {
         return compute(trace0, trace1, trace2, CanonicalKeyMode.GUIDANCE);

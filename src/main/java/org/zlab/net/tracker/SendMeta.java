@@ -20,15 +20,15 @@ public class SendMeta implements Serializable {
     public final String rpcService;
     /**
      * Phase 1 classifier input: the method name within {@link #rpcService}.
-     * {@code null} when not applicable. For Cassandra this is typically the
-     * verb name already carried by {@link #messageType} and stays {@code null}.
+     * {@code null} when not applicable. For Cassandra this is typically the verb
+     * name already carried by {@link #messageType} and stays {@code null}.
      */
     public final String rpcMethod;
     /**
      * Phase 1 classifier input: an optional coarse subtype qualifier used when
-     * {@link #rpcService} / {@link #rpcMethod} is not precise enough (for
-     * example HBase {@code ClientService.Mutate} subtype {@code PUT} /
-     * {@code DELETE} / {@code INCREMENT}). {@code null} when not applicable.
+     * {@link #rpcService} / {@link #rpcMethod} is not precise enough (for example
+     * HBase {@code ClientService.Mutate} subtype {@code PUT} / {@code DELETE} /
+     * {@code INCREMENT}). {@code null} when not applicable.
      */
     public final String messageKind;
     public final String logicalMessageId;

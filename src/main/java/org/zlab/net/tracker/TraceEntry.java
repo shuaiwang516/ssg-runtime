@@ -145,12 +145,11 @@ public class TraceEntry implements Serializable {
                 + '\'' + ", nodeRole='" + nodeRole + '\'' + ", peerRole='" + peerRole + '\''
                 + ", messageType='" + messageType + '\'' + ", messageVersion='" + messageVersion
                 + '\'' + ", rpcService='" + rpcService + '\'' + ", rpcMethod='" + rpcMethod + '\''
-                + ", messageKind='" + messageKind + '\'' + ", logicalMessageId='"
-                + logicalMessageId + '\'' + ", deliveryId='" + deliveryId + '\''
-                + ", messageShapeHash=" + messageShapeHash + ", messageValueHash="
-                + messageValueHash + ", messageKey='" + messageKey + '\'' + ", messageSummary='"
-                + messageSummary + '\'' + ", timedOut=" + timedOut + ", beforeExecPathHash="
-                + beforeExecPathHash + ", beforeExecPath="
+                + ", messageKind='" + messageKind + '\'' + ", logicalMessageId='" + logicalMessageId
+                + '\'' + ", deliveryId='" + deliveryId + '\'' + ", messageShapeHash="
+                + messageShapeHash + ", messageValueHash=" + messageValueHash + ", messageKey='"
+                + messageKey + '\'' + ", messageSummary='" + messageSummary + '\'' + ", timedOut="
+                + timedOut + ", beforeExecPathHash=" + beforeExecPathHash + ", beforeExecPath="
                 + (beforeExecPath != null ? Arrays.toString(beforeExecPath) : "null")
                 + ", afterExecPathHash=" + afterExecPathHash + ", afterExecPath="
                 + (afterExecPath != null ? Arrays.toString(afterExecPath) : "null") + ", log='"
@@ -181,13 +180,12 @@ public class TraceEntry implements Serializable {
 
     /**
      * Returns the most specific available token for the
-     * {@link CanonicalKeyMode#GUIDANCE} {@code UNKNOWN:{tail}} fallback.
-     * Prefers the Phase 1 classifier inputs ({@link #rpcService} and
-     * {@link #rpcMethod}) over the raw semantic type so distinct
-     * unclassified HDFS / HBase RPC methods remain distinguishable even
-     * when neither {@code messageType} nor {@code payloadType} is usable
-     * (the common case for protobuf-wrapped calls). Falls back to the
-     * raw semantic type when no RPC method is available.
+     * {@link CanonicalKeyMode#GUIDANCE} {@code UNKNOWN:{tail}} fallback. Prefers
+     * the Phase 1 classifier inputs ({@link #rpcService} and {@link #rpcMethod})
+     * over the raw semantic type so distinct unclassified HDFS / HBase RPC methods
+     * remain distinguishable even when neither {@code messageType} nor
+     * {@code payloadType} is usable (the common case for protobuf-wrapped calls).
+     * Falls back to the raw semantic type when no RPC method is available.
      */
     String guidanceUnknownTail() {
         String method = normalizeOrNull(this.rpcMethod);
@@ -227,12 +225,11 @@ public class TraceEntry implements Serializable {
     }
 
     /**
-     * Phase 1 online guidance classification. The classifier consumes the
-     * richer attributes ({@code protocol}, {@code messageType},
-     * {@code rpcService}, {@code rpcMethod}, {@code messageKind}, and the
-     * payload class name) and returns a stable {@link ProtocolFamily}. A
-     * {@code null} or unrecognised message falls back to
-     * {@link ProtocolFamily#UNKNOWN}.
+     * Phase 1 online guidance classification. The classifier consumes the richer
+     * attributes ({@code protocol}, {@code messageType}, {@code rpcService},
+     * {@code rpcMethod}, {@code messageKind}, and the payload class name) and
+     * returns a stable {@link ProtocolFamily}. A {@code null} or unrecognised
+     * message falls back to {@link ProtocolFamily#UNKNOWN}.
      */
     public ProtocolFamily protocolFamily() {
         return ProtocolFamilyClassifier.classify(this.protocol, this.messageType, this.rpcService,
@@ -275,31 +272,29 @@ public class TraceEntry implements Serializable {
 
     /**
      * Returns the canonical message key at the default
-     * {@link CanonicalKeyMode#GUIDANCE} tier. This is the Phase 1 online
-     * identity used by the live scorer.
+     * {@link CanonicalKeyMode#GUIDANCE} tier. This is the Phase 1 online identity
+     * used by the live scorer.
      */
     public String canonicalMessageKey() {
         return canonicalMessageKey(CanonicalKeyMode.GUIDANCE);
     }
 
     /**
-     * Returns the canonical message key at the requested tier. A {@code null}
-     * tier defaults to {@link CanonicalKeyMode#GUIDANCE}.
+     * Returns the canonical message key at the requested tier. A {@code null} tier
+     * defaults to {@link CanonicalKeyMode#GUIDANCE}.
      *
      * <ul>
      * <li>{@link CanonicalKeyMode#GUIDANCE}:
      * {@code {dir}|{endpoint}|{protocolFamily}}, with
-     * {@code UNKNOWN:{rawSemanticType}} appended when the classifier falls
-     * back to {@link ProtocolFamily#UNKNOWN}. The tail keeps long-tail
-     * traffic distinguishable while Phase 5 profiles grow the classifier
-     * coverage.</li>
+     * {@code UNKNOWN:{rawSemanticType}} appended when the classifier falls back to
+     * {@link ProtocolFamily#UNKNOWN}. The tail keeps long-tail traffic
+     * distinguishable while Phase 5 profiles grow the classifier coverage.</li>
      * <li>{@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY}:
      * {@code {dir}|{endpoint}|{semType}|shape={hex}|sum={bucketHash}}</li>
      * </ul>
      *
-     * The endpoint fragment is omitted when both roles resolve to
-     * {@code UNKNOWN} so lane comparisons remain stable in role-starved
-     * traces.
+     * The endpoint fragment is omitted when both roles resolve to {@code UNKNOWN}
+     * so lane comparisons remain stable in role-starved traces.
      */
     public String canonicalMessageKey(CanonicalKeyMode mode) {
         CanonicalKeyMode resolved = mode != null ? mode : CanonicalKeyMode.GUIDANCE;

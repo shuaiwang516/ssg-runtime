@@ -91,6 +91,37 @@ test {
     }
 }
 
+// Phase 2 Apr16 replay. Opt-in only — the default `test` task leaves
+// `Apr16FlowReplayTest` inert because the raw Apr16 logs can exceed
+// the default Gradle test worker heap on pathological hosts. Run
+// explicitly via `./gradlew apr16FlowReplay`; the task bumps JVM heap
+// to 2 GiB and sets `replay.apr16=true` so the test actually walks
+// the dataset. Override `replay.apr16.root` / `replay.apr16.out`
+// (also honored by the test) to point at a different dataset or
+// output directory.
+task apr16FlowReplay(type: Test) {
+    description = 'Phase 2: replay the Apr16 server-log dumps through TraceFlowExtractor.'
+    group = 'verification'
+    useJUnitPlatform()
+    include '**/Apr16FlowReplayTest.class'
+    systemProperty 'replay.apr16', 'true'
+    if (project.hasProperty('replayApr16Root')) {
+        systemProperty 'replay.apr16.root', project.property('replayApr16Root')
+    }
+    if (project.hasProperty('replayApr16Out')) {
+        systemProperty 'replay.apr16.out', project.property('replayApr16Out')
+    }
+    maxHeapSize = '2g'
+    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+    testLogging {
+        showStandardStreams = true
+        events 'passed', 'failed', 'standardOut', 'standardError'
+    }
+    // Always run fresh — the replay reads external data the build system
+    // cannot track.
+    outputs.upToDateWhen { false }
+}
+
 spotless {
     java {
         target("src/**/*.java") // apply formatting to all .java files under 'src' directory

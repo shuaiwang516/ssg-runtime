@@ -7,8 +7,8 @@ package org.zlab.net.tracker.classifier;
  *
  * <ul>
  * <li>{@link #UPGRADE_CRITICAL}: families whose semantics are directly
- * implicated by rolling upgrades — schema changes, mutation pipelines,
- * journal / HA coordination, master DDL, region-admin lifecycle.</li>
+ * implicated by rolling upgrades — schema changes, mutation pipelines, journal
+ * / HA coordination, master DDL, region-admin lifecycle.</li>
  * <li>{@link #BACKGROUND}: families that produce steady chatter regardless of
  * test activity (gossip, heartbeats, status reports, catalog scans). Visible
  * but cannot be the main reason a window is promoted to strong.</li>

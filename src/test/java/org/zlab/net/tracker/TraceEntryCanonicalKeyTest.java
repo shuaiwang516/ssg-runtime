@@ -15,8 +15,9 @@ import org.zlab.net.tracker.classifier.ProtocolFamilyClass;
 /**
  * Canonical-key tests covering the Phase 1 online identity split.
  *
- * <p>Two tiers survive after Phase 1: {@link CanonicalKeyMode#GUIDANCE} (the
- * new production default, backed by the
+ * <p>
+ * Two tiers survive after Phase 1: {@link CanonicalKeyMode#GUIDANCE} (the new
+ * production default, backed by the
  * {@link org.zlab.net.tracker.classifier.ProtocolFamilyClassifier}) and
  * {@link CanonicalKeyMode#SEMANTIC_SHAPE_SUMMARY} (retained for offline
  * diagnosis and signature-dedup fixtures).
@@ -29,10 +30,10 @@ public class TraceEntryCanonicalKeyTest {
             String peerRole, String protocol, String messageType, String rpcService,
             String rpcMethod, String messageKind, String payloadType) {
         return new TraceEntry(1, "test", 1, eventType, false, System.currentTimeMillis(),
-                System.nanoTime(), /*nodeId*/ null, /*peerId*/ null, nodeRole, peerRole,
-                /*channel*/ null, protocol, messageType, /*messageVersion*/ null, rpcService,
-                rpcMethod, messageKind, /*logicalMessageId*/ null, /*deliveryId*/ null,
-                /*fanoutType*/ null, -1, 0L, 0L, /*messageKey*/ null, /*messageSummary*/ null,
+                System.nanoTime(), /* nodeId */ null, /* peerId */ null, nodeRole, peerRole,
+                /* channel */ null, protocol, messageType, /* messageVersion */ null, rpcService,
+                rpcMethod, messageKind, /* logicalMessageId */ null, /* deliveryId */ null,
+                /* fanoutType */ null, -1, 0L, 0L, /* messageKey */ null, /* messageSummary */ null,
                 false, 0L, null, 0L, null, payloadType);
     }
 
@@ -40,11 +41,12 @@ public class TraceEntryCanonicalKeyTest {
             String peerRole, String messageType, String payloadType, long shapeHash,
             String messageSummary) {
         return new TraceEntry(1, "test", 1, eventType, false, System.currentTimeMillis(),
-                System.nanoTime(), /*nodeId*/ null, /*peerId*/ null, nodeRole, peerRole,
-                /*channel*/ null, /*protocol*/ null, messageType, /*messageVersion*/ null,
-                /*rpcService*/ null, /*rpcMethod*/ null, /*messageKind*/ null,
-                /*logicalMessageId*/ null, /*deliveryId*/ null, /*fanoutType*/ null, -1, shapeHash,
-                0L, /*messageKey*/ null, messageSummary, false, 0L, null, 0L, null, payloadType);
+                System.nanoTime(), /* nodeId */ null, /* peerId */ null, nodeRole, peerRole,
+                /* channel */ null, /* protocol */ null, messageType, /* messageVersion */ null,
+                /* rpcService */ null, /* rpcMethod */ null, /* messageKind */ null,
+                /* logicalMessageId */ null, /* deliveryId */ null, /* fanoutType */ null, -1,
+                shapeHash, 0L, /* messageKey */ null, messageSummary, false, 0L, null, 0L, null,
+                payloadType);
     }
 
     // --- rawSemanticType / semanticType (offline diagnostic tier) -----------
@@ -185,8 +187,8 @@ public class TraceEntryCanonicalKeyTest {
 
     @Test
     public void guidanceKey_unknownTailUsesRpcMethodAloneWhenServiceMissing() {
-        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "client", "master", "hbase",
-                null, null, "unchartedRpc", null, null);
+        TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "client", "master", "hbase", null,
+                null, "unchartedRpc", null, null);
         String key = e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE);
         assertTrue(key.endsWith("|UNKNOWN:unchartedRpc"),
                 "key should carry the rpcMethod tail, got: " + key);
@@ -205,8 +207,7 @@ public class TraceEntryCanonicalKeyTest {
         TraceEntry e = guidanceEntry(TraceEntry.EventType.SEND, "node0", "node1", "cassandra",
                 "SCHEMA_PULL_REQ", null, null, null, null);
         assertEquals(e.canonicalMessageKey(), e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE));
-        assertEquals(e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE),
-                e.canonicalMessageKey(null));
+        assertEquals(e.canonicalMessageKey(CanonicalKeyMode.GUIDANCE), e.canonicalMessageKey(null));
     }
 
     // --- GUIDANCE stability across versions ---------------------------------
@@ -293,7 +294,8 @@ public class TraceEntryCanonicalKeyTest {
     @Test
     public void summaryKey_bucketsNumericNoise() {
         TraceEntry a = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
-                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L, "GossipDigestSyn|node0|42");
+                "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L,
+                "GossipDigestSyn|node0|42");
         TraceEntry b = summaryEntry(TraceEntry.EventType.SEND, "node0", "node1", null,
                 "org.apache.cassandra.gms.GossipDigestSyn", 0xABCDEF01L,
                 "GossipDigestSyn|node0|9999");
@@ -368,7 +370,8 @@ public class TraceEntryCanonicalKeyTest {
                 "org.apache.cassandra.db.Mutation", 0xABCDL, "Mutation|keyspace1"));
 
         Map<String, Integer> guidance = t.getCanonicalMultiset(CanonicalKeyMode.GUIDANCE);
-        Map<String, Integer> summary = t.getCanonicalMultiset(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
+        Map<String, Integer> summary = t
+                .getCanonicalMultiset(CanonicalKeyMode.SEMANTIC_SHAPE_SUMMARY);
 
         assertEquals(1, guidance.size());
         assertEquals(1, summary.size());
