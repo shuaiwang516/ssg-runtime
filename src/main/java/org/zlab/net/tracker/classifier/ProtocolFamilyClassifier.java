@@ -183,20 +183,72 @@ public final class ProtocolFamilyClassifier {
     /**
      * Classify the message described by the raw attributes. Returns
      * {@link ProtocolFamily#UNKNOWN} when the first-cut rules do not match.
+     *
+     * <p>Phase 5: when the first-cut rules return {@link ProtocolFamily#UNKNOWN}
+     * and a long-tail override has been registered via
+     * {@link #setLongTailOverride(LongTailOverride)}, the override is consulted
+     * to upgrade the result. Overrides cannot demote an already-classified
+     * family — they only fill in the UNKNOWN tail with version-aware
+     * service/method mappings produced by the nettrace profile generators.
      */
     public static ProtocolFamily classify(String protocol, String messageType, String rpcService,
             String rpcMethod, String messageKind, String payloadType) {
         String system = normalizeSystem(protocol, messageType, rpcService, rpcMethod, payloadType);
+        ProtocolFamily result;
         if ("cassandra".equals(system)) {
-            return classifyCassandra(messageType, messageKind, payloadType);
+            result = classifyCassandra(messageType, messageKind, payloadType);
+        } else if ("hdfs".equals(system)) {
+            result = classifyHdfs(rpcService, rpcMethod, messageType, payloadType);
+        } else if ("hbase".equals(system)) {
+            result = classifyHbase(rpcService, rpcMethod, messageKind, messageType, payloadType);
+        } else {
+            result = ProtocolFamily.UNKNOWN;
         }
-        if ("hdfs".equals(system)) {
-            return classifyHdfs(rpcService, rpcMethod, messageType, payloadType);
+        if (result == ProtocolFamily.UNKNOWN) {
+            LongTailOverride override = LONG_TAIL_OVERRIDE;
+            if (override != null) {
+                ProtocolFamily overridden = override.lookup(system, messageType, rpcService,
+                        rpcMethod, messageKind, payloadType);
+                if (overridden != null && overridden != ProtocolFamily.UNKNOWN) {
+                    return overridden;
+                }
+            }
         }
-        if ("hbase".equals(system)) {
-            return classifyHbase(rpcService, rpcMethod, messageKind, messageType, payloadType);
-        }
-        return ProtocolFamily.UNKNOWN;
+        return result;
+    }
+
+    /**
+     * Phase 5 long-tail override hook. Implementations are loaded from
+     * version-aware family-map profiles (see
+     * {@code nettrace-shuai/rupfuzz-nettrace/scripts/generate_family_inventories.sh})
+     * and registered via {@link #setLongTailOverride(LongTailOverride)} once
+     * per JVM. Implementations must be thread-safe — the classifier is hit on
+     * every traced message and from multiple lanes concurrently.
+     */
+    public interface LongTailOverride {
+        /**
+         * @return a non-{@link ProtocolFamily#UNKNOWN} family when the
+         *         override has a long-tail mapping for the supplied raw
+         *         attributes; {@code null} or {@link ProtocolFamily#UNKNOWN}
+         *         otherwise.
+         */
+        ProtocolFamily lookup(String system, String messageType, String rpcService,
+                String rpcMethod, String messageKind, String payloadType);
+    }
+
+    private static volatile LongTailOverride LONG_TAIL_OVERRIDE = null;
+
+    /**
+     * Register (or clear, with {@code null}) the active long-tail override.
+     * Pass {@code null} to disable any previously-registered override.
+     */
+    public static void setLongTailOverride(LongTailOverride override) {
+        LONG_TAIL_OVERRIDE = override;
+    }
+
+    /** @return the currently-registered long-tail override, or {@code null}. */
+    public static LongTailOverride getLongTailOverride() {
+        return LONG_TAIL_OVERRIDE;
     }
 
     /**
