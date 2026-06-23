@@ -11,6 +11,10 @@ group 'org.zlab'
 version '1.0-SNAPSHOT'
 
 repositories {
+    // Vendored local repo: gson-extras:2.8.5 is only served by the flaky
+    // artifactory.cronapp.io which times out from cloudlab, breaking the
+    // ssg-runtime fatJar build on fresh machines. Resolve it locally first.
+    maven { url "${rootDir}/libs-local" }
     mavenCentral()
     jcenter()
     maven { url "https://artifactory.cronapp.io/public-release/" }
